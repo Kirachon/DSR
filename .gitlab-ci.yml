@@ -1,0 +1,369 @@
+# GitLab CI/CD Pipeline for Philippine Dynamic Social Registry (DSR)
+# Version: 3.0.0
+# Author: DSR Development Team
+
+variables:
+  # Container Registry
+  REGISTRY: "registry.govcloud.ph"
+  REGISTRY_GROUP: "dsr"
+  
+  # Maven Configuration
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+  
+  # Security Scanning
+  TRIVY_VERSION: "0.48.3"
+  SONAR_VERSION: "4.8.0"
+  
+  # Kubernetes Configuration
+  KUBECTL_VERSION: "1.30.0"
+  HELM_VERSION: "3.13.3"
+  
+  # Build Configuration
+  JAVA_VERSION: "17"
+  NODE_VERSION: "18"
+
+# Cache configuration
+cache:
+  paths:
+    - .m2/repository/
+    - node_modules/
+    - frontend/web-portal/node_modules/
+    - frontend/admin-portal/node_modules/
+
+# Pipeline stages
+stages:
+  - validate
+  - build
+  - test
+  - security-scan
+  - package
+  - deploy-dev
+  - integration-test
+  - deploy-staging
+  - deploy-production
+
+# Templates
+.java-template: &java-template
+  image: registry.access.redhat.com/ubi9/openjdk-17:1.18
+  before_script:
+    - java -version
+    - ./mvnw --version
+
+.podman-template: &podman-template
+  image: quay.io/podman/stable:latest
+  services:
+    - name: docker:dind
+      alias: podman-dind
+  variables:
+    DOCKER_HOST: tcp://podman-dind:2376
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - podman --version
+
+.kubectl-template: &kubectl-template
+  image: bitnami/kubectl:$KUBECTL_VERSION
+  before_script:
+    - kubectl version --client
+
+# =====================================================
+# VALIDATION STAGE
+# =====================================================
+
+validate:code-format:
+  <<: *java-template
+  stage: validate
+  script:
+    - echo "Validating code format and style..."
+    - ./mvnw $MAVEN_CLI_OPTS checkstyle:check
+    - ./mvnw $MAVEN_CLI_OPTS spotbugs:check
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+validate:dependencies:
+  <<: *java-template
+  stage: validate
+  script:
+    - echo "Checking for dependency vulnerabilities..."
+    - ./mvnw $MAVEN_CLI_OPTS org.owasp:dependency-check-maven:check
+  artifacts:
+    reports:
+      dependency_scanning: target/dependency-check-report.json
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+validate:openapi:
+  image: swaggerapi/swagger-codegen-cli:latest
+  stage: validate
+  script:
+    - echo "Validating OpenAPI specifications..."
+    - swagger-codegen validate -i docs/api/openapi.yaml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# =====================================================
+# BUILD STAGE
+# =====================================================
+
+build:backend:
+  <<: *java-template
+  stage: build
+  script:
+    - echo "Building backend services..."
+    - ./mvnw $MAVEN_CLI_OPTS clean compile
+    - ./mvnw $MAVEN_CLI_OPTS package -DskipTests
+  artifacts:
+    paths:
+      - "services/*/target/*.jar"
+      - "shared/*/target/*.jar"
+    expire_in: 1 hour
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+build:frontend:
+  image: node:$NODE_VERSION-alpine
+  stage: build
+  script:
+    - echo "Building frontend applications..."
+    - cd frontend/web-portal
+    - npm ci
+    - npm run build
+    - cd ../admin-portal
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/web-portal/dist/
+      - frontend/admin-portal/dist/
+    expire_in: 1 hour
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+# =====================================================
+# TEST STAGE
+# =====================================================
+
+test:unit:
+  <<: *java-template
+  stage: test
+  script:
+    - echo "Running unit tests..."
+    - ./mvnw $MAVEN_CLI_OPTS test
+  artifacts:
+    reports:
+      junit:
+        - "services/*/target/surefire-reports/TEST-*.xml"
+        - "shared/*/target/surefire-reports/TEST-*.xml"
+      coverage_report:
+        coverage_format: jacoco
+        path: "target/site/jacoco/jacoco.xml"
+    expire_in: 1 week
+  coverage: '/Total.*?([0-9]{1,3})%/'
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+test:integration:
+  <<: *java-template
+  stage: test
+  services:
+    - name: postgres:16-alpine
+      alias: postgres
+    - name: redis:7-alpine
+      alias: redis
+    - name: confluentinc/cp-kafka:latest
+      alias: kafka
+  variables:
+    POSTGRES_DB: dsr_test
+    POSTGRES_USER: dsr_test
+    POSTGRES_PASSWORD: test_password
+    SPRING_PROFILES_ACTIVE: test
+  script:
+    - echo "Running integration tests..."
+    - ./mvnw $MAVEN_CLI_OPTS verify -Dspring.profiles.active=test
+  artifacts:
+    reports:
+      junit:
+        - "services/*/target/failsafe-reports/TEST-*.xml"
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+test:frontend:
+  image: node:$NODE_VERSION-alpine
+  stage: test
+  script:
+    - echo "Running frontend tests..."
+    - cd frontend/web-portal
+    - npm ci
+    - npm run test:ci
+    - cd ../admin-portal
+    - npm ci
+    - npm run test:ci
+  artifacts:
+    reports:
+      junit:
+        - frontend/web-portal/junit.xml
+        - frontend/admin-portal/junit.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: frontend/*/coverage/cobertura-coverage.xml
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# =====================================================
+# SECURITY SCANNING STAGE
+# =====================================================
+
+security:sast:
+  image: registry.gitlab.com/gitlab-org/security-products/sonar-scanner:$SONAR_VERSION
+  stage: security-scan
+  script:
+    - echo "Running SAST analysis..."
+    - sonar-scanner
+      -Dsonar.projectKey=$CI_PROJECT_NAME
+      -Dsonar.sources=.
+      -Dsonar.host.url=$SONAR_HOST_URL
+      -Dsonar.login=$SONAR_TOKEN
+  artifacts:
+    reports:
+      sast: gl-sast-report.json
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+security:container-scan:
+  <<: *podman-template
+  stage: security-scan
+  script:
+    - echo "Scanning container images for vulnerabilities..."
+    - |
+      for service in registration-service data-management-service eligibility-service; do
+        echo "Building and scanning $service..."
+        podman build -t $REGISTRY/$REGISTRY_GROUP/$service:$CI_COMMIT_SHA -f services/$service/Containerfile .
+        
+        # Install Trivy
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v$TRIVY_VERSION
+        
+        # Scan image
+        trivy image --exit-code 1 --severity HIGH,CRITICAL --format json --output trivy-$service.json $REGISTRY/$REGISTRY_GROUP/$service:$CI_COMMIT_SHA
+      done
+  artifacts:
+    reports:
+      container_scanning: trivy-*.json
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+# =====================================================
+# PACKAGE STAGE
+# =====================================================
+
+package:containers:
+  <<: *podman-template
+  stage: package
+  script:
+    - echo "Building and pushing container images..."
+    - echo $CI_REGISTRY_PASSWORD | podman login -u $CI_REGISTRY_USER --password-stdin $REGISTRY
+    - |
+      for service in registration-service data-management-service eligibility-service interoperability-service payment-service grievance-service analytics-service; do
+        echo "Building $service..."
+        podman build -t $REGISTRY/$REGISTRY_GROUP/$service:$CI_COMMIT_SHA -f services/$service/Containerfile .
+        podman tag $REGISTRY/$REGISTRY_GROUP/$service:$CI_COMMIT_SHA $REGISTRY/$REGISTRY_GROUP/$service:latest
+        
+        echo "Pushing $service..."
+        podman push $REGISTRY/$REGISTRY_GROUP/$service:$CI_COMMIT_SHA
+        podman push $REGISTRY/$REGISTRY_GROUP/$service:latest
+        
+        if [ "$CI_COMMIT_TAG" != "" ]; then
+          podman tag $REGISTRY/$REGISTRY_GROUP/$service:$CI_COMMIT_SHA $REGISTRY/$REGISTRY_GROUP/$service:$CI_COMMIT_TAG
+          podman push $REGISTRY/$REGISTRY_GROUP/$service:$CI_COMMIT_TAG
+        fi
+      done
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+package:helm:
+  image: alpine/helm:$HELM_VERSION
+  stage: package
+  script:
+    - echo "Packaging Helm charts..."
+    - helm package infrastructure/helm/dsr-services --version $CI_COMMIT_SHA
+    - helm package infrastructure/helm/dsr-infrastructure --version $CI_COMMIT_SHA
+  artifacts:
+    paths:
+      - "*.tgz"
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+# =====================================================
+# DEPLOYMENT STAGES
+# =====================================================
+
+deploy:development:
+  <<: *kubectl-template
+  stage: deploy-dev
+  environment:
+    name: development
+    url: https://dev.dsr.gov.ph
+  script:
+    - echo "Deploying to development environment..."
+    - kubectl config use-context $KUBE_CONTEXT_DEV
+    - helm upgrade --install dsr-dev infrastructure/helm/dsr-services 
+      --namespace dsr-dev 
+      --create-namespace
+      --set image.tag=$CI_COMMIT_SHA
+      --set environment=development
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+deploy:staging:
+  <<: *kubectl-template
+  stage: deploy-staging
+  environment:
+    name: staging
+    url: https://staging.dsr.gov.ph
+  script:
+    - echo "Deploying to staging environment..."
+    - kubectl config use-context $KUBE_CONTEXT_STAGING
+    - helm upgrade --install dsr-staging infrastructure/helm/dsr-services 
+      --namespace dsr-staging 
+      --create-namespace
+      --set image.tag=$CI_COMMIT_SHA
+      --set environment=staging
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+deploy:production:
+  <<: *kubectl-template
+  stage: deploy-production
+  environment:
+    name: production
+    url: https://dsr.gov.ph
+  script:
+    - echo "Deploying to production environment..."
+    - kubectl config use-context $KUBE_CONTEXT_PROD
+    - helm upgrade --install dsr-production infrastructure/helm/dsr-services 
+      --namespace dsr-production 
+      --create-namespace
+      --set image.tag=$CI_COMMIT_TAG
+      --set environment=production
+  when: manual
+  rules:
+    - if: $CI_COMMIT_TAG

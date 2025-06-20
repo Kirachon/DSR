@@ -1,0 +1,365 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dsr-production
+  labels:
+    name: dsr-production
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dsr-registration-service
+  namespace: dsr-production
+  labels:
+    app: dsr-registration-service
+    component: registration
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dsr-registration-config
+  namespace: dsr-production
+  labels:
+    app: dsr-registration-service
+    component: registration
+data:
+  application.yml: |
+    server:
+      port: 8080
+      servlet:
+        context-path: /
+      shutdown: graceful
+    
+    spring:
+      application:
+        name: dsr-registration-service
+      profiles:
+        active: production
+      
+      datasource:
+        url: ${DATABASE_URL}
+        username: ${DATABASE_USERNAME}
+        password: ${DATABASE_PASSWORD}
+        driver-class-name: org.postgresql.Driver
+        hikari:
+          maximum-pool-size: 20
+          minimum-idle: 5
+          connection-timeout: 30000
+          idle-timeout: 600000
+          max-lifetime: 1800000
+      
+      jpa:
+        hibernate:
+          ddl-auto: validate
+        show-sql: false
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+            format_sql: false
+            jdbc:
+              batch_size: 20
+            order_inserts: true
+            order_updates: true
+      
+      kafka:
+        bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+        producer:
+          key-serializer: org.apache.kafka.common.serialization.StringSerializer
+          value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+          acks: all
+          retries: 3
+          properties:
+            enable.idempotence: true
+        consumer:
+          group-id: dsr-registration-service
+          key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+          value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+          auto-offset-reset: earliest
+          properties:
+            spring.json.trusted.packages: "ph.gov.dsr.*"
+      
+      cache:
+        type: redis
+      
+      data:
+        redis:
+          host: ${REDIS_HOST}
+          port: ${REDIS_PORT}
+          password: ${REDIS_PASSWORD}
+          timeout: 2000ms
+          lettuce:
+            pool:
+              max-active: 8
+              max-idle: 8
+              min-idle: 0
+    
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,info,metrics,prometheus
+      endpoint:
+        health:
+          show-details: when-authorized
+      metrics:
+        export:
+          prometheus:
+            enabled: true
+    
+    logging:
+      level:
+        ph.gov.dsr: INFO
+        org.springframework.security: WARN
+        org.hibernate.SQL: WARN
+      pattern:
+        console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+        file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+      file:
+        name: /opt/app/logs/registration-service.log
+    
+    dsr:
+      registration:
+        philsys:
+          api-url: ${PHILSYS_API_URL}
+          api-key: ${PHILSYS_API_KEY}
+          timeout: 30s
+        validation:
+          strict-mode: true
+        processing:
+          async-enabled: true
+          batch-size: 100
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dsr-registration-secrets
+  namespace: dsr-production
+  labels:
+    app: dsr-registration-service
+    component: registration
+type: Opaque
+stringData:
+  database-url: "jdbc:postgresql://postgresql.dsr-infrastructure:5432/dsr_production"
+  database-username: "dsr_registration_user"
+  database-password: "CHANGE_ME_IN_PRODUCTION"
+  redis-password: "CHANGE_ME_IN_PRODUCTION"
+  philsys-api-key: "CHANGE_ME_IN_PRODUCTION"
+  kafka-bootstrap-servers: "kafka.dsr-infrastructure:9092"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsr-registration-service
+  namespace: dsr-production
+  labels:
+    app: dsr-registration-service
+    version: v3.0.0
+    component: registration
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: dsr-registration-service
+  template:
+    metadata:
+      labels:
+        app: dsr-registration-service
+        version: v3.0.0
+        component: registration
+      annotations:
+        sidecar.istio.io/inject: "true"
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: dsr-registration-service
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: registration-service
+        image: registry.govcloud.ph/dsr/registration-service:v3.0.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "production"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: dsr-registration-secrets
+              key: database-url
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: dsr-registration-secrets
+              key: database-username
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dsr-registration-secrets
+              key: database-password
+        - name: REDIS_HOST
+          value: "redis.dsr-infrastructure"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dsr-registration-secrets
+              key: redis-password
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            secretKeyRef:
+              name: dsr-registration-secrets
+              key: kafka-bootstrap-servers
+        - name: PHILSYS_API_URL
+          value: "https://api.philsys.gov.ph/v1"
+        - name: PHILSYS_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: dsr-registration-secrets
+              key: philsys-api-key
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1001
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: logs-volume
+          mountPath: /opt/app/logs
+        - name: config-volume
+          mountPath: /opt/app/config
+          readOnly: true
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
+      - name: logs-volume
+        emptyDir: {}
+      - name: config-volume
+        configMap:
+          name: dsr-registration-config
+      imagePullSecrets:
+      - name: govcloud-registry-secret
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      tolerations:
+      - key: "dsr-workload"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dsr-registration-service
+  namespace: dsr-production
+  labels:
+    app: dsr-registration-service
+    component: registration
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: dsr-registration-service
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dsr-registration-network-policy
+  namespace: dsr-production
+spec:
+  podSelector:
+    matchLabels:
+      app: dsr-registration-service
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+    - podSelector:
+        matchLabels:
+          app: istio-proxy
+    ports:
+    - protocol: TCP
+      port: 8080
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: dsr-production
+    - podSelector:
+        matchLabels:
+          component: api-gateway
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: dsr-infrastructure
+    ports:
+    - protocol: TCP
+      port: 5432  # PostgreSQL
+    - protocol: TCP
+      port: 6379  # Redis
+    - protocol: TCP
+      port: 9092  # Kafka
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443   # HTTPS
+    - protocol: TCP
+      port: 53    # DNS
+    - protocol: UDP
+      port: 53    # DNS

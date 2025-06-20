@@ -1,0 +1,379 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: dsr-monitoring
+  labels:
+    app: prometheus
+    component: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'dsr-production'
+        environment: 'production'
+    
+    rule_files:
+      - "/etc/prometheus/rules/*.yml"
+    
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+              - alertmanager:9093
+    
+    scrape_configs:
+      # Prometheus itself
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+      
+      # Kubernetes API Server
+      - job_name: 'kubernetes-apiservers'
+        kubernetes_sd_configs:
+          - role: endpoints
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: default;kubernetes;https
+      
+      # Kubernetes Nodes
+      - job_name: 'kubernetes-nodes'
+        kubernetes_sd_configs:
+          - role: node
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          - target_label: __address__
+            replacement: kubernetes.default.svc:443
+          - source_labels: [__meta_kubernetes_node_name]
+            regex: (.+)
+            target_label: __metrics_path__
+            replacement: /api/v1/nodes/${1}/proxy/metrics
+      
+      # DSR Registration Service
+      - job_name: 'dsr-registration-service'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - dsr-production
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name]
+            action: keep
+            regex: dsr-registration-service
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: http
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            target_label: service
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+        metrics_path: /actuator/prometheus
+        scrape_interval: 30s
+      
+      # DSR Data Management Service
+      - job_name: 'dsr-data-management-service'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - dsr-production
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name]
+            action: keep
+            regex: dsr-data-management-service
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: http
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            target_label: service
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+        metrics_path: /actuator/prometheus
+        scrape_interval: 30s
+      
+      # DSR Eligibility Service
+      - job_name: 'dsr-eligibility-service'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - dsr-production
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name]
+            action: keep
+            regex: dsr-eligibility-service
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: http
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            target_label: service
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+        metrics_path: /actuator/prometheus
+        scrape_interval: 30s
+      
+      # PostgreSQL
+      - job_name: 'postgresql'
+        static_configs:
+          - targets: ['postgresql-exporter.dsr-infrastructure:9187']
+        scrape_interval: 30s
+      
+      # Redis
+      - job_name: 'redis'
+        static_configs:
+          - targets: ['redis-exporter.dsr-infrastructure:9121']
+        scrape_interval: 30s
+      
+      # Kafka
+      - job_name: 'kafka'
+        static_configs:
+          - targets: ['kafka-exporter.dsr-infrastructure:9308']
+        scrape_interval: 30s
+      
+      # Istio Service Mesh
+      - job_name: 'istio-mesh'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - istio-system
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: istio-proxy;http-monitoring
+      
+      # Node Exporter
+      - job_name: 'node-exporter'
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_endpoints_name]
+            regex: 'node-exporter'
+            action: keep
+  
+  # Alert Rules
+  alert-rules.yml: |
+    groups:
+      - name: dsr.rules
+        rules:
+          # High Error Rate
+          - alert: DSRHighErrorRate
+            expr: |
+              (
+                sum(rate(http_requests_total{job=~"dsr-.*",status=~"5.."}[5m])) by (service)
+                /
+                sum(rate(http_requests_total{job=~"dsr-.*"}[5m])) by (service)
+              ) > 0.05
+            for: 2m
+            labels:
+              severity: warning
+              service: "{{ $labels.service }}"
+            annotations:
+              summary: "High error rate detected in {{ $labels.service }}"
+              description: "Error rate is {{ $value | humanizePercentage }} for service {{ $labels.service }}"
+          
+          # High Response Time
+          - alert: DSRHighResponseTime
+            expr: |
+              histogram_quantile(0.95, 
+                sum(rate(http_request_duration_seconds_bucket{job=~"dsr-.*"}[5m])) by (le, service)
+              ) > 2
+            for: 5m
+            labels:
+              severity: warning
+              service: "{{ $labels.service }}"
+            annotations:
+              summary: "High response time in {{ $labels.service }}"
+              description: "95th percentile response time is {{ $value }}s for service {{ $labels.service }}"
+          
+          # Service Down
+          - alert: DSRServiceDown
+            expr: up{job=~"dsr-.*"} == 0
+            for: 1m
+            labels:
+              severity: critical
+              service: "{{ $labels.service }}"
+            annotations:
+              summary: "DSR service {{ $labels.service }} is down"
+              description: "Service {{ $labels.service }} has been down for more than 1 minute"
+          
+          # High Memory Usage
+          - alert: DSRHighMemoryUsage
+            expr: |
+              (
+                container_memory_working_set_bytes{pod=~"dsr-.*"}
+                /
+                container_spec_memory_limit_bytes{pod=~"dsr-.*"}
+              ) > 0.85
+            for: 5m
+            labels:
+              severity: warning
+              pod: "{{ $labels.pod }}"
+            annotations:
+              summary: "High memory usage in {{ $labels.pod }}"
+              description: "Memory usage is {{ $value | humanizePercentage }} in pod {{ $labels.pod }}"
+          
+          # High CPU Usage
+          - alert: DSRHighCPUUsage
+            expr: |
+              (
+                rate(container_cpu_usage_seconds_total{pod=~"dsr-.*"}[5m])
+                /
+                container_spec_cpu_quota{pod=~"dsr-.*"} * container_spec_cpu_period{pod=~"dsr-.*"}
+              ) > 0.85
+            for: 5m
+            labels:
+              severity: warning
+              pod: "{{ $labels.pod }}"
+            annotations:
+              summary: "High CPU usage in {{ $labels.pod }}"
+              description: "CPU usage is {{ $value | humanizePercentage }} in pod {{ $labels.pod }}"
+          
+          # Database Connection Issues
+          - alert: DSRDatabaseConnectionIssues
+            expr: |
+              hikaricp_connections_active{job=~"dsr-.*"} / hikaricp_connections_max{job=~"dsr-.*"} > 0.8
+            for: 2m
+            labels:
+              severity: warning
+              service: "{{ $labels.service }}"
+            annotations:
+              summary: "High database connection usage in {{ $labels.service }}"
+              description: "Database connection pool usage is {{ $value | humanizePercentage }} in service {{ $labels.service }}"
+          
+          # Kafka Consumer Lag
+          - alert: DSRKafkaConsumerLag
+            expr: |
+              kafka_consumer_lag_sum{job="kafka"} > 1000
+            for: 5m
+            labels:
+              severity: warning
+              topic: "{{ $labels.topic }}"
+              consumer_group: "{{ $labels.consumer_group }}"
+            annotations:
+              summary: "High Kafka consumer lag"
+              description: "Consumer group {{ $labels.consumer_group }} has lag of {{ $value }} messages on topic {{ $labels.topic }}"
+          
+          # PhilSys Integration Issues
+          - alert: DSRPhilSysIntegrationFailure
+            expr: |
+              increase(philsys_api_requests_total{status="error"}[5m]) > 10
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "PhilSys integration failures detected"
+              description: "{{ $value }} PhilSys API failures in the last 5 minutes"
+          
+          # Registration Processing Delays
+          - alert: DSRRegistrationProcessingDelay
+            expr: |
+              histogram_quantile(0.95, 
+                sum(rate(registration_processing_duration_seconds_bucket[5m])) by (le)
+              ) > 300
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Registration processing delays detected"
+              description: "95th percentile registration processing time is {{ $value }}s"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: dsr-monitoring
+  labels:
+    app: prometheus
+    component: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccountName: prometheus
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.48.1
+        args:
+          - '--config.file=/etc/prometheus/prometheus.yml'
+          - '--storage.tsdb.path=/prometheus/'
+          - '--web.console.libraries=/etc/prometheus/console_libraries'
+          - '--web.console.templates=/etc/prometheus/consoles'
+          - '--storage.tsdb.retention.time=30d'
+          - '--web.enable-lifecycle'
+          - '--web.enable-admin-api'
+        ports:
+        - containerPort: 9090
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        volumeMounts:
+        - name: prometheus-config
+          mountPath: /etc/prometheus/
+        - name: prometheus-storage
+          mountPath: /prometheus/
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 9090
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: 9090
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+      volumes:
+      - name: prometheus-config
+        configMap:
+          name: prometheus-config
+      - name: prometheus-storage
+        persistentVolumeClaim:
+          claimName: prometheus-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: dsr-monitoring
+  labels:
+    app: prometheus
+    component: monitoring
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9090
+    targetPort: 9090
+    protocol: TCP
+    name: web
+  selector:
+    app: prometheus

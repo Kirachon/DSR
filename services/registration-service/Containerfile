@@ -1,0 +1,81 @@
+# Multi-stage build for DSR Registration Service
+# Using Red Hat Universal Base Image for security and compliance
+
+# Build stage
+FROM registry.access.redhat.com/ubi9/openjdk-17:1.18 AS builder
+
+# Set working directory
+WORKDIR /build
+
+# Copy Maven wrapper and pom files
+COPY .mvn/ .mvn/
+COPY mvnw pom.xml ./
+COPY shared/ shared/
+COPY services/registration-service/pom.xml services/registration-service/
+
+# Download dependencies (for better layer caching)
+RUN ./mvnw dependency:go-offline -pl services/registration-service
+
+# Copy source code
+COPY services/registration-service/src/ services/registration-service/src/
+
+# Build application
+RUN ./mvnw clean package -pl services/registration-service -DskipTests
+
+# Production stage
+FROM registry.access.redhat.com/ubi9/openjdk-17-runtime:1.18
+
+# Security hardening - update packages
+USER root
+RUN microdnf update -y && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum
+
+# Create application user and group
+RUN groupadd -r dsr && useradd -r -g dsr -s /bin/false dsr
+
+# Set working directory
+WORKDIR /opt/app
+
+# Copy application JAR from builder stage
+COPY --from=builder --chown=dsr:dsr /build/services/registration-service/target/registration-service-*.jar app.jar
+
+# Copy configuration files
+COPY --chown=dsr:dsr services/registration-service/src/main/resources/application*.yml config/
+
+# Create directories for logs and temporary files
+RUN mkdir -p /opt/app/logs /opt/app/tmp && \
+    chown -R dsr:dsr /opt/app
+
+# Switch to non-root user
+USER dsr
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# Security labels
+LABEL name="dsr-registration-service" \
+      version="3.0.0" \
+      description="DSR Registration Service - Citizen engagement and registration" \
+      maintainer="dsr-team@dswd.gov.ph" \
+      security.scan="enabled" \
+      security.policy="restricted"
+
+# Expose application port
+EXPOSE 8080
+
+# JVM optimization for containers
+ENV JAVA_OPTS="-XX:+UseContainerSupport \
+               -XX:MaxRAMPercentage=75.0 \
+               -XX:+UseG1GC \
+               -XX:+UseStringDeduplication \
+               -XX:+OptimizeStringConcat \
+               -Djava.security.egd=file:/dev/./urandom \
+               -Dspring.profiles.active=production"
+
+# Run application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+
+# Security: Run as non-root, read-only filesystem, no capabilities
+# These will be enforced by Kubernetes security policies
