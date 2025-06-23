@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * @since 2024-12-23
  */
 @Service
-@Profile("no-db")
+@Profile({"no-db", "local"})
 @Slf4j
 public class MockProgramManagementServiceImpl implements ProgramManagementService {
 

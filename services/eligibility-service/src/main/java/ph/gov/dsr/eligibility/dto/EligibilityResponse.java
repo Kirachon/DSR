@@ -55,6 +55,35 @@ public class EligibilityResponse {
     @Schema(description = "Additional metadata about the assessment")
     private Map<String, Object> metadata;
 
+    @Schema(description = "User who last updated the assessment")
+    private String lastUpdatedBy;
+
+    @Schema(description = "Date and time when assessment was last updated")
+    private LocalDateTime lastUpdatedAt;
+
+    // Convenience methods for backward compatibility with tests
+    public BigDecimal getPmtScore() {
+        if (assessmentDetails != null && assessmentDetails.incomeAssessment != null) {
+            return assessmentDetails.incomeAssessment.monthlyIncome;
+        }
+        return null;
+    }
+
+    public BigDecimal getPovertyThreshold() {
+        if (assessmentDetails != null && assessmentDetails.incomeAssessment != null) {
+            return assessmentDetails.incomeAssessment.povertyThreshold;
+        }
+        return null;
+    }
+
+    public String getStatusReason() {
+        return reason;
+    }
+
+    public LocalDateTime getAssessedAt() {
+        return lastAssessmentDate;
+    }
+
     @Data
     @Schema(description = "Detailed assessment breakdown")
     public static class AssessmentDetails {
@@ -197,7 +226,8 @@ public class EligibilityResponse {
         WAITLISTED("Eligible but placed on waiting list due to program capacity"),
         UNDER_REVIEW("Assessment under review - additional verification needed"),
         SUSPENDED("Eligibility suspended due to non-compliance"),
-        EXPIRED("Previous eligibility has expired");
+        EXPIRED("Previous eligibility has expired"),
+        ERROR("Assessment failed due to system error");
 
         private final String description;
 

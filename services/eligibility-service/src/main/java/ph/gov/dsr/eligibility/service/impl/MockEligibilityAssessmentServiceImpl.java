@@ -521,6 +521,10 @@ public class MockEligibilityAssessmentServiceImpl implements EligibilityAssessme
                 recommendations.add("Submit new application for reassessment");
                 recommendations.add("Update household information and documentation");
                 break;
+            case ERROR:
+                recommendations.add("Contact system administrator for technical support");
+                recommendations.add("Retry assessment after system issues are resolved");
+                break;
         }
 
         return recommendations;
