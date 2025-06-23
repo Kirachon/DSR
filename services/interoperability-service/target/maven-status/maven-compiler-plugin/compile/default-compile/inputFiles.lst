@@ -1,2 +1,12 @@
+D:\GitProjects\DSR\services\interoperability-service\src\main\java\ph\gov\dsr\interoperability\config\CacheConfig.java
+D:\GitProjects\DSR\services\interoperability-service\src\main\java\ph\gov\dsr\interoperability\config\JwtProperties.java
 D:\GitProjects\DSR\services\interoperability-service\src\main\java\ph\gov\dsr\interoperability\config\NoDbConfig.java
+D:\GitProjects\DSR\services\interoperability-service\src\main\java\ph\gov\dsr\interoperability\dto\ApiGatewayRequest.java
+D:\GitProjects\DSR\services\interoperability-service\src\main\java\ph\gov\dsr\interoperability\dto\ApiGatewayResponse.java
+D:\GitProjects\DSR\services\interoperability-service\src\main\java\ph\gov\dsr\interoperability\entity\DataSharingAgreement.java
+D:\GitProjects\DSR\services\interoperability-service\src\main\java\ph\gov\dsr\interoperability\entity\ExternalSystemIntegration.java
+D:\GitProjects\DSR\services\interoperability-service\src\main\java\ph\gov\dsr\interoperability\entity\ServiceDeliveryRecord.java
 D:\GitProjects\DSR\services\interoperability-service\src\main\java\ph\gov\dsr\interoperability\InteroperabilityServiceApplication.java
+D:\GitProjects\DSR\services\interoperability-service\src\main\java\ph\gov\dsr\interoperability\repository\ExternalSystemIntegrationRepository.java
+D:\GitProjects\DSR\services\interoperability-service\src\main\java\ph\gov\dsr\interoperability\repository\ServiceDeliveryRecordRepository.java
+D:\GitProjects\DSR\services\interoperability-service\src\main\java\ph\gov\dsr\interoperability\service\ApiGatewayService.java
