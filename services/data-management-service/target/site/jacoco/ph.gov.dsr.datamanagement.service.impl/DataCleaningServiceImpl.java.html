@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DataCleaningServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DSR Data Management Service</a> &gt; <a href="index.source.html" class="el_package">ph.gov.dsr.datamanagement.service.impl</a> &gt; <span class="el_source">DataCleaningServiceImpl.java</span></div><h1>DataCleaningServiceImpl.java</h1><pre class="source lang-java linenums">package ph.gov.dsr.datamanagement.service.impl;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import ph.gov.dsr.datamanagement.service.DataCleaningService;
+
+import java.text.Normalizer;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+/**
+ * Production implementation of DataCleaningService
+ * 
+ * @author DSR Development Team
+ * @version 3.0.0
+ * @since 2024-12-23
+ */
+@Service
+@Profile(&quot;!no-db&quot;)
+<span class="nc" id="L25">@Slf4j</span>
+<span class="nc" id="L26">public class DataCleaningServiceImpl implements DataCleaningService {</span>
+
+    // Common patterns for cleaning
+<span class="nc" id="L29">    private static final Pattern PHONE_CLEANUP_PATTERN = Pattern.compile(&quot;[^0-9+]&quot;);</span>
+<span class="nc" id="L30">    private static final Pattern PSN_CLEANUP_PATTERN = Pattern.compile(&quot;[^0-9-]&quot;);</span>
+<span class="nc" id="L31">    private static final Pattern NAME_CLEANUP_PATTERN = Pattern.compile(&quot;[^a-zA-Z\\s.-]&quot;);</span>
+<span class="nc" id="L32">    private static final Pattern EXTRA_SPACES_PATTERN = Pattern.compile(&quot;\\s+&quot;);</span>
+    
+    // Date formatters for parsing various date formats
+<span class="nc" id="L35">    private static final DateTimeFormatter[] DATE_FORMATTERS = {</span>
+<span class="nc" id="L36">        DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd&quot;),</span>
+<span class="nc" id="L37">        DateTimeFormatter.ofPattern(&quot;MM/dd/yyyy&quot;),</span>
+<span class="nc" id="L38">        DateTimeFormatter.ofPattern(&quot;dd/MM/yyyy&quot;),</span>
+<span class="nc" id="L39">        DateTimeFormatter.ofPattern(&quot;yyyy/MM/dd&quot;),</span>
+<span class="nc" id="L40">        DateTimeFormatter.ofPattern(&quot;dd-MM-yyyy&quot;),</span>
+<span class="nc" id="L41">        DateTimeFormatter.ofPattern(&quot;MM-dd-yyyy&quot;)</span>
+    };
+
+    @Override
+    public Map&lt;String, Object&gt; cleanData(Map&lt;String, Object&gt; data, String dataType) {
+<span class="nc" id="L46">        log.debug(&quot;Cleaning data of type: {}&quot;, dataType);</span>
+        
+<span class="nc" id="L48">        Map&lt;String, Object&gt; cleanedData = new HashMap&lt;&gt;(data);</span>
+        
+        // Apply general cleaning to all fields
+<span class="nc bnc" id="L51" title="All 2 branches missed.">        for (Map.Entry&lt;String, Object&gt; entry : cleanedData.entrySet()) {</span>
+<span class="nc" id="L52">            String fieldName = entry.getKey();</span>
+<span class="nc" id="L53">            Object value = entry.getValue();</span>
+            
+<span class="nc bnc" id="L55" title="All 2 branches missed.">            if (value instanceof String) {</span>
+<span class="nc" id="L56">                String cleanedValue = cleanTextField((String) value, fieldName);</span>
+<span class="nc" id="L57">                cleanedData.put(fieldName, cleanedValue);</span>
+            }
+<span class="nc" id="L59">        }</span>
+        
+        // Apply data type specific cleaning
+<span class="nc" id="L62">        cleanedData = applyDataTypeRules(cleanedData, dataType);</span>
+        
+<span class="nc" id="L64">        return cleanedData;</span>
+    }
+
+    @Override
+    public String cleanTextField(String value, String fieldType) {
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L70">            return null;</span>
+        }
+        
+<span class="nc" id="L73">        String cleaned = value.trim();</span>
+        
+        // Remove control characters and normalize Unicode
+<span class="nc" id="L76">        cleaned = Normalizer.normalize(cleaned, Normalizer.Form.NFC);</span>
+<span class="nc" id="L77">        cleaned = cleaned.replaceAll(&quot;\\p{Cntrl}&quot;, &quot;&quot;);</span>
+        
+        // Field-specific cleaning
+<span class="nc bnc" id="L80" title="All 6 branches missed.">        switch (fieldType.toLowerCase()) {</span>
+            case &quot;firstname&quot;:
+            case &quot;lastname&quot;:
+            case &quot;middlename&quot;:
+            case &quot;name&quot;:
+<span class="nc" id="L85">                cleaned = normalizeName(cleaned);</span>
+<span class="nc" id="L86">                break;</span>
+            case &quot;phone&quot;:
+            case &quot;phonenumber&quot;:
+            case &quot;mobilenumber&quot;:
+<span class="nc" id="L90">                cleaned = cleanPhoneNumber(cleaned);</span>
+<span class="nc" id="L91">                break;</span>
+            case &quot;email&quot;:
+            case &quot;emailaddress&quot;:
+<span class="nc" id="L94">                cleaned = cleanEmail(cleaned);</span>
+<span class="nc" id="L95">                break;</span>
+            case &quot;psn&quot;:
+            case &quot;philsysnumber&quot;:
+<span class="nc" id="L98">                cleaned = cleanPSN(cleaned);</span>
+<span class="nc" id="L99">                break;</span>
+            case &quot;householdnumber&quot;:
+<span class="nc" id="L101">                cleaned = cleanHouseholdNumber(cleaned);</span>
+<span class="nc" id="L102">                break;</span>
+            default:
+                // General text cleaning
+<span class="nc" id="L105">                cleaned = sanitizeInput(cleaned, fieldType);</span>
+        }
+        
+<span class="nc" id="L108">        return cleaned;</span>
+    }
+
+    @Override
+    public Number cleanNumericField(Object value, String fieldType) {
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L114">            return null;</span>
+        }
+        
+        try {
+<span class="nc bnc" id="L118" title="All 2 branches missed.">            if (value instanceof Number) {</span>
+<span class="nc" id="L119">                return (Number) value;</span>
+            }
+            
+<span class="nc" id="L122">            String stringValue = value.toString().trim();</span>
+            
+            // Remove common formatting characters
+<span class="nc" id="L125">            stringValue = stringValue.replaceAll(&quot;[,\\s]&quot;, &quot;&quot;);</span>
+            
+            // Handle currency symbols
+<span class="nc" id="L128">            stringValue = stringValue.replaceAll(&quot;[₱$]&quot;, &quot;&quot;);</span>
+            
+            // Parse as double first, then convert to appropriate type
+<span class="nc" id="L131">            double doubleValue = Double.parseDouble(stringValue);</span>
+            
+            // Return as integer if it's a whole number and field suggests integer
+<span class="nc bnc" id="L134" title="All 2 branches missed.">            if (doubleValue == Math.floor(doubleValue) &amp;&amp; </span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">                (fieldType.toLowerCase().contains(&quot;count&quot;) || </span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                 fieldType.toLowerCase().contains(&quot;members&quot;) ||</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">                 fieldType.toLowerCase().contains(&quot;age&quot;))) {</span>
+<span class="nc" id="L138">                return (int) doubleValue;</span>
+            }
+            
+<span class="nc" id="L141">            return doubleValue;</span>
+            
+<span class="nc" id="L143">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L144">            log.warn(&quot;Could not parse numeric value: {} for field: {}&quot;, value, fieldType);</span>
+<span class="nc" id="L145">            return null;</span>
+        }
+    }
+
+    @Override
+    public String cleanDateField(Object value, String fieldType) {
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L152">            return null;</span>
+        }
+        
+<span class="nc" id="L155">        String stringValue = value.toString().trim();</span>
+        
+        // Try to parse with various formats
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        for (DateTimeFormatter formatter : DATE_FORMATTERS) {</span>
+            try {
+<span class="nc" id="L160">                LocalDate date = LocalDate.parse(stringValue, formatter);</span>
+                // Return in standard ISO format
+<span class="nc" id="L162">                return date.format(DateTimeFormatter.ISO_LOCAL_DATE);</span>
+<span class="nc" id="L163">            } catch (DateTimeParseException e) {</span>
+                // Continue to next formatter
+            }
+        }
+        
+<span class="nc" id="L168">        log.warn(&quot;Could not parse date value: {} for field: {}&quot;, value, fieldType);</span>
+<span class="nc" id="L169">        return stringValue; // Return original if parsing fails</span>
+    }
+
+    @Override
+    public String cleanPhoneNumber(String phoneNumber) {
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (phoneNumber == null) {</span>
+<span class="nc" id="L175">            return null;</span>
+        }
+        
+        // Remove all non-numeric characters except +
+<span class="nc" id="L179">        String cleaned = PHONE_CLEANUP_PATTERN.matcher(phoneNumber).replaceAll(&quot;&quot;);</span>
+        
+        // Standardize Philippine numbers
+<span class="nc bnc" id="L182" title="All 2 branches missed.">        if (cleaned.startsWith(&quot;0&quot;)) {</span>
+<span class="nc" id="L183">            cleaned = &quot;+63&quot; + cleaned.substring(1);</span>
+<span class="nc bnc" id="L184" title="All 4 branches missed.">        } else if (cleaned.startsWith(&quot;63&quot;) &amp;&amp; !cleaned.startsWith(&quot;+63&quot;)) {</span>
+<span class="nc" id="L185">            cleaned = &quot;+&quot; + cleaned;</span>
+<span class="nc bnc" id="L186" title="All 4 branches missed.">        } else if (!cleaned.startsWith(&quot;+&quot;) &amp;&amp; cleaned.length() == 10) {</span>
+<span class="nc" id="L187">            cleaned = &quot;+63&quot; + cleaned;</span>
+        }
+        
+<span class="nc" id="L190">        return cleaned;</span>
+    }
+
+    @Override
+    public Map&lt;String, Object&gt; cleanAddress(Map&lt;String, Object&gt; addressData) {
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (addressData == null) {</span>
+<span class="nc" id="L196">            return null;</span>
+        }
+        
+<span class="nc" id="L199">        Map&lt;String, Object&gt; cleanedAddress = new HashMap&lt;&gt;();</span>
+        
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        for (Map.Entry&lt;String, Object&gt; entry : addressData.entrySet()) {</span>
+<span class="nc" id="L202">            String key = entry.getKey();</span>
+<span class="nc" id="L203">            Object value = entry.getValue();</span>
+            
+<span class="nc bnc" id="L205" title="All 2 branches missed.">            if (value instanceof String) {</span>
+<span class="nc" id="L206">                String cleanedValue = ((String) value).trim();</span>
+                
+                // Normalize address components
+<span class="nc" id="L209">                cleanedValue = cleanedValue.toUpperCase();</span>
+<span class="nc" id="L210">                cleanedValue = EXTRA_SPACES_PATTERN.matcher(cleanedValue).replaceAll(&quot; &quot;);</span>
+                
+                // Remove common abbreviations and standardize
+<span class="nc" id="L213">                cleanedValue = cleanedValue</span>
+<span class="nc" id="L214">                    .replaceAll(&quot;\\bST\\.?\\b&quot;, &quot;STREET&quot;)</span>
+<span class="nc" id="L215">                    .replaceAll(&quot;\\bAVE\\.?\\b&quot;, &quot;AVENUE&quot;)</span>
+<span class="nc" id="L216">                    .replaceAll(&quot;\\bBLVD\\.?\\b&quot;, &quot;BOULEVARD&quot;)</span>
+<span class="nc" id="L217">                    .replaceAll(&quot;\\bRD\\.?\\b&quot;, &quot;ROAD&quot;)</span>
+<span class="nc" id="L218">                    .replaceAll(&quot;\\bBRGY\\.?\\b&quot;, &quot;BARANGAY&quot;);</span>
+                
+<span class="nc" id="L220">                cleanedAddress.put(key, cleanedValue);</span>
+<span class="nc" id="L221">            } else {</span>
+<span class="nc" id="L222">                cleanedAddress.put(key, value);</span>
+            }
+<span class="nc" id="L224">        }</span>
+        
+<span class="nc" id="L226">        return cleanedAddress;</span>
+    }
+
+    @Override
+    public String cleanPSN(String psn) {
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (psn == null) {</span>
+<span class="nc" id="L232">            return null;</span>
+        }
+        
+        // Remove all non-numeric and non-dash characters
+<span class="nc" id="L236">        String cleaned = PSN_CLEANUP_PATTERN.matcher(psn).replaceAll(&quot;&quot;);</span>
+        
+        // Ensure proper format XXXX-XXXX-XXXX
+<span class="nc bnc" id="L239" title="All 4 branches missed.">        if (cleaned.length() == 12 &amp;&amp; !cleaned.contains(&quot;-&quot;)) {</span>
+<span class="nc" id="L240">            cleaned = cleaned.substring(0, 4) + &quot;-&quot; + </span>
+<span class="nc" id="L241">                     cleaned.substring(4, 8) + &quot;-&quot; + </span>
+<span class="nc" id="L242">                     cleaned.substring(8, 12);</span>
+        }
+        
+<span class="nc" id="L245">        return cleaned;</span>
+    }
+
+    @Override
+    public String cleanHouseholdNumber(String householdNumber) {
+<span class="nc bnc" id="L250" title="All 2 branches missed.">        if (householdNumber == null) {</span>
+<span class="nc" id="L251">            return null;</span>
+        }
+        
+<span class="nc" id="L254">        String cleaned = householdNumber.trim().toUpperCase();</span>
+        
+        // Remove extra spaces
+<span class="nc" id="L257">        cleaned = EXTRA_SPACES_PATTERN.matcher(cleaned).replaceAll(&quot; &quot;);</span>
+        
+        // Standardize format if it looks like a household number
+<span class="nc bnc" id="L260" title="All 2 branches missed.">        if (cleaned.matches(&quot;.*\\d{6,}.*&quot;)) {</span>
+            // Keep alphanumeric and dashes
+<span class="nc" id="L262">            cleaned = cleaned.replaceAll(&quot;[^A-Z0-9-]&quot;, &quot;&quot;);</span>
+        }
+        
+<span class="nc" id="L265">        return cleaned;</span>
+    }
+
+    @Override
+    public String normalizeName(String name) {
+<span class="nc bnc" id="L270" title="All 2 branches missed.">        if (name == null) {</span>
+<span class="nc" id="L271">            return null;</span>
+        }
+        
+        // Remove invalid characters for names
+<span class="nc" id="L275">        String cleaned = NAME_CLEANUP_PATTERN.matcher(name).replaceAll(&quot;&quot;);</span>
+        
+        // Normalize spaces
+<span class="nc" id="L278">        cleaned = EXTRA_SPACES_PATTERN.matcher(cleaned.trim()).replaceAll(&quot; &quot;);</span>
+        
+        // Convert to proper case
+<span class="nc" id="L281">        String[] words = cleaned.split(&quot; &quot;);</span>
+<span class="nc" id="L282">        StringBuilder result = new StringBuilder();</span>
+        
+<span class="nc bnc" id="L284" title="All 2 branches missed.">        for (String word : words) {</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">            if (word.length() &gt; 0) {</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">                if (result.length() &gt; 0) {</span>
+<span class="nc" id="L287">                    result.append(&quot; &quot;);</span>
+                }
+                
+                // Handle special cases like &quot;de&quot;, &quot;del&quot;, &quot;van&quot;, etc.
+<span class="nc bnc" id="L291" title="All 2 branches missed.">                if (word.toLowerCase().matches(&quot;^(de|del|van|von|la|le|da|dos|das)$&quot;)) {</span>
+<span class="nc" id="L292">                    result.append(word.toLowerCase());</span>
+                } else {
+<span class="nc" id="L294">                    result.append(word.substring(0, 1).toUpperCase())</span>
+<span class="nc" id="L295">                          .append(word.substring(1).toLowerCase());</span>
+                }
+            }
+        }
+        
+<span class="nc" id="L300">        return result.toString();</span>
+    }
+
+    @Override
+    public String cleanEmail(String email) {
+<span class="nc bnc" id="L305" title="All 2 branches missed.">        if (email == null) {</span>
+<span class="nc" id="L306">            return null;</span>
+        }
+        
+<span class="nc" id="L309">        String cleaned = email.trim().toLowerCase();</span>
+        
+        // Remove spaces
+<span class="nc" id="L312">        cleaned = cleaned.replaceAll(&quot;\\s&quot;, &quot;&quot;);</span>
+        
+<span class="nc" id="L314">        return cleaned;</span>
+    }
+
+    @Override
+    public String sanitizeInput(String input, String fieldType) {
+<span class="nc bnc" id="L319" title="All 2 branches missed.">        if (input == null) {</span>
+<span class="nc" id="L320">            return null;</span>
+        }
+        
+<span class="nc" id="L323">        String sanitized = input.trim();</span>
+        
+        // Remove potentially dangerous characters
+<span class="nc" id="L326">        sanitized = sanitized.replaceAll(&quot;[&lt;&gt;\&quot;'&amp;]&quot;, &quot;&quot;);</span>
+        
+        // Normalize spaces
+<span class="nc" id="L329">        sanitized = EXTRA_SPACES_PATTERN.matcher(sanitized).replaceAll(&quot; &quot;);</span>
+        
+<span class="nc" id="L331">        return sanitized;</span>
+    }
+
+    @Override
+    public Map&lt;String, Object&gt; applyDataTypeRules(Map&lt;String, Object&gt; data, String dataType) {
+<span class="nc" id="L336">        Map&lt;String, Object&gt; cleaned = new HashMap&lt;&gt;(data);</span>
+        
+<span class="nc bnc" id="L338" title="All 4 branches missed.">        switch (dataType.toUpperCase()) {</span>
+            case &quot;HOUSEHOLD&quot;:
+<span class="nc" id="L340">                cleaned = cleanHouseholdData(cleaned);</span>
+<span class="nc" id="L341">                break;</span>
+            case &quot;INDIVIDUAL&quot;:
+<span class="nc" id="L343">                cleaned = cleanIndividualData(cleaned);</span>
+<span class="nc" id="L344">                break;</span>
+            case &quot;ECONOMIC_PROFILE&quot;:
+<span class="nc" id="L346">                cleaned = cleanEconomicProfileData(cleaned);</span>
+                break;
+        }
+        
+<span class="nc" id="L350">        return cleaned;</span>
+    }
+    
+    private Map&lt;String, Object&gt; cleanHouseholdData(Map&lt;String, Object&gt; data) {
+<span class="nc" id="L354">        Map&lt;String, Object&gt; cleaned = new HashMap&lt;&gt;(data);</span>
+        
+        // Clean household-specific fields
+<span class="nc bnc" id="L357" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;householdNumber&quot;)) {</span>
+<span class="nc" id="L358">            cleaned.put(&quot;householdNumber&quot;, cleanHouseholdNumber((String) cleaned.get(&quot;householdNumber&quot;)));</span>
+        }
+        
+<span class="nc bnc" id="L361" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;headOfHouseholdName&quot;)) {</span>
+<span class="nc" id="L362">            cleaned.put(&quot;headOfHouseholdName&quot;, normalizeName((String) cleaned.get(&quot;headOfHouseholdName&quot;)));</span>
+        }
+        
+<span class="nc bnc" id="L365" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;totalMembers&quot;)) {</span>
+<span class="nc" id="L366">            cleaned.put(&quot;totalMembers&quot;, cleanNumericField(cleaned.get(&quot;totalMembers&quot;), &quot;totalMembers&quot;));</span>
+        }
+        
+<span class="nc bnc" id="L369" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;monthlyIncome&quot;)) {</span>
+<span class="nc" id="L370">            cleaned.put(&quot;monthlyIncome&quot;, cleanNumericField(cleaned.get(&quot;monthlyIncome&quot;), &quot;monthlyIncome&quot;));</span>
+        }
+        
+<span class="nc" id="L373">        return cleaned;</span>
+    }
+    
+    private Map&lt;String, Object&gt; cleanIndividualData(Map&lt;String, Object&gt; data) {
+<span class="nc" id="L377">        Map&lt;String, Object&gt; cleaned = new HashMap&lt;&gt;(data);</span>
+        
+        // Clean individual-specific fields
+<span class="nc bnc" id="L380" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;psn&quot;)) {</span>
+<span class="nc" id="L381">            cleaned.put(&quot;psn&quot;, cleanPSN((String) cleaned.get(&quot;psn&quot;)));</span>
+        }
+        
+<span class="nc bnc" id="L384" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;firstName&quot;)) {</span>
+<span class="nc" id="L385">            cleaned.put(&quot;firstName&quot;, normalizeName((String) cleaned.get(&quot;firstName&quot;)));</span>
+        }
+        
+<span class="nc bnc" id="L388" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;lastName&quot;)) {</span>
+<span class="nc" id="L389">            cleaned.put(&quot;lastName&quot;, normalizeName((String) cleaned.get(&quot;lastName&quot;)));</span>
+        }
+        
+<span class="nc bnc" id="L392" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;middleName&quot;)) {</span>
+<span class="nc" id="L393">            cleaned.put(&quot;middleName&quot;, normalizeName((String) cleaned.get(&quot;middleName&quot;)));</span>
+        }
+        
+<span class="nc bnc" id="L396" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;dateOfBirth&quot;)) {</span>
+<span class="nc" id="L397">            cleaned.put(&quot;dateOfBirth&quot;, cleanDateField(cleaned.get(&quot;dateOfBirth&quot;), &quot;dateOfBirth&quot;));</span>
+        }
+        
+<span class="nc bnc" id="L400" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;sex&quot;)) {</span>
+<span class="nc" id="L401">            String sex = (String) cleaned.get(&quot;sex&quot;);</span>
+<span class="nc bnc" id="L402" title="All 2 branches missed.">            if (sex != null) {</span>
+<span class="nc" id="L403">                cleaned.put(&quot;sex&quot;, sex.trim().toUpperCase());</span>
+            }
+        }
+        
+<span class="nc bnc" id="L407" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;civilStatus&quot;)) {</span>
+<span class="nc" id="L408">            String status = (String) cleaned.get(&quot;civilStatus&quot;);</span>
+<span class="nc bnc" id="L409" title="All 2 branches missed.">            if (status != null) {</span>
+<span class="nc" id="L410">                cleaned.put(&quot;civilStatus&quot;, status.trim().toUpperCase());</span>
+            }
+        }
+        
+<span class="nc" id="L414">        return cleaned;</span>
+    }
+    
+    private Map&lt;String, Object&gt; cleanEconomicProfileData(Map&lt;String, Object&gt; data) {
+<span class="nc" id="L418">        Map&lt;String, Object&gt; cleaned = new HashMap&lt;&gt;(data);</span>
+        
+        // Clean economic profile-specific fields
+<span class="nc bnc" id="L421" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;totalAssets&quot;)) {</span>
+<span class="nc" id="L422">            cleaned.put(&quot;totalAssets&quot;, cleanNumericField(cleaned.get(&quot;totalAssets&quot;), &quot;totalAssets&quot;));</span>
+        }
+        
+<span class="nc bnc" id="L425" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;monthlyExpenses&quot;)) {</span>
+<span class="nc" id="L426">            cleaned.put(&quot;monthlyExpenses&quot;, cleanNumericField(cleaned.get(&quot;monthlyExpenses&quot;), &quot;monthlyExpenses&quot;));</span>
+        }
+        
+<span class="nc bnc" id="L429" title="All 2 branches missed.">        if (cleaned.containsKey(&quot;monthlyIncome&quot;)) {</span>
+<span class="nc" id="L430">            cleaned.put(&quot;monthlyIncome&quot;, cleanNumericField(cleaned.get(&quot;monthlyIncome&quot;), &quot;monthlyIncome&quot;));</span>
+        }
+        
+<span class="nc" id="L433">        return cleaned;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

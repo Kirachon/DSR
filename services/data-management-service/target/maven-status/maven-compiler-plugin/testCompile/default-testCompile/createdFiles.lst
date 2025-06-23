@@ -1,0 +1,3 @@
+ph\gov\dsr\datamanagement\controller\DataIngestionControllerTest.class
+ph\gov\dsr\datamanagement\service\impl\LegacyDataParserServiceImplTest.class
+ph\gov\dsr\datamanagement\service\impl\PhilSysIntegrationServiceImplTest.class

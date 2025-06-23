@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PhilSysIntegrationServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DSR Data Management Service</a> &gt; <a href="index.source.html" class="el_package">ph.gov.dsr.datamanagement.service.impl</a> &gt; <span class="el_source">PhilSysIntegrationServiceImpl.java</span></div><h1>PhilSysIntegrationServiceImpl.java</h1><pre class="source lang-java linenums">package ph.gov.dsr.datamanagement.service.impl;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.HttpClientErrorException;
+import ph.gov.dsr.datamanagement.dto.PhilSysVerificationRequest;
+import ph.gov.dsr.datamanagement.dto.PhilSysVerificationResponse;
+import ph.gov.dsr.datamanagement.service.PhilSysIntegrationService;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+/**
+ * Production implementation of PhilSysIntegrationService
+ * 
+ * @author DSR Development Team
+ * @version 3.0.0
+ * @since 2024-12-23
+ */
+@Service
+@Profile(&quot;!no-db&quot;)
+<span class="fc" id="L29">@RequiredArgsConstructor</span>
+<span class="fc" id="L30">@Slf4j</span>
+public class PhilSysIntegrationServiceImpl implements PhilSysIntegrationService {
+
+    private final RestTemplate restTemplate;
+
+    @Value(&quot;${dsr.philsys.api-url:http://localhost:9000/api/v1}&quot;)
+    private String philSysApiUrl;
+
+    @Value(&quot;${dsr.philsys.api-key:development_key}&quot;)
+    private String philSysApiKey;
+
+    @Value(&quot;${dsr.philsys.timeout:30000}&quot;)
+    private int timeoutMs;
+
+    @Value(&quot;${dsr.philsys.mock-enabled:false}&quot;)
+    private boolean mockEnabled;
+
+    // PSN validation pattern
+<span class="fc" id="L48">    private static final Pattern PSN_PATTERN = Pattern.compile(&quot;\\d{4}-\\d{4}-\\d{4}&quot;);</span>
+
+    @Override
+    public PhilSysVerificationResponse verifyPSN(PhilSysVerificationRequest request) {
+<span class="fc" id="L52">        log.info(&quot;Verifying PSN: {} for person: {} {}&quot;, </span>
+<span class="fc" id="L53">                request.getPsn(), request.getFirstName(), request.getLastName());</span>
+
+<span class="fc" id="L55">        PhilSysVerificationResponse response = new PhilSysVerificationResponse();</span>
+<span class="fc" id="L56">        response.setPsn(request.getPsn());</span>
+<span class="fc" id="L57">        response.setVerifiedAt(LocalDateTime.now());</span>
+
+        try {
+            // Basic PSN format validation
+<span class="fc bfc" id="L61" title="All 2 branches covered.">            if (!isValidPSNFormat(request.getPsn())) {</span>
+<span class="fc" id="L62">                response.setValid(false);</span>
+<span class="fc" id="L63">                response.setVerificationStatus(&quot;INVALID_FORMAT&quot;);</span>
+<span class="fc" id="L64">                response.setErrorMessage(&quot;PSN format is invalid. Expected format: XXXX-XXXX-XXXX&quot;);</span>
+<span class="fc" id="L65">                return response;</span>
+            }
+
+<span class="fc bfc" id="L68" title="All 2 branches covered.">            if (mockEnabled) {</span>
+<span class="fc" id="L69">                return createMockVerificationResponse(request);</span>
+            }
+
+            // Call PhilSys API
+<span class="fc" id="L73">            String url = philSysApiUrl + &quot;/verify&quot;;</span>
+<span class="fc" id="L74">            HttpHeaders headers = createHeaders();</span>
+<span class="fc" id="L75">            HttpEntity&lt;PhilSysVerificationRequest&gt; entity = new HttpEntity&lt;&gt;(request, headers);</span>
+
+<span class="fc" id="L77">            ResponseEntity&lt;PhilSysVerificationResponse&gt; apiResponse = restTemplate.exchange(</span>
+                    url, HttpMethod.POST, entity, PhilSysVerificationResponse.class);
+
+<span class="pc bpc" id="L80" title="2 of 4 branches missed.">            if (apiResponse.getStatusCode() == HttpStatus.OK &amp;&amp; apiResponse.getBody() != null) {</span>
+<span class="fc" id="L81">                response = apiResponse.getBody();</span>
+<span class="fc" id="L82">                response.setVerifiedAt(LocalDateTime.now());</span>
+            } else {
+<span class="nc" id="L84">                response.setValid(false);</span>
+<span class="nc" id="L85">                response.setVerificationStatus(&quot;API_ERROR&quot;);</span>
+<span class="nc" id="L86">                response.setErrorMessage(&quot;PhilSys API returned unexpected response&quot;);</span>
+            }
+
+<span class="fc" id="L89">        } catch (HttpClientErrorException e) {</span>
+<span class="fc" id="L90">            log.error(&quot;PhilSys API client error: {}&quot;, e.getMessage());</span>
+<span class="fc" id="L91">            response.setValid(false);</span>
+<span class="fc" id="L92">            response.setVerificationStatus(&quot;API_ERROR&quot;);</span>
+<span class="fc" id="L93">            response.setErrorMessage(&quot;PhilSys API error: &quot; + e.getStatusCode());</span>
+<span class="fc" id="L94">        } catch (ResourceAccessException e) {</span>
+<span class="fc" id="L95">            log.error(&quot;PhilSys API connection error: {}&quot;, e.getMessage());</span>
+<span class="fc" id="L96">            response.setValid(false);</span>
+<span class="fc" id="L97">            response.setVerificationStatus(&quot;CONNECTION_ERROR&quot;);</span>
+<span class="fc" id="L98">            response.setErrorMessage(&quot;Unable to connect to PhilSys service&quot;);</span>
+<span class="nc" id="L99">        } catch (Exception e) {</span>
+<span class="nc" id="L100">            log.error(&quot;Unexpected error during PSN verification&quot;, e);</span>
+<span class="nc" id="L101">            response.setValid(false);</span>
+<span class="nc" id="L102">            response.setVerificationStatus(&quot;SYSTEM_ERROR&quot;);</span>
+<span class="nc" id="L103">            response.setErrorMessage(&quot;Internal error during verification&quot;);</span>
+<span class="fc" id="L104">        }</span>
+
+<span class="fc" id="L106">        log.info(&quot;PSN verification completed. Status: {}, Valid: {}&quot;, </span>
+<span class="fc" id="L107">                response.getVerificationStatus(), response.isValid());</span>
+
+<span class="fc" id="L109">        return response;</span>
+    }
+
+    @Override
+    public boolean isPSNValid(String psn) {
+<span class="fc" id="L114">        log.debug(&quot;Checking PSN validity: {}&quot;, psn);</span>
+
+<span class="fc bfc" id="L116" title="All 2 branches covered.">        if (!isValidPSNFormat(psn)) {</span>
+<span class="fc" id="L117">            return false;</span>
+        }
+
+<span class="fc bfc" id="L120" title="All 2 branches covered.">        if (mockEnabled) {</span>
+            // Mock validation - consider PSN valid if it follows pattern and doesn't start with &quot;0000&quot;
+<span class="fc bfc" id="L122" title="All 2 branches covered.">            return !psn.startsWith(&quot;0000&quot;);</span>
+        }
+
+        try {
+<span class="fc" id="L126">            String url = philSysApiUrl + &quot;/check/&quot; + psn;</span>
+<span class="fc" id="L127">            HttpHeaders headers = createHeaders();</span>
+<span class="fc" id="L128">            HttpEntity&lt;String&gt; entity = new HttpEntity&lt;&gt;(headers);</span>
+
+<span class="fc" id="L130">            ResponseEntity&lt;Map&gt; response = restTemplate.exchange(</span>
+                    url, HttpMethod.GET, entity, Map.class);
+
+<span class="pc bpc" id="L133" title="2 of 4 branches missed.">            if (response.getStatusCode() == HttpStatus.OK &amp;&amp; response.getBody() != null) {</span>
+<span class="fc" id="L134">                Map&lt;String, Object&gt; body = response.getBody();</span>
+<span class="fc" id="L135">                return Boolean.TRUE.equals(body.get(&quot;exists&quot;));</span>
+            }
+
+<span class="nc" id="L138">        } catch (Exception e) {</span>
+<span class="nc" id="L139">            log.error(&quot;Error checking PSN validity&quot;, e);</span>
+<span class="nc" id="L140">        }</span>
+
+<span class="nc" id="L142">        return false;</span>
+    }
+
+    @Override
+    public PhilSysVerificationResponse getPersonInfo(String psn) {
+<span class="fc" id="L147">        log.info(&quot;Getting person info for PSN: {}&quot;, psn);</span>
+
+<span class="fc" id="L149">        PhilSysVerificationResponse response = new PhilSysVerificationResponse();</span>
+<span class="fc" id="L150">        response.setPsn(psn);</span>
+<span class="fc" id="L151">        response.setVerifiedAt(LocalDateTime.now());</span>
+
+        try {
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">            if (!isValidPSNFormat(psn)) {</span>
+<span class="nc" id="L155">                response.setValid(false);</span>
+<span class="nc" id="L156">                response.setVerificationStatus(&quot;INVALID_FORMAT&quot;);</span>
+<span class="nc" id="L157">                response.setErrorMessage(&quot;PSN format is invalid&quot;);</span>
+<span class="nc" id="L158">                return response;</span>
+            }
+
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">            if (mockEnabled) {</span>
+<span class="nc" id="L162">                return createMockPersonInfo(psn);</span>
+            }
+
+<span class="fc" id="L165">            String url = philSysApiUrl + &quot;/person/&quot; + psn;</span>
+<span class="fc" id="L166">            HttpHeaders headers = createHeaders();</span>
+<span class="fc" id="L167">            HttpEntity&lt;String&gt; entity = new HttpEntity&lt;&gt;(headers);</span>
+
+<span class="fc" id="L169">            ResponseEntity&lt;PhilSysVerificationResponse&gt; apiResponse = restTemplate.exchange(</span>
+                    url, HttpMethod.GET, entity, PhilSysVerificationResponse.class);
+
+<span class="pc bpc" id="L172" title="2 of 4 branches missed.">            if (apiResponse.getStatusCode() == HttpStatus.OK &amp;&amp; apiResponse.getBody() != null) {</span>
+<span class="fc" id="L173">                response = apiResponse.getBody();</span>
+<span class="fc" id="L174">                response.setVerifiedAt(LocalDateTime.now());</span>
+            } else {
+<span class="nc" id="L176">                response.setValid(false);</span>
+<span class="nc" id="L177">                response.setVerificationStatus(&quot;NOT_FOUND&quot;);</span>
+<span class="nc" id="L178">                response.setErrorMessage(&quot;Person not found in PhilSys&quot;);</span>
+            }
+
+<span class="fc" id="L181">        } catch (HttpClientErrorException e) {</span>
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {</span>
+<span class="fc" id="L183">                response.setValid(false);</span>
+<span class="fc" id="L184">                response.setVerificationStatus(&quot;NOT_FOUND&quot;);</span>
+<span class="fc" id="L185">                response.setErrorMessage(&quot;Person not found in PhilSys&quot;);</span>
+            } else {
+<span class="nc" id="L187">                response.setValid(false);</span>
+<span class="nc" id="L188">                response.setVerificationStatus(&quot;API_ERROR&quot;);</span>
+<span class="nc" id="L189">                response.setErrorMessage(&quot;PhilSys API error: &quot; + e.getStatusCode());</span>
+            }
+<span class="nc" id="L191">        } catch (Exception e) {</span>
+<span class="nc" id="L192">            log.error(&quot;Error getting person info from PhilSys&quot;, e);</span>
+<span class="nc" id="L193">            response.setValid(false);</span>
+<span class="nc" id="L194">            response.setVerificationStatus(&quot;SYSTEM_ERROR&quot;);</span>
+<span class="nc" id="L195">            response.setErrorMessage(&quot;Internal error retrieving person info&quot;);</span>
+<span class="fc" id="L196">        }</span>
+
+<span class="fc" id="L198">        return response;</span>
+    }
+
+    @Override
+    public PhilSysVerificationResponse verifyPersonDetails(PhilSysVerificationRequest request) {
+<span class="fc" id="L203">        log.info(&quot;Verifying person details for PSN: {}&quot;, request.getPsn());</span>
+
+        // First verify PSN exists
+<span class="fc" id="L206">        PhilSysVerificationResponse response = verifyPSN(request);</span>
+
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">        if (!response.isValid()) {</span>
+<span class="nc" id="L209">            return response;</span>
+        }
+
+        // Then verify details match
+<span class="pc bpc" id="L213" title="1 of 2 branches missed.">        if (mockEnabled) {</span>
+<span class="nc" id="L214">            return createMockDetailVerification(request);</span>
+        }
+
+        try {
+<span class="fc" id="L218">            String url = philSysApiUrl + &quot;/verify-details&quot;;</span>
+<span class="fc" id="L219">            HttpHeaders headers = createHeaders();</span>
+<span class="fc" id="L220">            HttpEntity&lt;PhilSysVerificationRequest&gt; entity = new HttpEntity&lt;&gt;(request, headers);</span>
+
+<span class="fc" id="L222">            ResponseEntity&lt;PhilSysVerificationResponse&gt; apiResponse = restTemplate.exchange(</span>
+                    url, HttpMethod.POST, entity, PhilSysVerificationResponse.class);
+
+<span class="pc bpc" id="L225" title="2 of 4 branches missed.">            if (apiResponse.getStatusCode() == HttpStatus.OK &amp;&amp; apiResponse.getBody() != null) {</span>
+<span class="fc" id="L226">                response = apiResponse.getBody();</span>
+<span class="fc" id="L227">                response.setVerifiedAt(LocalDateTime.now());</span>
+            }
+
+<span class="nc" id="L230">        } catch (Exception e) {</span>
+<span class="nc" id="L231">            log.error(&quot;Error verifying person details&quot;, e);</span>
+<span class="nc" id="L232">            response.setValid(false);</span>
+<span class="nc" id="L233">            response.setVerificationStatus(&quot;VERIFICATION_ERROR&quot;);</span>
+<span class="nc" id="L234">            response.setErrorMessage(&quot;Error verifying person details&quot;);</span>
+<span class="fc" id="L235">        }</span>
+
+<span class="fc" id="L237">        return response;</span>
+    }
+
+    @Override
+    public boolean isPhilSysServiceAvailable() {
+<span class="fc" id="L242">        log.debug(&quot;Checking PhilSys service availability&quot;);</span>
+
+<span class="fc bfc" id="L244" title="All 2 branches covered.">        if (mockEnabled) {</span>
+<span class="fc" id="L245">            return true; // Mock service is always available</span>
+        }
+
+        try {
+<span class="fc" id="L249">            String url = philSysApiUrl + &quot;/health&quot;;</span>
+<span class="fc" id="L250">            HttpHeaders headers = createHeaders();</span>
+<span class="fc" id="L251">            HttpEntity&lt;String&gt; entity = new HttpEntity&lt;&gt;(headers);</span>
+
+<span class="fc" id="L253">            ResponseEntity&lt;String&gt; response = restTemplate.exchange(</span>
+                    url, HttpMethod.GET, entity, String.class);
+
+<span class="pc bpc" id="L256" title="1 of 2 branches missed.">            return response.getStatusCode() == HttpStatus.OK;</span>
+
+<span class="fc" id="L258">        } catch (Exception e) {</span>
+<span class="fc" id="L259">            log.warn(&quot;PhilSys service is not available: {}&quot;, e.getMessage());</span>
+<span class="fc" id="L260">            return false;</span>
+        }
+    }
+
+    @Override
+    public String getPhilSysServiceStatus() {
+<span class="fc" id="L266">        log.debug(&quot;Getting PhilSys service status&quot;);</span>
+
+<span class="fc bfc" id="L268" title="All 2 branches covered.">        if (mockEnabled) {</span>
+<span class="fc" id="L269">            return &quot;MOCK_MODE&quot;;</span>
+        }
+
+<span class="fc bfc" id="L272" title="All 2 branches covered.">        if (isPhilSysServiceAvailable()) {</span>
+<span class="fc" id="L273">            return &quot;AVAILABLE&quot;;</span>
+        } else {
+<span class="fc" id="L275">            return &quot;UNAVAILABLE&quot;;</span>
+        }
+    }
+
+    /**
+     * Validate PSN format
+     */
+    private boolean isValidPSNFormat(String psn) {
+<span class="pc bpc" id="L283" title="1 of 4 branches missed.">        return psn != null &amp;&amp; PSN_PATTERN.matcher(psn.trim()).matches();</span>
+    }
+
+    /**
+     * Create HTTP headers for PhilSys API calls
+     */
+    private HttpHeaders createHeaders() {
+<span class="fc" id="L290">        HttpHeaders headers = new HttpHeaders();</span>
+<span class="fc" id="L291">        headers.setContentType(MediaType.APPLICATION_JSON);</span>
+<span class="fc" id="L292">        headers.set(&quot;Authorization&quot;, &quot;Bearer &quot; + philSysApiKey);</span>
+<span class="fc" id="L293">        headers.set(&quot;X-API-Version&quot;, &quot;1.0&quot;);</span>
+<span class="fc" id="L294">        return headers;</span>
+    }
+
+    /**
+     * Create mock verification response
+     */
+    private PhilSysVerificationResponse createMockVerificationResponse(PhilSysVerificationRequest request) {
+<span class="fc" id="L301">        PhilSysVerificationResponse response = new PhilSysVerificationResponse();</span>
+<span class="fc" id="L302">        response.setPsn(request.getPsn());</span>
+<span class="fc" id="L303">        response.setVerifiedAt(LocalDateTime.now());</span>
+
+        // Mock logic - consider valid if PSN doesn't start with &quot;0000&quot;
+<span class="pc bpc" id="L306" title="1 of 2 branches missed.">        boolean isValid = !request.getPsn().startsWith(&quot;0000&quot;);</span>
+
+<span class="fc" id="L308">        response.setValid(isValid);</span>
+<span class="pc bpc" id="L309" title="1 of 2 branches missed.">        response.setVerificationStatus(isValid ? &quot;VERIFIED&quot; : &quot;NOT_FOUND&quot;);</span>
+<span class="pc bpc" id="L310" title="1 of 2 branches missed.">        response.setConfidenceScore(isValid ? 0.95 : 0.0);</span>
+
+<span class="pc bpc" id="L312" title="1 of 2 branches missed.">        if (isValid) {</span>
+<span class="fc" id="L313">            response.setFirstName(request.getFirstName());</span>
+<span class="fc" id="L314">            response.setLastName(request.getLastName());</span>
+<span class="pc bpc" id="L315" title="1 of 2 branches missed.">            response.setDateOfBirth(request.getDateOfBirth() != null ? request.getDateOfBirth().toString() : null);</span>
+<span class="fc" id="L316">            response.setSex(request.getSex());</span>
+<span class="fc" id="L317">            response.setMatchScore(calculateMockMatchScore(request));</span>
+        } else {
+<span class="nc" id="L319">            response.setErrorMessage(&quot;PSN not found in PhilSys database&quot;);</span>
+        }
+
+<span class="fc" id="L322">        return response;</span>
+    }
+
+    /**
+     * Create mock person info response
+     */
+    private PhilSysVerificationResponse createMockPersonInfo(String psn) {
+<span class="nc" id="L329">        PhilSysVerificationResponse response = new PhilSysVerificationResponse();</span>
+<span class="nc" id="L330">        response.setPsn(psn);</span>
+<span class="nc" id="L331">        response.setVerifiedAt(LocalDateTime.now());</span>
+
+<span class="nc bnc" id="L333" title="All 2 branches missed.">        if (!psn.startsWith(&quot;0000&quot;)) {</span>
+<span class="nc" id="L334">            response.setValid(true);</span>
+<span class="nc" id="L335">            response.setVerificationStatus(&quot;FOUND&quot;);</span>
+<span class="nc" id="L336">            response.setFirstName(&quot;Juan&quot;);</span>
+<span class="nc" id="L337">            response.setLastName(&quot;Dela Cruz&quot;);</span>
+<span class="nc" id="L338">            response.setDateOfBirth(&quot;1990-01-01&quot;);</span>
+<span class="nc" id="L339">            response.setSex(&quot;M&quot;);</span>
+<span class="nc" id="L340">            response.setConfidenceScore(1.0);</span>
+        } else {
+<span class="nc" id="L342">            response.setValid(false);</span>
+<span class="nc" id="L343">            response.setVerificationStatus(&quot;NOT_FOUND&quot;);</span>
+<span class="nc" id="L344">            response.setErrorMessage(&quot;Person not found&quot;);</span>
+        }
+
+<span class="nc" id="L347">        return response;</span>
+    }
+
+    /**
+     * Create mock detail verification response
+     */
+    private PhilSysVerificationResponse createMockDetailVerification(PhilSysVerificationRequest request) {
+<span class="nc" id="L354">        PhilSysVerificationResponse response = createMockVerificationResponse(request);</span>
+
+<span class="nc bnc" id="L356" title="All 2 branches missed.">        if (response.isValid()) {</span>
+            // Calculate match score based on provided details
+<span class="nc" id="L358">            double matchScore = calculateMockMatchScore(request);</span>
+<span class="nc" id="L359">            response.setMatchScore(matchScore);</span>
+
+<span class="nc bnc" id="L361" title="All 2 branches missed.">            if (matchScore &gt;= 0.8) {</span>
+<span class="nc" id="L362">                response.setVerificationStatus(&quot;VERIFIED&quot;);</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">            } else if (matchScore &gt;= 0.6) {</span>
+<span class="nc" id="L364">                response.setVerificationStatus(&quot;PARTIAL_MATCH&quot;);</span>
+            } else {
+<span class="nc" id="L366">                response.setVerificationStatus(&quot;MISMATCH&quot;);</span>
+<span class="nc" id="L367">                response.setValid(false);</span>
+            }
+        }
+
+<span class="nc" id="L371">        return response;</span>
+    }
+
+    /**
+     * Calculate mock match score
+     */
+    private double calculateMockMatchScore(PhilSysVerificationRequest request) {
+<span class="fc" id="L378">        double score = 1.0;</span>
+
+        // Simple mock scoring logic
+<span class="pc bpc" id="L381" title="2 of 4 branches missed.">        if (request.getFirstName() != null &amp;&amp; !request.getFirstName().equalsIgnoreCase(&quot;Juan&quot;)) {</span>
+<span class="nc" id="L382">            score -= 0.2;</span>
+        }
+<span class="pc bpc" id="L384" title="2 of 4 branches missed.">        if (request.getLastName() != null &amp;&amp; !request.getLastName().equalsIgnoreCase(&quot;Dela Cruz&quot;)) {</span>
+<span class="nc" id="L385">            score -= 0.2;</span>
+        }
+<span class="pc bpc" id="L387" title="2 of 4 branches missed.">        if (request.getDateOfBirth() != null &amp;&amp; !request.getDateOfBirth().toString().equals(&quot;1990-01-01&quot;)) {</span>
+<span class="nc" id="L388">            score -= 0.3;</span>
+        }
+<span class="pc bpc" id="L390" title="2 of 4 branches missed.">        if (request.getSex() != null &amp;&amp; !request.getSex().equalsIgnoreCase(&quot;M&quot;)) {</span>
+<span class="nc" id="L391">            score -= 0.1;</span>
+        }
+
+<span class="fc" id="L394">        return Math.max(0.0, score);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

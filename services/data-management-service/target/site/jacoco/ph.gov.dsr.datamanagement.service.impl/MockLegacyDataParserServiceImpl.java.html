@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MockLegacyDataParserServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DSR Data Management Service</a> &gt; <a href="index.source.html" class="el_package">ph.gov.dsr.datamanagement.service.impl</a> &gt; <span class="el_source">MockLegacyDataParserServiceImpl.java</span></div><h1>MockLegacyDataParserServiceImpl.java</h1><pre class="source lang-java linenums">package ph.gov.dsr.datamanagement.service.impl;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import ph.gov.dsr.datamanagement.dto.DataIngestionRequest;
+import ph.gov.dsr.datamanagement.service.LegacyDataParserService;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Mock implementation of LegacyDataParserService for no-database mode
+ * 
+ * @author DSR Development Team
+ * @version 3.0.0
+ * @since 2024-12-23
+ */
+@Service
+@Profile(&quot;no-db&quot;)
+<span class="nc" id="L24">@Slf4j</span>
+<span class="nc" id="L25">public class MockLegacyDataParserServiceImpl implements LegacyDataParserService {</span>
+
+    @Override
+    public List&lt;DataIngestionRequest&gt; parseFile(String sourceSystem, String filePath, String dataType) {
+<span class="nc" id="L29">        log.info(&quot;Mock parsing file from {}: {}&quot;, sourceSystem, filePath);</span>
+        
+<span class="nc" id="L31">        List&lt;DataIngestionRequest&gt; requests = new ArrayList&lt;&gt;();</span>
+        
+        // Create mock data based on source system
+<span class="nc bnc" id="L34" title="All 3 branches missed.">        switch (sourceSystem.toUpperCase()) {</span>
+            case &quot;LISTAHANAN&quot;:
+<span class="nc" id="L36">                requests.addAll(createMockListahananData(dataType));</span>
+<span class="nc" id="L37">                break;</span>
+            case &quot;I_REGISTRO&quot;:
+<span class="nc" id="L39">                requests.addAll(createMockIRegistroData(dataType));</span>
+<span class="nc" id="L40">                break;</span>
+            default:
+<span class="nc" id="L42">                requests.addAll(createMockGenericData(dataType));</span>
+        }
+        
+<span class="nc" id="L45">        return requests;</span>
+    }
+
+    @Override
+    public boolean validateFileFormat(String sourceSystem, String filePath) {
+<span class="nc" id="L50">        log.info(&quot;Mock validating file format for {}: {}&quot;, sourceSystem, filePath);</span>
+        
+        // Mock validation - check if file exists and has expected extension
+<span class="nc" id="L53">        File file = new File(filePath);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (!file.exists()) {</span>
+<span class="nc" id="L55">            return false;</span>
+        }
+        
+<span class="nc" id="L58">        String fileName = file.getName().toLowerCase();</span>
+        
+<span class="nc bnc" id="L60" title="All 3 branches missed.">        return switch (sourceSystem.toUpperCase()) {</span>
+<span class="nc bnc" id="L61" title="All 4 branches missed.">            case &quot;LISTAHANAN&quot; -&gt; fileName.endsWith(&quot;.csv&quot;) || fileName.endsWith(&quot;.xlsx&quot;);</span>
+<span class="nc bnc" id="L62" title="All 4 branches missed.">            case &quot;I_REGISTRO&quot; -&gt; fileName.endsWith(&quot;.xml&quot;) || fileName.endsWith(&quot;.json&quot;);</span>
+<span class="nc" id="L63">            default -&gt; true; // Accept any format for unknown systems</span>
+        };
+    }
+
+    @Override
+    public List&lt;String&gt; getSupportedFormats(String sourceSystem) {
+<span class="nc" id="L69">        log.info(&quot;Mock getting supported formats for: {}&quot;, sourceSystem);</span>
+        
+<span class="nc bnc" id="L71" title="All 3 branches missed.">        return switch (sourceSystem.toUpperCase()) {</span>
+<span class="nc" id="L72">            case &quot;LISTAHANAN&quot; -&gt; List.of(&quot;CSV&quot;, &quot;XLSX&quot;);</span>
+<span class="nc" id="L73">            case &quot;I_REGISTRO&quot; -&gt; List.of(&quot;XML&quot;, &quot;JSON&quot;);</span>
+<span class="nc" id="L74">            default -&gt; List.of(&quot;CSV&quot;, &quot;JSON&quot;, &quot;XML&quot;, &quot;XLSX&quot;);</span>
+        };
+    }
+
+    @Override
+    public FileMetadata getFileMetadata(String filePath) {
+<span class="nc" id="L80">        log.info(&quot;Mock getting file metadata for: {}&quot;, filePath);</span>
+        
+<span class="nc" id="L82">        FileMetadata metadata = new FileMetadata();</span>
+<span class="nc" id="L83">        File file = new File(filePath);</span>
+        
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (file.exists()) {</span>
+<span class="nc" id="L86">            metadata.setValid(true);</span>
+<span class="nc" id="L87">            metadata.setFileSizeBytes(file.length());</span>
+<span class="nc" id="L88">            metadata.setFileFormat(getFileExtension(filePath));</span>
+<span class="nc" id="L89">            metadata.setEstimatedRecordCount(100); // Mock estimate</span>
+<span class="nc" id="L90">            metadata.setEncoding(&quot;UTF-8&quot;);</span>
+        } else {
+<span class="nc" id="L92">            metadata.setValid(false);</span>
+<span class="nc" id="L93">            metadata.setErrorMessage(&quot;File not found: &quot; + filePath);</span>
+        }
+        
+<span class="nc" id="L96">        return metadata;</span>
+    }
+
+    @Override
+    public List&lt;DataIngestionRequest&gt; parseListahananFile(String filePath, String dataType) {
+<span class="nc" id="L101">        log.info(&quot;Mock parsing Listahanan file: {}&quot;, filePath);</span>
+<span class="nc" id="L102">        return createMockListahananData(dataType);</span>
+    }
+
+    @Override
+    public List&lt;DataIngestionRequest&gt; parseIRegistroFile(String filePath, String dataType) {
+<span class="nc" id="L107">        log.info(&quot;Mock parsing i-Registro file: {}&quot;, filePath);</span>
+<span class="nc" id="L108">        return createMockIRegistroData(dataType);</span>
+    }
+
+    private List&lt;DataIngestionRequest&gt; createMockListahananData(String dataType) {
+<span class="nc" id="L112">        List&lt;DataIngestionRequest&gt; requests = new ArrayList&lt;&gt;();</span>
+        
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        for (int i = 1; i &lt;= 5; i++) {</span>
+<span class="nc" id="L115">            DataIngestionRequest request = new DataIngestionRequest();</span>
+<span class="nc" id="L116">            request.setSourceSystem(&quot;LISTAHANAN&quot;);</span>
+<span class="nc" id="L117">            request.setDataType(dataType);</span>
+            
+<span class="nc" id="L119">            Map&lt;String, Object&gt; data = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            if (&quot;HOUSEHOLD&quot;.equals(dataType)) {</span>
+<span class="nc" id="L121">                data.put(&quot;householdNumber&quot;, &quot;LH-2024-&quot; + String.format(&quot;%06d&quot;, i));</span>
+<span class="nc" id="L122">                data.put(&quot;headOfHouseholdName&quot;, &quot;Juan Dela Cruz &quot; + i);</span>
+<span class="nc" id="L123">                data.put(&quot;totalMembers&quot;, 4 + (i % 3));</span>
+<span class="nc" id="L124">                data.put(&quot;monthlyIncome&quot;, 15000 + (i * 1000));</span>
+<span class="nc" id="L125">                data.put(&quot;address&quot;, &quot;Barangay &quot; + i + &quot;, Municipality, Province&quot;);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                data.put(&quot;isIndigenous&quot;, i % 4 == 0);</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                data.put(&quot;isPwdHousehold&quot;, i % 5 == 0);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">            } else if (&quot;INDIVIDUAL&quot;.equals(dataType)) {</span>
+<span class="nc" id="L129">                data.put(&quot;psn&quot;, &quot;1234-5678-&quot; + String.format(&quot;%04d&quot;, i));</span>
+<span class="nc" id="L130">                data.put(&quot;firstName&quot;, &quot;Juan&quot;);</span>
+<span class="nc" id="L131">                data.put(&quot;lastName&quot;, &quot;Dela Cruz&quot;);</span>
+<span class="nc" id="L132">                data.put(&quot;middleName&quot;, &quot;Santos&quot;);</span>
+<span class="nc" id="L133">                data.put(&quot;dateOfBirth&quot;, &quot;1990-01-&quot; + String.format(&quot;%02d&quot;, i));</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">                data.put(&quot;sex&quot;, i % 2 == 0 ? &quot;M&quot; : &quot;F&quot;);</span>
+<span class="nc" id="L135">                data.put(&quot;civilStatus&quot;, &quot;SINGLE&quot;);</span>
+            }
+            
+<span class="nc" id="L138">            request.setDataPayload(data);</span>
+<span class="nc" id="L139">            requests.add(request);</span>
+        }
+        
+<span class="nc" id="L142">        return requests;</span>
+    }
+
+    private List&lt;DataIngestionRequest&gt; createMockIRegistroData(String dataType) {
+<span class="nc" id="L146">        List&lt;DataIngestionRequest&gt; requests = new ArrayList&lt;&gt;();</span>
+        
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        for (int i = 1; i &lt;= 3; i++) {</span>
+<span class="nc" id="L149">            DataIngestionRequest request = new DataIngestionRequest();</span>
+<span class="nc" id="L150">            request.setSourceSystem(&quot;I_REGISTRO&quot;);</span>
+<span class="nc" id="L151">            request.setDataType(dataType);</span>
+            
+<span class="nc" id="L153">            Map&lt;String, Object&gt; data = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            if (&quot;HOUSEHOLD&quot;.equals(dataType)) {</span>
+<span class="nc" id="L155">                data.put(&quot;householdNumber&quot;, &quot;IR-2024-&quot; + String.format(&quot;%06d&quot;, i));</span>
+<span class="nc" id="L156">                data.put(&quot;headOfHouseholdName&quot;, &quot;Maria Garcia &quot; + i);</span>
+<span class="nc" id="L157">                data.put(&quot;totalMembers&quot;, 3 + (i % 2));</span>
+<span class="nc" id="L158">                data.put(&quot;monthlyIncome&quot;, 20000 + (i * 2000));</span>
+<span class="nc" id="L159">                data.put(&quot;address&quot;, &quot;Street &quot; + i + &quot;, City, Province&quot;);</span>
+<span class="nc" id="L160">                data.put(&quot;registrationDate&quot;, &quot;2024-01-&quot; + String.format(&quot;%02d&quot;, i));</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">            } else if (&quot;INDIVIDUAL&quot;.equals(dataType)) {</span>
+<span class="nc" id="L162">                data.put(&quot;psn&quot;, &quot;5678-9012-&quot; + String.format(&quot;%04d&quot;, i));</span>
+<span class="nc" id="L163">                data.put(&quot;firstName&quot;, &quot;Maria&quot;);</span>
+<span class="nc" id="L164">                data.put(&quot;lastName&quot;, &quot;Garcia&quot;);</span>
+<span class="nc" id="L165">                data.put(&quot;middleName&quot;, &quot;Reyes&quot;);</span>
+<span class="nc" id="L166">                data.put(&quot;dateOfBirth&quot;, &quot;1985-02-&quot; + String.format(&quot;%02d&quot;, i));</span>
+<span class="nc" id="L167">                data.put(&quot;sex&quot;, &quot;F&quot;);</span>
+<span class="nc" id="L168">                data.put(&quot;civilStatus&quot;, &quot;MARRIED&quot;);</span>
+            }
+            
+<span class="nc" id="L171">            request.setDataPayload(data);</span>
+<span class="nc" id="L172">            requests.add(request);</span>
+        }
+        
+<span class="nc" id="L175">        return requests;</span>
+    }
+
+    private List&lt;DataIngestionRequest&gt; createMockGenericData(String dataType) {
+<span class="nc" id="L179">        List&lt;DataIngestionRequest&gt; requests = new ArrayList&lt;&gt;();</span>
+        
+<span class="nc" id="L181">        DataIngestionRequest request = new DataIngestionRequest();</span>
+<span class="nc" id="L182">        request.setSourceSystem(&quot;MANUAL_ENTRY&quot;);</span>
+<span class="nc" id="L183">        request.setDataType(dataType);</span>
+        
+<span class="nc" id="L185">        Map&lt;String, Object&gt; data = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L186">        data.put(&quot;id&quot;, &quot;MOCK-001&quot;);</span>
+<span class="nc" id="L187">        data.put(&quot;name&quot;, &quot;Mock Data Entry&quot;);</span>
+<span class="nc" id="L188">        data.put(&quot;type&quot;, dataType);</span>
+        
+<span class="nc" id="L190">        request.setDataPayload(data);</span>
+<span class="nc" id="L191">        requests.add(request);</span>
+        
+<span class="nc" id="L193">        return requests;</span>
+    }
+
+    private String getFileExtension(String filePath) {
+<span class="nc" id="L197">        int lastDotIndex = filePath.lastIndexOf('.');</span>
+<span class="nc bnc" id="L198" title="All 4 branches missed.">        if (lastDotIndex &gt; 0 &amp;&amp; lastDotIndex &lt; filePath.length() - 1) {</span>
+<span class="nc" id="L199">            return filePath.substring(lastDotIndex + 1).toUpperCase();</span>
+        }
+<span class="nc" id="L201">        return &quot;UNKNOWN&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -32,10 +32,21 @@ public class MockPhilSysIntegrationServiceImpl implements PhilSysIntegrationServ
         
         // Mock verification logic based on PSN pattern
         if (request.getPsn().startsWith("1234")) {
-            response.setVerified(true);
+            response.setValid(true);
             response.setVerificationStatus("VERIFIED");
-            
-            PhilSysVerificationResponse.VerifiedPersonInfo personInfo = 
+            response.setFirstName("JUAN");
+            response.setLastName("DELA CRUZ");
+            response.setMiddleName("SANTOS");
+            response.setDateOfBirth("1990-05-15");
+            response.setSex("M");
+            response.setPlaceOfBirth("MANILA, PHILIPPINES");
+            response.setCivilStatus("SINGLE");
+            response.setCitizenship("FILIPINO");
+            response.setConfidenceScore(0.95);
+            response.setMatchScore(1.0);
+
+            // Also set nested personInfo for backward compatibility
+            PhilSysVerificationResponse.VerifiedPersonInfo personInfo =
                 new PhilSysVerificationResponse.VerifiedPersonInfo();
             personInfo.setFirstName("JUAN");
             personInfo.setLastName("DELA CRUZ");
@@ -47,21 +58,36 @@ public class MockPhilSysIntegrationServiceImpl implements PhilSysIntegrationServ
             personInfo.setCitizenship("FILIPINO");
             personInfo.setActive(true);
             personInfo.setRegistrationDate(LocalDate.of(2019, 1, 1));
-            
             response.setPersonInfo(personInfo);
+
         } else if (request.getPsn().startsWith("9999")) {
-            response.setVerified(false);
+            response.setValid(false);
             response.setVerificationStatus("NOT_FOUND");
             response.setErrorMessage("PSN not found in PhilSys database");
+            response.setConfidenceScore(0.0);
+            response.setMatchScore(0.0);
         } else if (request.getPsn().startsWith("0000")) {
-            response.setVerified(false);
+            response.setValid(false);
             response.setVerificationStatus("ERROR");
             response.setErrorMessage("PhilSys service temporarily unavailable");
+            response.setConfidenceScore(0.0);
+            response.setMatchScore(0.0);
         } else {
-            response.setVerified(true);
+            response.setValid(true);
             response.setVerificationStatus("VERIFIED");
-            
-            PhilSysVerificationResponse.VerifiedPersonInfo personInfo = 
+            response.setFirstName("MARIA");
+            response.setLastName("GARCIA");
+            response.setMiddleName("REYES");
+            response.setDateOfBirth("1985-08-20");
+            response.setSex("F");
+            response.setPlaceOfBirth("CEBU, PHILIPPINES");
+            response.setCivilStatus("MARRIED");
+            response.setCitizenship("FILIPINO");
+            response.setConfidenceScore(0.90);
+            response.setMatchScore(1.0);
+
+            // Also set nested personInfo for backward compatibility
+            PhilSysVerificationResponse.VerifiedPersonInfo personInfo =
                 new PhilSysVerificationResponse.VerifiedPersonInfo();
             personInfo.setFirstName("MARIA");
             personInfo.setLastName("GARCIA");
@@ -73,7 +99,6 @@ public class MockPhilSysIntegrationServiceImpl implements PhilSysIntegrationServ
             personInfo.setCitizenship("FILIPINO");
             personInfo.setActive(true);
             personInfo.setRegistrationDate(LocalDate.of(2019, 3, 15));
-            
             response.setPersonInfo(personInfo);
         }
         
@@ -106,28 +131,29 @@ public class MockPhilSysIntegrationServiceImpl implements PhilSysIntegrationServ
         PhilSysVerificationResponse response = verifyPSN(request);
         
         // Additional verification logic for person details
-        if (response.isVerified() && response.getPersonInfo() != null) {
+        if (response.isValid() && response.getPersonInfo() != null) {
             PhilSysVerificationResponse.VerifiedPersonInfo personInfo = response.getPersonInfo();
-            
+
             // Check if provided details match
             boolean detailsMatch = true;
-            if (request.getFirstName() != null && 
+            if (request.getFirstName() != null &&
                 !request.getFirstName().equalsIgnoreCase(personInfo.getFirstName())) {
                 detailsMatch = false;
             }
-            if (request.getLastName() != null && 
+            if (request.getLastName() != null &&
                 !request.getLastName().equalsIgnoreCase(personInfo.getLastName())) {
                 detailsMatch = false;
             }
-            if (request.getDateOfBirth() != null && 
+            if (request.getDateOfBirth() != null &&
                 !request.getDateOfBirth().equals(personInfo.getDateOfBirth())) {
                 detailsMatch = false;
             }
-            
+
             if (!detailsMatch) {
-                response.setVerified(false);
+                response.setValid(false);
                 response.setVerificationStatus("MISMATCH");
                 response.setErrorMessage("Provided details do not match PhilSys records");
+                response.setMatchScore(0.3); // Low match score for mismatched details
             }
         }
         

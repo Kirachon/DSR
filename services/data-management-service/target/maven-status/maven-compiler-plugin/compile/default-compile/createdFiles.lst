@@ -22,6 +22,7 @@ ph\gov\dsr\datamanagement\dto\DataIngestionResponse$ValidationError.class
 ph\gov\dsr\datamanagement\service\impl\DataCleaningServiceImpl.class
 ph\gov\dsr\datamanagement\service\impl\MockDataIngestionServiceImpl.class
 ph\gov\dsr\datamanagement\controller\PhilSysIntegrationController.class
+ph\gov\dsr\datamanagement\service\impl\LegacyDataParserServiceImpl.class
 ph\gov\dsr\datamanagement\dto\ValidationResponse$ValidationWarning.class
 ph\gov\dsr\datamanagement\entity\DataIngestionRecord.class
 ph\gov\dsr\datamanagement\service\impl\DataValidationServiceImpl.class
@@ -46,3 +47,4 @@ ph\gov\dsr\datamanagement\service\impl\MockDataCleaningServiceImpl.class
 ph\gov\dsr\datamanagement\dto\PhilSysVerificationRequest.class
 ph\gov\dsr\datamanagement\controller\HealthController.class
 ph\gov\dsr\datamanagement\dto\DeduplicationResponse.class
+ph\gov\dsr\datamanagement\service\impl\PhilSysIntegrationServiceImpl.class

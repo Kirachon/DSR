@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DataIngestionRecord.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DSR Data Management Service</a> &gt; <a href="index.source.html" class="el_package">ph.gov.dsr.datamanagement.entity</a> &gt; <span class="el_source">DataIngestionRecord.java</span></div><h1>DataIngestionRecord.java</h1><pre class="source lang-java linenums">package ph.gov.dsr.datamanagement.entity;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+/**
+ * Entity representing an individual data ingestion record
+ * 
+ * @author DSR Development Team
+ * @version 3.0.0
+ * @since 2024-12-23
+ */
+@Entity
+@Table(name = &quot;data_ingestion_records&quot;, schema = &quot;dsr_core&quot;)
+@EntityListeners(AuditingEntityListener.class)
+<span class="nc" id="L25">@Data</span>
+<span class="nc bnc" id="L26" title="All 166 branches missed.">@EqualsAndHashCode(callSuper = false)</span>
+public class DataIngestionRecord {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = &quot;id&quot;, columnDefinition = &quot;UUID&quot;)
+<span class="nc" id="L32">    private UUID id;</span>
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;batch_id&quot;, nullable = false)
+<span class="nc" id="L37">    private DataIngestionBatch batch;</span>
+
+    @Column(name = &quot;record_index&quot;)
+<span class="nc" id="L40">    private Integer recordIndex;</span>
+
+    @NotBlank
+    @Column(name = &quot;status&quot;, nullable = false, length = 20)
+<span class="nc" id="L44">    private String status; // SUCCESS, FAILED, DUPLICATE, SKIPPED</span>
+
+    @Column(name = &quot;entity_id&quot;, columnDefinition = &quot;UUID&quot;)
+<span class="nc" id="L47">    private UUID entityId; // ID of the created/updated entity</span>
+
+    @Column(name = &quot;entity_type&quot;, length = 50)
+<span class="nc" id="L50">    private String entityType; // HOUSEHOLD, INDIVIDUAL, ECONOMIC_PROFILE</span>
+
+    @Column(name = &quot;source_record_id&quot;, length = 100)
+<span class="nc" id="L53">    private String sourceRecordId; // Original ID from source system</span>
+
+    @Column(name = &quot;raw_data&quot;, columnDefinition = &quot;JSONB&quot;)
+<span class="nc" id="L56">    private String rawData; // Original data as received</span>
+
+    @Column(name = &quot;processed_data&quot;, columnDefinition = &quot;JSONB&quot;)
+<span class="nc" id="L59">    private String processedData; // Cleaned and normalized data</span>
+
+    @Column(name = &quot;validation_errors&quot;, columnDefinition = &quot;JSONB&quot;)
+<span class="nc" id="L62">    private String validationErrors; // JSON array of validation errors</span>
+
+    @Column(name = &quot;warnings&quot;, columnDefinition = &quot;JSONB&quot;)
+<span class="nc" id="L65">    private String warnings; // JSON array of warnings</span>
+
+    @Column(name = &quot;duplicate_of&quot;, columnDefinition = &quot;UUID&quot;)
+<span class="nc" id="L68">    private UUID duplicateOf; // ID of the entity this is a duplicate of</span>
+
+    @Column(name = &quot;similarity_score&quot;)
+<span class="nc" id="L71">    private Double similarityScore; // Similarity score for duplicates</span>
+
+    @Column(name = &quot;processing_time_ms&quot;)
+<span class="nc" id="L74">    private Long processingTimeMs;</span>
+
+    @Column(name = &quot;error_message&quot;, columnDefinition = &quot;TEXT&quot;)
+<span class="nc" id="L77">    private String errorMessage;</span>
+
+<span class="nc" id="L79">    @Column(name = &quot;retry_count&quot;)</span>
+<span class="nc" id="L80">    private Integer retryCount = 0;</span>
+
+    @Column(name = &quot;last_retry_at&quot;)
+<span class="nc" id="L83">    private LocalDateTime lastRetryAt;</span>
+
+    @NotNull
+    @CreatedDate
+    @Column(name = &quot;created_at&quot;, nullable = false)
+<span class="nc" id="L88">    private LocalDateTime createdAt;</span>
+
+    @LastModifiedDate
+    @Column(name = &quot;updated_at&quot;)
+<span class="nc" id="L92">    private LocalDateTime updatedAt;</span>
+
+    @Column(name = &quot;processed_at&quot;)
+<span class="nc" id="L95">    private LocalDateTime processedAt;</span>
+
+    /**
+     * Mark record as successfully processed
+     */
+    public void markAsSuccess(UUID entityId, String entityType) {
+<span class="nc" id="L101">        this.status = &quot;SUCCESS&quot;;</span>
+<span class="nc" id="L102">        this.entityId = entityId;</span>
+<span class="nc" id="L103">        this.entityType = entityType;</span>
+<span class="nc" id="L104">        this.processedAt = LocalDateTime.now();</span>
+<span class="nc" id="L105">    }</span>
+
+    /**
+     * Mark record as failed
+     */
+    public void markAsFailed(String errorMessage) {
+<span class="nc" id="L111">        this.status = &quot;FAILED&quot;;</span>
+<span class="nc" id="L112">        this.errorMessage = errorMessage;</span>
+<span class="nc" id="L113">        this.processedAt = LocalDateTime.now();</span>
+<span class="nc" id="L114">    }</span>
+
+    /**
+     * Mark record as duplicate
+     */
+    public void markAsDuplicate(UUID duplicateOf, double similarityScore) {
+<span class="nc" id="L120">        this.status = &quot;DUPLICATE&quot;;</span>
+<span class="nc" id="L121">        this.duplicateOf = duplicateOf;</span>
+<span class="nc" id="L122">        this.similarityScore = similarityScore;</span>
+<span class="nc" id="L123">        this.processedAt = LocalDateTime.now();</span>
+<span class="nc" id="L124">    }</span>
+
+    /**
+     * Mark record as skipped
+     */
+    public void markAsSkipped(String reason) {
+<span class="nc" id="L130">        this.status = &quot;SKIPPED&quot;;</span>
+<span class="nc" id="L131">        this.errorMessage = reason;</span>
+<span class="nc" id="L132">        this.processedAt = LocalDateTime.now();</span>
+<span class="nc" id="L133">    }</span>
+
+    /**
+     * Increment retry count
+     */
+    public void incrementRetryCount() {
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        this.retryCount = (this.retryCount != null ? this.retryCount : 0) + 1;</span>
+<span class="nc" id="L140">        this.lastRetryAt = LocalDateTime.now();</span>
+<span class="nc" id="L141">    }</span>
+
+    /**
+     * Check if record was successfully processed
+     */
+    public boolean isSuccess() {
+<span class="nc" id="L147">        return &quot;SUCCESS&quot;.equals(status);</span>
+    }
+
+    /**
+     * Check if record failed processing
+     */
+    public boolean isFailed() {
+<span class="nc" id="L154">        return &quot;FAILED&quot;.equals(status);</span>
+    }
+
+    /**
+     * Check if record is a duplicate
+     */
+    public boolean isDuplicate() {
+<span class="nc" id="L161">        return &quot;DUPLICATE&quot;.equals(status);</span>
+    }
+
+    /**
+     * Check if record was skipped
+     */
+    public boolean isSkipped() {
+<span class="nc" id="L168">        return &quot;SKIPPED&quot;.equals(status);</span>
+    }
+
+    /**
+     * Check if record can be retried
+     */
+    public boolean canRetry(int maxRetries) {
+<span class="nc bnc" id="L175" title="All 6 branches missed.">        return isFailed() &amp;&amp; (retryCount == null || retryCount &lt; maxRetries);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

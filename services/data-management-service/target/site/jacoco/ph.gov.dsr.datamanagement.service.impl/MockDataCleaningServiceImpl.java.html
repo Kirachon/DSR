@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MockDataCleaningServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DSR Data Management Service</a> &gt; <a href="index.source.html" class="el_package">ph.gov.dsr.datamanagement.service.impl</a> &gt; <span class="el_source">MockDataCleaningServiceImpl.java</span></div><h1>MockDataCleaningServiceImpl.java</h1><pre class="source lang-java linenums">package ph.gov.dsr.datamanagement.service.impl;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import ph.gov.dsr.datamanagement.service.DataCleaningService;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Mock implementation of DataCleaningService for no-database mode
+ * 
+ * @author DSR Development Team
+ * @version 3.0.0
+ * @since 2024-12-23
+ */
+@Service
+@Profile(&quot;no-db&quot;)
+<span class="nc" id="L20">@Slf4j</span>
+<span class="nc" id="L21">public class MockDataCleaningServiceImpl implements DataCleaningService {</span>
+
+    @Override
+    public Map&lt;String, Object&gt; cleanData(Map&lt;String, Object&gt; data, String dataType) {
+<span class="nc" id="L25">        log.info(&quot;Mock cleaning data of type: {}&quot;, dataType);</span>
+        
+<span class="nc" id="L27">        Map&lt;String, Object&gt; cleanedData = new HashMap&lt;&gt;(data);</span>
+        
+        // Mock cleaning operations
+<span class="nc bnc" id="L30" title="All 2 branches missed.">        for (Map.Entry&lt;String, Object&gt; entry : cleanedData.entrySet()) {</span>
+<span class="nc" id="L31">            String key = entry.getKey();</span>
+<span class="nc" id="L32">            Object value = entry.getValue();</span>
+            
+<span class="nc bnc" id="L34" title="All 2 branches missed.">            if (value instanceof String) {</span>
+<span class="nc" id="L35">                String stringValue = (String) value;</span>
+                // Basic mock cleaning: trim and normalize case for names
+<span class="nc bnc" id="L37" title="All 2 branches missed.">                if (key.toLowerCase().contains(&quot;name&quot;)) {</span>
+<span class="nc" id="L38">                    cleanedData.put(key, stringValue.trim().toUpperCase());</span>
+                } else {
+<span class="nc" id="L40">                    cleanedData.put(key, stringValue.trim());</span>
+                }
+            }
+<span class="nc" id="L43">        }</span>
+        
+<span class="nc" id="L45">        return cleanedData;</span>
+    }
+
+    @Override
+    public String cleanTextField(String value, String fieldType) {
+<span class="nc" id="L50">        log.debug(&quot;Mock cleaning text field: {} of type: {}&quot;, value, fieldType);</span>
+        
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L53">            return null;</span>
+        }
+        
+<span class="nc" id="L56">        String cleaned = value.trim();</span>
+        
+        // Mock field-specific cleaning
+<span class="nc bnc" id="L59" title="All 4 branches missed.">        switch (fieldType.toLowerCase()) {</span>
+            case &quot;firstname&quot;:
+            case &quot;lastname&quot;:
+            case &quot;middlename&quot;:
+            case &quot;name&quot;:
+<span class="nc" id="L64">                cleaned = cleaned.toUpperCase();</span>
+<span class="nc" id="L65">                break;</span>
+            case &quot;phone&quot;:
+            case &quot;phonenumber&quot;:
+<span class="nc" id="L68">                cleaned = cleaned.replaceAll(&quot;[^0-9+]&quot;, &quot;&quot;);</span>
+<span class="nc" id="L69">                break;</span>
+            case &quot;email&quot;:
+<span class="nc" id="L71">                cleaned = cleaned.toLowerCase();</span>
+                break;
+        }
+        
+<span class="nc" id="L75">        return cleaned;</span>
+    }
+
+    @Override
+    public Number cleanNumericField(Object value, String fieldType) {
+<span class="nc" id="L80">        log.debug(&quot;Mock cleaning numeric field: {} of type: {}&quot;, value, fieldType);</span>
+        
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L83">            return null;</span>
+        }
+        
+        try {
+<span class="nc bnc" id="L87" title="All 2 branches missed.">            if (value instanceof Number) {</span>
+<span class="nc" id="L88">                return (Number) value;</span>
+            }
+            
+<span class="nc" id="L91">            String stringValue = value.toString().trim();</span>
+<span class="nc" id="L92">            stringValue = stringValue.replaceAll(&quot;[,\\s₱$]&quot;, &quot;&quot;);</span>
+            
+<span class="nc" id="L94">            return Double.parseDouble(stringValue);</span>
+            
+<span class="nc" id="L96">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L97">            log.warn(&quot;Mock: Could not parse numeric value: {}&quot;, value);</span>
+<span class="nc" id="L98">            return null;</span>
+        }
+    }
+
+    @Override
+    public String cleanDateField(Object value, String fieldType) {
+<span class="nc" id="L104">        log.debug(&quot;Mock cleaning date field: {} of type: {}&quot;, value, fieldType);</span>
+        
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L107">            return null;</span>
+        }
+        
+        // Mock date cleaning - just return as string
+<span class="nc" id="L111">        return value.toString().trim();</span>
+    }
+
+    @Override
+    public String cleanPhoneNumber(String phoneNumber) {
+<span class="nc" id="L116">        log.debug(&quot;Mock cleaning phone number: {}&quot;, phoneNumber);</span>
+        
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (phoneNumber == null) {</span>
+<span class="nc" id="L119">            return null;</span>
+        }
+        
+        // Mock phone cleaning
+<span class="nc" id="L123">        String cleaned = phoneNumber.replaceAll(&quot;[^0-9+]&quot;, &quot;&quot;);</span>
+        
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (cleaned.startsWith(&quot;0&quot;)) {</span>
+<span class="nc" id="L126">            cleaned = &quot;+63&quot; + cleaned.substring(1);</span>
+        }
+        
+<span class="nc" id="L129">        return cleaned;</span>
+    }
+
+    @Override
+    public Map&lt;String, Object&gt; cleanAddress(Map&lt;String, Object&gt; addressData) {
+<span class="nc" id="L134">        log.debug(&quot;Mock cleaning address data&quot;);</span>
+        
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (addressData == null) {</span>
+<span class="nc" id="L137">            return null;</span>
+        }
+        
+<span class="nc" id="L140">        Map&lt;String, Object&gt; cleanedAddress = new HashMap&lt;&gt;();</span>
+        
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        for (Map.Entry&lt;String, Object&gt; entry : addressData.entrySet()) {</span>
+<span class="nc" id="L143">            String key = entry.getKey();</span>
+<span class="nc" id="L144">            Object value = entry.getValue();</span>
+            
+<span class="nc bnc" id="L146" title="All 2 branches missed.">            if (value instanceof String) {</span>
+<span class="nc" id="L147">                cleanedAddress.put(key, ((String) value).trim().toUpperCase());</span>
+            } else {
+<span class="nc" id="L149">                cleanedAddress.put(key, value);</span>
+            }
+<span class="nc" id="L151">        }</span>
+        
+<span class="nc" id="L153">        return cleanedAddress;</span>
+    }
+
+    @Override
+    public String cleanPSN(String psn) {
+<span class="nc" id="L158">        log.debug(&quot;Mock cleaning PSN: {}&quot;, psn);</span>
+        
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (psn == null) {</span>
+<span class="nc" id="L161">            return null;</span>
+        }
+        
+        // Mock PSN cleaning
+<span class="nc" id="L165">        String cleaned = psn.replaceAll(&quot;[^0-9-]&quot;, &quot;&quot;);</span>
+        
+        // Ensure proper format XXXX-XXXX-XXXX
+<span class="nc bnc" id="L168" title="All 4 branches missed.">        if (cleaned.length() == 12 &amp;&amp; !cleaned.contains(&quot;-&quot;)) {</span>
+<span class="nc" id="L169">            cleaned = cleaned.substring(0, 4) + &quot;-&quot; + </span>
+<span class="nc" id="L170">                     cleaned.substring(4, 8) + &quot;-&quot; + </span>
+<span class="nc" id="L171">                     cleaned.substring(8, 12);</span>
+        }
+        
+<span class="nc" id="L174">        return cleaned;</span>
+    }
+
+    @Override
+    public String cleanHouseholdNumber(String householdNumber) {
+<span class="nc" id="L179">        log.debug(&quot;Mock cleaning household number: {}&quot;, householdNumber);</span>
+        
+<span class="nc bnc" id="L181" title="All 2 branches missed.">        if (householdNumber == null) {</span>
+<span class="nc" id="L182">            return null;</span>
+        }
+        
+<span class="nc" id="L185">        return householdNumber.trim().toUpperCase();</span>
+    }
+
+    @Override
+    public String normalizeName(String name) {
+<span class="nc" id="L190">        log.debug(&quot;Mock normalizing name: {}&quot;, name);</span>
+        
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        if (name == null) {</span>
+<span class="nc" id="L193">            return null;</span>
+        }
+        
+        // Mock name normalization - convert to proper case
+<span class="nc" id="L197">        String[] words = name.trim().split(&quot;\\s+&quot;);</span>
+<span class="nc" id="L198">        StringBuilder result = new StringBuilder();</span>
+        
+<span class="nc bnc" id="L200" title="All 2 branches missed.">        for (String word : words) {</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">            if (word.length() &gt; 0) {</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">                if (result.length() &gt; 0) {</span>
+<span class="nc" id="L203">                    result.append(&quot; &quot;);</span>
+                }
+<span class="nc" id="L205">                result.append(word.substring(0, 1).toUpperCase())</span>
+<span class="nc" id="L206">                      .append(word.substring(1).toLowerCase());</span>
+            }
+        }
+        
+<span class="nc" id="L210">        return result.toString();</span>
+    }
+
+    @Override
+    public String cleanEmail(String email) {
+<span class="nc" id="L215">        log.debug(&quot;Mock cleaning email: {}&quot;, email);</span>
+        
+<span class="nc bnc" id="L217" title="All 2 branches missed.">        if (email == null) {</span>
+<span class="nc" id="L218">            return null;</span>
+        }
+        
+<span class="nc" id="L221">        return email.trim().toLowerCase();</span>
+    }
+
+    @Override
+    public String sanitizeInput(String input, String fieldType) {
+<span class="nc" id="L226">        log.debug(&quot;Mock sanitizing input: {} of type: {}&quot;, input, fieldType);</span>
+        
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        if (input == null) {</span>
+<span class="nc" id="L229">            return null;</span>
+        }
+        
+        // Mock sanitization - remove potentially dangerous characters
+<span class="nc" id="L233">        return input.trim().replaceAll(&quot;[&lt;&gt;\&quot;'&amp;]&quot;, &quot;&quot;);</span>
+    }
+
+    @Override
+    public Map&lt;String, Object&gt; applyDataTypeRules(Map&lt;String, Object&gt; data, String dataType) {
+<span class="nc" id="L238">        log.debug(&quot;Mock applying data type rules for: {}&quot;, dataType);</span>
+        
+<span class="nc" id="L240">        Map&lt;String, Object&gt; cleaned = new HashMap&lt;&gt;(data);</span>
+        
+        // Mock data type specific cleaning
+<span class="nc bnc" id="L243" title="All 3 branches missed.">        switch (dataType.toUpperCase()) {</span>
+            case &quot;HOUSEHOLD&quot;:
+<span class="nc bnc" id="L245" title="All 2 branches missed.">                if (cleaned.containsKey(&quot;headOfHouseholdName&quot;)) {</span>
+<span class="nc" id="L246">                    cleaned.put(&quot;headOfHouseholdName&quot;, </span>
+<span class="nc" id="L247">                        normalizeName((String) cleaned.get(&quot;headOfHouseholdName&quot;)));</span>
+                }
+                break;
+            case &quot;INDIVIDUAL&quot;:
+<span class="nc bnc" id="L251" title="All 2 branches missed.">                if (cleaned.containsKey(&quot;firstName&quot;)) {</span>
+<span class="nc" id="L252">                    cleaned.put(&quot;firstName&quot;, normalizeName((String) cleaned.get(&quot;firstName&quot;)));</span>
+                }
+<span class="nc bnc" id="L254" title="All 2 branches missed.">                if (cleaned.containsKey(&quot;lastName&quot;)) {</span>
+<span class="nc" id="L255">                    cleaned.put(&quot;lastName&quot;, normalizeName((String) cleaned.get(&quot;lastName&quot;)));</span>
+                }
+<span class="nc bnc" id="L257" title="All 2 branches missed.">                if (cleaned.containsKey(&quot;psn&quot;)) {</span>
+<span class="nc" id="L258">                    cleaned.put(&quot;psn&quot;, cleanPSN((String) cleaned.get(&quot;psn&quot;)));</span>
+                }
+                break;
+        }
+        
+<span class="nc" id="L263">        return cleaned;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

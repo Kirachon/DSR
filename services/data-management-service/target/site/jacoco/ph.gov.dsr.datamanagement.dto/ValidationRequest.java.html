@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ValidationRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DSR Data Management Service</a> &gt; <a href="index.source.html" class="el_package">ph.gov.dsr.datamanagement.dto</a> &gt; <span class="el_source">ValidationRequest.java</span></div><h1>ValidationRequest.java</h1><pre class="source lang-java linenums">package ph.gov.dsr.datamanagement.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+import java.util.Map;
+
+/**
+ * Request DTO for data validation operations
+ * 
+ * @author DSR Development Team
+ * @version 3.0.0
+ * @since 2024-12-23
+ */
+<span class="pc bnc" id="L16" title="All 46 branches missed.">@Data</span>
+public class ValidationRequest {
+
+    @NotBlank(message = &quot;Data type is required&quot;)
+<span class="nc" id="L20">    private String dataType; // HOUSEHOLD, INDIVIDUAL, ECONOMIC_PROFILE</span>
+
+    @NotNull(message = &quot;Data to validate is required&quot;)
+<span class="nc" id="L23">    private Map&lt;String, Object&gt; data;</span>
+
+<span class="pc" id="L25">    private String validationProfile = &quot;DEFAULT&quot;; // DEFAULT, STRICT, LENIENT</span>
+
+<span class="pc" id="L27">    private boolean includeWarnings = true;</span>
+
+<span class="pc" id="L29">    private boolean validateReferences = true; // Validate foreign key references</span>
+
+<span class="nc" id="L31">    private String sourceSystem; // For source-specific validation rules</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

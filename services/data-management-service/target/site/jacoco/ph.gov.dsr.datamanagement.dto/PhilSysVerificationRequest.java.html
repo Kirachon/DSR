@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PhilSysVerificationRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DSR Data Management Service</a> &gt; <a href="index.source.html" class="el_package">ph.gov.dsr.datamanagement.dto</a> &gt; <span class="el_source">PhilSysVerificationRequest.java</span></div><h1>PhilSysVerificationRequest.java</h1><pre class="source lang-java linenums">package ph.gov.dsr.datamanagement.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+import java.time.LocalDate;
+
+/**
+ * Request DTO for PhilSys verification operations
+ * 
+ * @author DSR Development Team
+ * @version 3.0.0
+ * @since 2024-12-23
+ */
+<span class="pc bnc" id="L15" title="All 82 branches missed.">@Data</span>
+public class PhilSysVerificationRequest {
+
+    @NotBlank(message = &quot;PSN is required&quot;)
+<span class="fc" id="L19">    private String psn; // PhilSys Number</span>
+
+<span class="fc" id="L21">    private String firstName;</span>
+    
+<span class="fc" id="L23">    private String lastName;</span>
+    
+<span class="nc" id="L25">    private String middleName;</span>
+    
+<span class="fc" id="L27">    private LocalDate dateOfBirth;</span>
+    
+<span class="fc" id="L29">    private String sex; // M, F</span>
+    
+<span class="nc" id="L31">    private String placeOfBirth;</span>
+    
+<span class="pc" id="L33">    private boolean verifyBiometrics = false; // If true, include biometric verification</span>
+    
+<span class="pc" id="L35">    private String verificationLevel = &quot;BASIC&quot;; // BASIC, ENHANCED, FULL</span>
+    
+<span class="nc" id="L37">    private String requestId; // For tracking purposes</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

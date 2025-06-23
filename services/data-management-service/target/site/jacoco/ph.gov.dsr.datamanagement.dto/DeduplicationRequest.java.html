@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DeduplicationRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DSR Data Management Service</a> &gt; <a href="index.source.html" class="el_package">ph.gov.dsr.datamanagement.dto</a> &gt; <span class="el_source">DeduplicationRequest.java</span></div><h1>DeduplicationRequest.java</h1><pre class="source lang-java linenums">package ph.gov.dsr.datamanagement.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+import java.util.Map;
+
+/**
+ * Request DTO for deduplication operations
+ * 
+ * @author DSR Development Team
+ * @version 3.0.0
+ * @since 2024-12-23
+ */
+<span class="pc bnc" id="L16" title="All 40 branches missed.">@Data</span>
+public class DeduplicationRequest {
+
+    @NotBlank(message = &quot;Entity type is required&quot;)
+<span class="nc" id="L20">    private String entityType; // HOUSEHOLD, INDIVIDUAL</span>
+
+    @NotNull(message = &quot;Entity data is required&quot;)
+<span class="nc" id="L23">    private Map&lt;String, Object&gt; entityData;</span>
+
+<span class="pc" id="L25">    private double matchThreshold = 0.8; // Similarity threshold for matches</span>
+
+<span class="nc" id="L27">    private String[] matchingFields; // Fields to use for matching</span>
+
+<span class="pc" id="L29">    private boolean includePartialMatches = true;</span>
+
+<span class="pc" id="L31">    private int maxResults = 10; // Maximum number of potential matches to return</span>
+
+<span class="pc" id="L33">    private String matchingAlgorithm = &quot;FUZZY&quot;; // FUZZY, EXACT, PHONETIC</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

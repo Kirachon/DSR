@@ -58,40 +58,38 @@ public class DataIngestionServiceImpl implements DataIngestionService {
         response.setWarnings(new ArrayList<>());
         
         try {
-            // Step 1: Validate data
-            if (!request.isValidateOnly()) {
-                var validationRequest = new ph.gov.dsr.datamanagement.dto.ValidationRequest();
-                validationRequest.setDataType(request.getDataType());
-                validationRequest.setData(request.getDataPayload());
-                validationRequest.setSourceSystem(request.getSourceSystem());
-                
-                var validationResponse = dataValidationService.validateData(validationRequest);
-                
-                if (!validationResponse.isValid()) {
-                    response.setStatus("FAILED");
-                    response.setMessage("Data validation failed");
-                    response.setFailedRecords(1);
-                    response.setSuccessfulRecords(0);
-                    
-                    // Convert validation errors
-                    validationResponse.getErrors().forEach(error -> {
-                        DataIngestionResponse.ValidationError ingestionError = 
-                            new DataIngestionResponse.ValidationError();
-                        ingestionError.setField(error.getField());
-                        ingestionError.setMessage(error.getMessage());
-                        ingestionError.setRejectedValue(error.getRejectedValue());
-                        ingestionError.setRecordIndex(0);
-                        response.getValidationErrors().add(ingestionError);
-                    });
-                    
-                    return response;
-                }
-                
-                // Add warnings if any
-                if (!validationResponse.getWarnings().isEmpty()) {
-                    validationResponse.getWarnings().forEach(warning -> 
-                        response.getWarnings().add(warning.getMessage()));
-                }
+            // Step 1: Validate data (always validate)
+            var validationRequest = new ph.gov.dsr.datamanagement.dto.ValidationRequest();
+            validationRequest.setDataType(request.getDataType());
+            validationRequest.setData(request.getDataPayload());
+            validationRequest.setSourceSystem(request.getSourceSystem());
+
+            var validationResponse = dataValidationService.validateData(validationRequest);
+
+            if (!validationResponse.isValid()) {
+                response.setStatus("FAILED");
+                response.setMessage("Data validation failed");
+                response.setFailedRecords(1);
+                response.setSuccessfulRecords(0);
+
+                // Convert validation errors
+                validationResponse.getErrors().forEach(error -> {
+                    DataIngestionResponse.ValidationError ingestionError =
+                        new DataIngestionResponse.ValidationError();
+                    ingestionError.setField(error.getField());
+                    ingestionError.setMessage(error.getMessage());
+                    ingestionError.setRejectedValue(error.getRejectedValue());
+                    ingestionError.setRecordIndex(0);
+                    response.getValidationErrors().add(ingestionError);
+                });
+
+                return response;
+            }
+
+            // Add warnings if any
+            if (!validationResponse.getWarnings().isEmpty()) {
+                validationResponse.getWarnings().forEach(warning ->
+                    response.getWarnings().add(warning.getMessage()));
             }
             
             // Step 2: Check for duplicates (if not skipped)

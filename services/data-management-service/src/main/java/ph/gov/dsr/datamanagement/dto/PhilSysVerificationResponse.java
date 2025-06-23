@@ -15,22 +15,37 @@ import java.time.LocalDateTime;
 @Data
 public class PhilSysVerificationResponse {
 
-    private boolean isVerified;
-    
+    private boolean valid; // Changed from isVerified to match implementation
+
     private String verificationStatus; // VERIFIED, NOT_FOUND, MISMATCH, ERROR
-    
+
     private String psn;
-    
+
     private LocalDateTime verifiedAt;
-    
-    private VerifiedPersonInfo personInfo;
-    
+
+    // Person information fields (flattened for easier access)
+    private String firstName;
+    private String lastName;
+    private String middleName;
+    private String dateOfBirth; // Changed to String to match implementation
+    private String sex;
+    private String placeOfBirth;
+    private String civilStatus;
+    private String citizenship;
+
+    // Verification details
+    private double confidenceScore;
+    private double matchScore;
+
     private String errorMessage;
-    
+
     private String requestId;
-    
+
     private long responseTimeMs;
-    
+
+    // Nested person info for backward compatibility
+    private VerifiedPersonInfo personInfo;
+
     @Data
     public static class VerifiedPersonInfo {
         private String firstName;

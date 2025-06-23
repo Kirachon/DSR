@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PhilSysIntegrationController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DSR Data Management Service</a> &gt; <a href="index.source.html" class="el_package">ph.gov.dsr.datamanagement.controller</a> &gt; <span class="el_source">PhilSysIntegrationController.java</span></div><h1>PhilSysIntegrationController.java</h1><pre class="source lang-java linenums">package ph.gov.dsr.datamanagement.controller;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import ph.gov.dsr.datamanagement.dto.PhilSysVerificationRequest;
+import ph.gov.dsr.datamanagement.dto.PhilSysVerificationResponse;
+import ph.gov.dsr.datamanagement.service.PhilSysIntegrationService;
+
+/**
+ * REST Controller for PhilSys integration operations
+ * 
+ * @author DSR Development Team
+ * @version 3.0.0
+ * @since 2024-12-23
+ */
+@RestController
+@RequestMapping(&quot;/api/v1/philsys&quot;)
+<span class="nc" id="L27">@RequiredArgsConstructor</span>
+<span class="nc" id="L28">@Slf4j</span>
+@Tag(name = &quot;PhilSys Integration&quot;, description = &quot;PhilSys identity verification operations&quot;)
+public class PhilSysIntegrationController {
+
+    private final PhilSysIntegrationService philSysIntegrationService;
+
+    @Operation(summary = &quot;Verify PSN with PhilSys&quot;, 
+               description = &quot;Verify a PhilSys Number (PSN) and get person information&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;PSN verification completed&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Invalid PSN or request data&quot;),
+        @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Access denied&quot;),
+        @ApiResponse(responseCode = &quot;503&quot;, description = &quot;PhilSys service unavailable&quot;)
+    })
+    @PostMapping(&quot;/verify-psn&quot;)
+    @PreAuthorize(&quot;hasRole('DSWD_STAFF') or hasRole('LGU_STAFF') or hasRole('SYSTEM_ADMIN')&quot;)
+    public ResponseEntity&lt;PhilSysVerificationResponse&gt; verifyPSN(
+            @Valid @RequestBody PhilSysVerificationRequest request) {
+        
+<span class="nc" id="L47">        log.info(&quot;Verifying PSN: {}&quot;, request.getPsn());</span>
+<span class="nc" id="L48">        PhilSysVerificationResponse response = philSysIntegrationService.verifyPSN(request);</span>
+<span class="nc" id="L49">        return ResponseEntity.ok(response);</span>
+    }
+
+    @Operation(summary = &quot;Check PSN validity&quot;, 
+               description = &quot;Check if a PSN format is valid&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;PSN validity check completed&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Invalid PSN format&quot;),
+        @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Access denied&quot;)
+    })
+    @GetMapping(&quot;/validate-psn/{psn}&quot;)
+    @PreAuthorize(&quot;hasRole('DSWD_STAFF') or hasRole('LGU_STAFF') or hasRole('SYSTEM_ADMIN')&quot;)
+    public ResponseEntity&lt;Boolean&gt; isPSNValid(
+            @Parameter(description = &quot;PhilSys Number&quot;) @PathVariable String psn) {
+        
+<span class="nc" id="L64">        log.info(&quot;Checking PSN validity: {}&quot;, psn);</span>
+<span class="nc" id="L65">        boolean isValid = philSysIntegrationService.isPSNValid(psn);</span>
+<span class="nc" id="L66">        return ResponseEntity.ok(isValid);</span>
+    }
+
+    @Operation(summary = &quot;Get person information&quot;, 
+               description = &quot;Get person information from PhilSys using PSN&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Person information retrieved&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;PSN not found&quot;),
+        @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Access denied&quot;),
+        @ApiResponse(responseCode = &quot;503&quot;, description = &quot;PhilSys service unavailable&quot;)
+    })
+    @GetMapping(&quot;/person-info/{psn}&quot;)
+    @PreAuthorize(&quot;hasRole('DSWD_STAFF') or hasRole('LGU_STAFF') or hasRole('SYSTEM_ADMIN')&quot;)
+    public ResponseEntity&lt;PhilSysVerificationResponse&gt; getPersonInfo(
+            @Parameter(description = &quot;PhilSys Number&quot;) @PathVariable String psn) {
+        
+<span class="nc" id="L82">        log.info(&quot;Getting person info for PSN: {}&quot;, psn);</span>
+<span class="nc" id="L83">        PhilSysVerificationResponse response = philSysIntegrationService.getPersonInfo(psn);</span>
+<span class="nc" id="L84">        return ResponseEntity.ok(response);</span>
+    }
+
+    @Operation(summary = &quot;Verify person details&quot;, 
+               description = &quot;Verify person details against PhilSys records&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Person details verification completed&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Invalid request data&quot;),
+        @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Access denied&quot;),
+        @ApiResponse(responseCode = &quot;503&quot;, description = &quot;PhilSys service unavailable&quot;)
+    })
+    @PostMapping(&quot;/verify-details&quot;)
+    @PreAuthorize(&quot;hasRole('DSWD_STAFF') or hasRole('LGU_STAFF') or hasRole('SYSTEM_ADMIN')&quot;)
+    public ResponseEntity&lt;PhilSysVerificationResponse&gt; verifyPersonDetails(
+            @Valid @RequestBody PhilSysVerificationRequest request) {
+        
+<span class="nc" id="L100">        log.info(&quot;Verifying person details for PSN: {}&quot;, request.getPsn());</span>
+<span class="nc" id="L101">        PhilSysVerificationResponse response = philSysIntegrationService.verifyPersonDetails(request);</span>
+<span class="nc" id="L102">        return ResponseEntity.ok(response);</span>
+    }
+
+    @Operation(summary = &quot;Check PhilSys service availability&quot;, 
+               description = &quot;Check if PhilSys service is available&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Service availability check completed&quot;),
+        @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Access denied&quot;)
+    })
+    @GetMapping(&quot;/service-availability&quot;)
+    @PreAuthorize(&quot;hasRole('DSWD_STAFF') or hasRole('LGU_STAFF') or hasRole('SYSTEM_ADMIN')&quot;)
+    public ResponseEntity&lt;Boolean&gt; isPhilSysServiceAvailable() {
+        
+<span class="nc" id="L115">        log.info(&quot;Checking PhilSys service availability&quot;);</span>
+<span class="nc" id="L116">        boolean isAvailable = philSysIntegrationService.isPhilSysServiceAvailable();</span>
+<span class="nc" id="L117">        return ResponseEntity.ok(isAvailable);</span>
+    }
+
+    @Operation(summary = &quot;Get PhilSys service status&quot;, 
+               description = &quot;Get the current status of PhilSys service&quot;)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Service status retrieved&quot;),
+        @ApiResponse(responseCode = &quot;403&quot;, description = &quot;Access denied&quot;)
+    })
+    @GetMapping(&quot;/service-status&quot;)
+    @PreAuthorize(&quot;hasRole('DSWD_STAFF') or hasRole('LGU_STAFF') or hasRole('SYSTEM_ADMIN')&quot;)
+    public ResponseEntity&lt;String&gt; getPhilSysServiceStatus() {
+        
+<span class="nc" id="L130">        log.info(&quot;Getting PhilSys service status&quot;);</span>
+<span class="nc" id="L131">        String status = philSysIntegrationService.getPhilSysServiceStatus();</span>
+<span class="nc" id="L132">        return ResponseEntity.ok(status);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
