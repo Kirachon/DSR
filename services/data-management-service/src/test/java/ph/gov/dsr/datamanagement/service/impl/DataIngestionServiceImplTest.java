@@ -8,8 +8,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ph.gov.dsr.datamanagement.dto.*;
 import ph.gov.dsr.datamanagement.entity.DataIngestionBatch;
+import ph.gov.dsr.datamanagement.entity.DataIngestionRecord;
 import ph.gov.dsr.datamanagement.repository.DataIngestionBatchRepository;
+import ph.gov.dsr.datamanagement.repository.DataIngestionRecordRepository;
 import ph.gov.dsr.datamanagement.service.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -40,6 +43,12 @@ class DataIngestionServiceImplTest {
 
     @Mock
     private DataIngestionBatchRepository batchRepository;
+
+    @Mock
+    private DataIngestionRecordRepository recordRepository;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @Mock
     private ExecutorService executorService;
@@ -76,11 +85,13 @@ class DataIngestionServiceImplTest {
     }
 
     @Test
-    void testIngestData_Success() {
+    void testIngestData_Success() throws Exception {
         // Arrange
         when(dataValidationService.validateData(any(ValidationRequest.class))).thenReturn(validationResponse);
         when(deduplicationService.findDuplicates(any())).thenReturn(deduplicationResponse);
         when(dataValidationService.cleanData(any(), any())).thenReturn(testRequest.getDataPayload());
+        when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+        when(recordRepository.save(any(DataIngestionRecord.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
         DataIngestionResponse response = dataIngestionService.ingestData(testRequest);
@@ -96,6 +107,7 @@ class DataIngestionServiceImplTest {
         verify(dataValidationService).validateData(any(ValidationRequest.class));
         verify(deduplicationService).findDuplicates(any());
         verify(dataValidationService).cleanData(any(), any());
+        verify(recordRepository).save(any(DataIngestionRecord.class));
     }
 
     @Test
@@ -171,11 +183,13 @@ class DataIngestionServiceImplTest {
     }
 
     @Test
-    void testIngestData_SkipDuplicateCheck() {
+    void testIngestData_SkipDuplicateCheck() throws Exception {
         // Arrange
         testRequest.setSkipDuplicateCheck(true);
         when(dataValidationService.validateData(any(ValidationRequest.class))).thenReturn(validationResponse);
         when(dataValidationService.cleanData(any(), any())).thenReturn(testRequest.getDataPayload());
+        when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+        when(recordRepository.save(any(DataIngestionRecord.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
         DataIngestionResponse response = dataIngestionService.ingestData(testRequest);
@@ -189,6 +203,7 @@ class DataIngestionServiceImplTest {
         verify(dataValidationService).validateData(any(ValidationRequest.class));
         verify(deduplicationService, never()).findDuplicates(any());
         verify(dataValidationService).cleanData(any(), any());
+        verify(recordRepository).save(any(DataIngestionRecord.class));
     }
 
     @Test
@@ -264,6 +279,12 @@ class DataIngestionServiceImplTest {
         when(dataValidationService.validateData(any(ValidationRequest.class))).thenReturn(validationResponse);
         when(deduplicationService.findDuplicates(any())).thenReturn(deduplicationResponse);
         when(dataValidationService.cleanData(any(), any())).thenReturn(testRequest.getDataPayload());
+        try {
+            when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+        } catch (Exception e) {
+            // Handle exception
+        }
+        when(recordRepository.save(any(DataIngestionRecord.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
         DataIngestionResponse response = dataIngestionService.processLegacyDataFile(sourceSystem, filePath, dataType);
