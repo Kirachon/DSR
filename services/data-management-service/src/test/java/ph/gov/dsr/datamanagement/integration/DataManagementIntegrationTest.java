@@ -5,7 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringJUnitExtension;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import ph.gov.dsr.datamanagement.dto.*;
 import ph.gov.dsr.datamanagement.service.*;
 
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * @version 3.0.0
  * @since 2024-12-23
  */
-@ExtendWith(SpringJUnitExtension.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
 @ActiveProfiles("no-db")
 class DataManagementIntegrationTest {

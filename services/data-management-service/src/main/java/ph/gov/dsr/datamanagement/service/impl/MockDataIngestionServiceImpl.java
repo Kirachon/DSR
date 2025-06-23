@@ -1,6 +1,7 @@
 package ph.gov.dsr.datamanagement.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import ph.gov.dsr.datamanagement.dto.DataIngestionRequest;
 import ph.gov.dsr.datamanagement.dto.DataIngestionResponse;
@@ -19,6 +20,7 @@ import java.util.UUID;
  * @since 2024-12-23
  */
 @Service
+@Profile("no-db")
 @Slf4j
 public class MockDataIngestionServiceImpl implements DataIngestionService {
 

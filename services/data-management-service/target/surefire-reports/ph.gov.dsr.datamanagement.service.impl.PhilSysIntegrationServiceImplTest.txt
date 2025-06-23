@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: ph.gov.dsr.datamanagement.service.impl.PhilSysIntegrationServiceImplTest
--------------------------------------------------------------------------------
-Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.768 s -- in ph.gov.dsr.datamanagement.service.impl.PhilSysIntegrationServiceImplTest
