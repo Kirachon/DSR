@@ -1,0 +1,33 @@
+# Philippine Dynamic Social Registry (DSR) - Grafana Datasource Configuration
+# Local Development Setup
+# Version: 1.0.0
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: "15s"
+      queryTimeout: "60s"
+      httpMethod: "POST"
+    secureJsonData: {}
+
+  - name: Elasticsearch
+    type: elasticsearch
+    access: proxy
+    url: http://elasticsearch:9200
+    database: "dsr_local*"
+    editable: true
+    jsonData:
+      interval: "Daily"
+      timeField: "@timestamp"
+      esVersion: "8.11.0"
+      maxConcurrentShardRequests: 5
+      logMessageField: "message"
+      logLevelField: "level"
+    secureJsonData: {}

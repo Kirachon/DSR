@@ -1,0 +1,16 @@
+# Philippine Dynamic Social Registry (DSR) - Grafana Dashboard Provisioning
+# Local Development Setup
+# Version: 1.0.0
+
+apiVersion: 1
+
+providers:
+  - name: 'DSR Dashboards'
+    orgId: 1
+    folder: 'DSR'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards

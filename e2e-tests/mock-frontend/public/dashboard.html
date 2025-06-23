@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - DSR</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="navbar authenticated" data-testid="navigation-menu">
+            <div class="nav-brand">
+                <a href="/dashboard">
+                    <h1>DSR Dashboard</h1>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a href="/registration" data-testid="nav-registration">Registration</a>
+                <a href="/eligibility" data-testid="nav-eligibility">Eligibility</a>
+                <a href="/payments" data-testid="nav-payments">Payments</a>
+                <a href="/grievances" data-testid="nav-grievances">Grievances</a>
+                <a href="/analytics" data-testid="nav-analytics">Analytics</a>
+                <div class="user-menu" data-testid="user-menu">
+                    <button class="user-menu-button" data-testid="user-menu-button">
+                        <span id="user-name">User</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="user-menu-dropdown hidden" data-testid="user-menu-dropdown">
+                        <a href="/profile" data-testid="profile-link">Profile</a>
+                        <a href="#" id="logout-button" data-testid="logout-button">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content dashboard">
+            <div class="dashboard-header">
+                <h2>Welcome to your Dashboard</h2>
+                <p id="welcome-message">Manage your household registration and benefits</p>
+            </div>
+
+            <!-- Dashboard Stats -->
+            <div class="dashboard-stats">
+                <div class="stat-card" data-testid="stat-registrations">
+                    <h3>Registrations</h3>
+                    <div class="stat-number" id="registrations-count">1</div>
+                    <p>Active household registrations</p>
+                </div>
+                <div class="stat-card" data-testid="stat-eligibility">
+                    <h3>Eligibility</h3>
+                    <div class="stat-number" id="eligibility-count">3</div>
+                    <p>Programs you're eligible for</p>
+                </div>
+                <div class="stat-card" data-testid="stat-payments">
+                    <h3>Payments</h3>
+                    <div class="stat-number" id="payments-count">₱5,400</div>
+                    <p>Total benefits received</p>
+                </div>
+                <div class="stat-card" data-testid="stat-grievances">
+                    <h3>Grievances</h3>
+                    <div class="stat-number" id="grievances-count">0</div>
+                    <p>Open grievances</p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h3>Quick Actions</h3>
+                <div class="actions-grid">
+                    <a href="/registration" class="action-card" data-testid="action-new-registration">
+                        <div class="action-icon">📝</div>
+                        <h4>New Registration</h4>
+                        <p>Register a new household</p>
+                    </a>
+                    <a href="/eligibility" class="action-card" data-testid="action-check-eligibility">
+                        <div class="action-icon">✅</div>
+                        <h4>Check Eligibility</h4>
+                        <p>Assess program eligibility</p>
+                    </a>
+                    <a href="/payments" class="action-card" data-testid="action-view-payments">
+                        <div class="action-icon">💰</div>
+                        <h4>View Payments</h4>
+                        <p>Track your benefits</p>
+                    </a>
+                    <a href="/grievances" class="action-card" data-testid="action-submit-grievance">
+                        <div class="action-icon">📞</div>
+                        <h4>Submit Grievance</h4>
+                        <p>Report an issue</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+                <h3>Recent Activity</h3>
+                <div class="activity-list" data-testid="activity-list">
+                    <div class="activity-item" data-testid="activity-item">
+                        <div class="activity-icon">📝</div>
+                        <div class="activity-content">
+                            <h4>Household Registration Approved</h4>
+                            <p>Your household registration has been approved and is now active.</p>
+                            <span class="activity-time">2 hours ago</span>
+                        </div>
+                    </div>
+                    <div class="activity-item" data-testid="activity-item">
+                        <div class="activity-icon">💰</div>
+                        <div class="activity-content">
+                            <h4>Payment Received</h4>
+                            <p>4Ps benefit payment of ₱1,400 has been disbursed to your account.</p>
+                            <span class="activity-time">1 day ago</span>
+                        </div>
+                    </div>
+                    <div class="activity-item" data-testid="activity-item">
+                        <div class="activity-icon">✅</div>
+                        <div class="activity-content">
+                            <h4>Eligibility Assessment Completed</h4>
+                            <p>You are eligible for 3 social protection programs.</p>
+                            <span class="activity-time">3 days ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="loading-spinner hidden" data-testid="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading dashboard...</p>
+    </div>
+
+    <!-- Success Message -->
+    <div id="success-message" class="message success-message hidden" data-testid="success-message">
+        <span class="message-text"></span>
+        <button class="message-close" onclick="hideMessage('success-message')">&times;</button>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-message" class="message error-message hidden" data-testid="error-message">
+        <span class="message-text"></span>
+        <button class="message-close" onclick="hideMessage('error-message')">&times;</button>
+    </div>
+
+    <script src="common.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

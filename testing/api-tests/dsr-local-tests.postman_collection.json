@@ -1,0 +1,324 @@
+{
+  "info": {
+    "name": "DSR Local Development Tests",
+    "description": "Comprehensive API tests for DSR local development environment",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost",
+      "type": "string"
+    },
+    {
+      "key": "registrationPort",
+      "value": "8080",
+      "type": "string"
+    },
+    {
+      "key": "dataManagementPort",
+      "value": "8081",
+      "type": "string"
+    },
+    {
+      "key": "eligibilityPort",
+      "value": "8082",
+      "type": "string"
+    },
+    {
+      "key": "interoperabilityPort",
+      "value": "8083",
+      "type": "string"
+    },
+    {
+      "key": "paymentPort",
+      "value": "8084",
+      "type": "string"
+    },
+    {
+      "key": "grievancePort",
+      "value": "8085",
+      "type": "string"
+    },
+    {
+      "key": "analyticsPort",
+      "value": "8086",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Checks",
+      "item": [
+        {
+          "name": "Registration Service Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}:{{registrationPort}}/actuator/health",
+              "host": ["{{baseUrl}}"],
+              "port": "{{registrationPort}}",
+              "path": ["actuator", "health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Data Management Service Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}:{{dataManagementPort}}/actuator/health",
+              "host": ["{{baseUrl}}"],
+              "port": "{{dataManagementPort}}",
+              "path": ["actuator", "health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eligibility Service Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}:{{eligibilityPort}}/actuator/health",
+              "host": ["{{baseUrl}}"],
+              "port": "{{eligibilityPort}}",
+              "path": ["actuator", "health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Payment Service Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}:{{paymentPort}}/actuator/health",
+              "host": ["{{baseUrl}}"],
+              "port": "{{paymentPort}}",
+              "path": ["actuator", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Registration Workflow",
+      "item": [
+        {
+          "name": "Create Household Registration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"householdHead\": {\n    \"firstName\": \"Juan\",\n    \"lastName\": \"Dela Cruz\",\n    \"middleName\": \"Santos\",\n    \"birthDate\": \"1985-06-15\",\n    \"gender\": \"male\",\n    \"civilStatus\": \"married\",\n    \"psn\": \"9999-1234-5678-9012\"\n  },\n  \"address\": {\n    \"houseNumber\": \"123\",\n    \"street\": \"Test Street\",\n    \"barangay\": \"Barangay 1\",\n    \"cityMunicipality\": \"Quezon City\",\n    \"province\": \"Metro Manila\",\n    \"postalCode\": \"1100\"\n  },\n  \"members\": [\n    {\n      \"firstName\": \"Maria\",\n      \"lastName\": \"Dela Cruz\",\n      \"birthDate\": \"1987-03-20\",\n      \"gender\": \"female\",\n      \"relationshipToHead\": \"spouse\",\n      \"psn\": \"9999-1234-5678-9013\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}:{{registrationPort}}/api/v1/registrations",
+              "host": ["{{baseUrl}}"],
+              "port": "{{registrationPort}}",
+              "path": ["api", "v1", "registrations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Registration Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}:{{registrationPort}}/api/v1/registrations/{{registrationId}}",
+              "host": ["{{baseUrl}}"],
+              "port": "{{registrationPort}}",
+              "path": ["api", "v1", "registrations", "{{registrationId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Eligibility Assessment",
+      "item": [
+        {
+          "name": "Assess Household Eligibility",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"householdId\": \"{{householdId}}\",\n  \"programName\": \"4Ps\",\n  \"assessmentType\": \"full\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}:{{eligibilityPort}}/api/v1/eligibility/assess",
+              "host": ["{{baseUrl}}"],
+              "port": "{{eligibilityPort}}",
+              "path": ["api", "v1", "eligibility", "assess"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Eligibility Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}:{{eligibilityPort}}/api/v1/eligibility/household/{{householdId}}",
+              "host": ["{{baseUrl}}"],
+              "port": "{{eligibilityPort}}",
+              "path": ["api", "v1", "eligibility", "household", "{{householdId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payment Processing",
+      "item": [
+        {
+          "name": "Create Payment Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"householdId\": \"{{householdId}}\",\n  \"programName\": \"4Ps\",\n  \"amount\": 1400.00,\n  \"paymentMethod\": \"bank_transfer\",\n  \"beneficiaryAccount\": {\n    \"accountNumber\": \"1234567890\",\n    \"bankCode\": \"LBP\",\n    \"accountName\": \"Juan Dela Cruz\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}:{{paymentPort}}/api/v1/payments",
+              "host": ["{{baseUrl}}"],
+              "port": "{{paymentPort}}",
+              "path": ["api", "v1", "payments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}:{{paymentPort}}/api/v1/payments/{{paymentId}}",
+              "host": ["{{baseUrl}}"],
+              "port": "{{paymentPort}}",
+              "path": ["api", "v1", "payments", "{{paymentId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Grievance Management",
+      "item": [
+        {
+          "name": "Submit Grievance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"householdId\": \"{{householdId}}\",\n  \"grievanceType\": \"payment_issue\",\n  \"subject\": \"Payment not received\",\n  \"description\": \"I have not received my 4Ps payment for this month. Please investigate.\",\n  \"priority\": \"medium\",\n  \"contactMethod\": \"email\",\n  \"contactDetails\": \"juan.delacruz@email.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}:{{grievancePort}}/api/v1/grievances",
+              "host": ["{{baseUrl}}"],
+              "port": "{{grievancePort}}",
+              "path": ["api", "v1", "grievances"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Grievance Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}:{{grievancePort}}/api/v1/grievances/{{grievanceId}}",
+              "host": ["{{baseUrl}}"],
+              "port": "{{grievancePort}}",
+              "path": ["api", "v1", "grievances", "{{grievanceId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics and Reporting",
+      "item": [
+        {
+          "name": "Get Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}:{{analyticsPort}}/api/v1/analytics/dashboard/summary",
+              "host": ["{{baseUrl}}"],
+              "port": "{{analyticsPort}}",
+              "path": ["api", "v1", "analytics", "dashboard", "summary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Program Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}:{{analyticsPort}}/api/v1/analytics/programs/statistics?program=4Ps&period=monthly",
+              "host": ["{{baseUrl}}"],
+              "port": "{{analyticsPort}}",
+              "path": ["api", "v1", "analytics", "programs", "statistics"],
+              "query": [
+                {
+                  "key": "program",
+                  "value": "4Ps"
+                },
+                {
+                  "key": "period",
+                  "value": "monthly"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

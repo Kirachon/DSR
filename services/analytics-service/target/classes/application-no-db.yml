@@ -1,0 +1,97 @@
+# Philippine Dynamic Social Registry (DSR) - Analytics Service
+# No Database Configuration for Local Development
+# Version: 1.0.0
+
+server:
+  port: ${ANALYTICS_SERVICE_PORT:8086}
+  servlet:
+    context-path: /
+  shutdown: graceful
+  tomcat:
+    threads:
+      max: 50
+      min-spare: 5
+    connection-timeout: 20000
+    max-connections: 200
+
+spring:
+  application:
+    name: dsr-analytics-service
+
+  # Disable JPA and Database Auto-configuration
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
+
+  # Disable Kafka for now
+  kafka:
+    enabled: false
+
+  # Disable Cache for now
+  cache:
+    type: none
+
+  # Development Tools
+  devtools:
+    restart:
+      enabled: ${SPRING_DEVTOOLS_RESTART_ENABLED:true}
+    livereload:
+      enabled: ${SPRING_DEVTOOLS_LIVERELOAD_ENABLED:true}
+
+# Management and Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${MANAGEMENT_ENDPOINTS_WEB_EXPOSURE:health,info,metrics,prometheus}
+  endpoint:
+    health:
+      show-details: ${MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS:always}
+  metrics:
+    export:
+      prometheus:
+        enabled: ${METRICS_EXPORT_PROMETHEUS_ENABLED:true}
+
+# Logging Configuration
+logging:
+  level:
+    root: ${ROOT_LOG_LEVEL:INFO}
+    ph.gov.dsr: ${DSR_LOG_LEVEL:DEBUG}
+    org.springframework: ${SPRING_LOG_LEVEL:INFO}
+  pattern:
+    console: ${LOG_CONSOLE_PATTERN:%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n}
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ${LOG_FILE_PATH:./logs}/analytics-service.log
+    max-size: ${LOG_FILE_MAX_SIZE:100MB}
+    max-history: ${LOG_FILE_MAX_HISTORY:30}
+
+# Security Configuration (Minimal for no-db mode)
+security:
+  jwt:
+    secret: ${JWT_SECRET:local_development_secret_key_change_in_production}
+    expiration: ${JWT_EXPIRATION:86400}
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800}
+
+# Feature Flags (Disabled for no-db mode)
+features:
+  philsys-integration: false
+  document-upload: false
+  audit-logging: false
+  analytics-collection: false
+
+# Local Development Specific
+local:
+  test-data:
+    enabled: false
+  
+  mock-services:
+    enabled: true
+  
+  debug:
+    enabled: true
+    log-requests: true
+    log-responses: true

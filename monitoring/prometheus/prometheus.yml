@@ -1,0 +1,127 @@
+# Philippine Dynamic Social Registry (DSR) - Prometheus Configuration
+# Local Development Monitoring Setup
+# Version: 1.0.0
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: 'local'
+    cluster: 'dsr-local'
+
+rule_files:
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # DSR Registration Service
+  - job_name: 'dsr-registration-service'
+    static_configs:
+      - targets: ['host.containers.internal:8080']
+    scrape_interval: 15s
+    metrics_path: /actuator/prometheus
+    scrape_timeout: 10s
+
+  # DSR Data Management Service
+  - job_name: 'dsr-data-management-service'
+    static_configs:
+      - targets: ['host.containers.internal:8081']
+    scrape_interval: 15s
+    metrics_path: /actuator/prometheus
+    scrape_timeout: 10s
+
+  # DSR Eligibility Service
+  - job_name: 'dsr-eligibility-service'
+    static_configs:
+      - targets: ['host.containers.internal:8082']
+    scrape_interval: 15s
+    metrics_path: /actuator/prometheus
+    scrape_timeout: 10s
+
+  # DSR Interoperability Service
+  - job_name: 'dsr-interoperability-service'
+    static_configs:
+      - targets: ['host.containers.internal:8083']
+    scrape_interval: 15s
+    metrics_path: /actuator/prometheus
+    scrape_timeout: 10s
+
+  # DSR Payment Service
+  - job_name: 'dsr-payment-service'
+    static_configs:
+      - targets: ['host.containers.internal:8084']
+    scrape_interval: 15s
+    metrics_path: /actuator/prometheus
+    scrape_timeout: 10s
+
+  # DSR Grievance Service
+  - job_name: 'dsr-grievance-service'
+    static_configs:
+      - targets: ['host.containers.internal:8085']
+    scrape_interval: 15s
+    metrics_path: /actuator/prometheus
+    scrape_timeout: 10s
+
+  # DSR Analytics Service
+  - job_name: 'dsr-analytics-service'
+    static_configs:
+      - targets: ['host.containers.internal:8086']
+    scrape_interval: 15s
+    metrics_path: /actuator/prometheus
+    scrape_timeout: 10s
+
+  # PostgreSQL Exporter
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgresql:5432']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Redis Exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Elasticsearch Exporter
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: ['elasticsearch:9200']
+    scrape_interval: 30s
+    metrics_path: /_prometheus/metrics
+
+  # Kafka Exporter
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka:9092']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Node Exporter (if available)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['host.containers.internal:9100']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # cAdvisor (if available)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['host.containers.internal:8080']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+# For local development, we'll keep the configuration simple without recording and alerting rules
+# These can be added later when the services are running and exposing metrics
