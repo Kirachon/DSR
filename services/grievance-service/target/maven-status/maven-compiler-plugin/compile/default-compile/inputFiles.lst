@@ -1,2 +1,7 @@
+D:\GitProjects\DSR\services\grievance-service\src\main\java\ph\gov\dsr\grievance\config\CacheConfig.java
 D:\GitProjects\DSR\services\grievance-service\src\main\java\ph\gov\dsr\grievance\config\NoDbConfig.java
+D:\GitProjects\DSR\services\grievance-service\src\main\java\ph\gov\dsr\grievance\entity\CaseActivity.java
+D:\GitProjects\DSR\services\grievance-service\src\main\java\ph\gov\dsr\grievance\entity\GrievanceCase.java
 D:\GitProjects\DSR\services\grievance-service\src\main\java\ph\gov\dsr\grievance\GrievanceServiceApplication.java
+D:\GitProjects\DSR\services\grievance-service\src\main\java\ph\gov\dsr\grievance\repository\GrievanceCaseRepository.java
+D:\GitProjects\DSR\services\grievance-service\src\main\java\ph\gov\dsr\grievance\service\GrievanceCaseService.java

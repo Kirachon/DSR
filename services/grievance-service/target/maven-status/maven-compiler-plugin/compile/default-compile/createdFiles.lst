@@ -1,2 +1,12 @@
-ph\gov\dsr\grievance\config\NoDbConfig.class
+ph\gov\dsr\grievance\entity\GrievanceCase.class
+ph\gov\dsr\grievance\entity\GrievanceCase$1.class
+ph\gov\dsr\grievance\entity\GrievanceCase$GrievanceCategory.class
+ph\gov\dsr\grievance\entity\GrievanceCase$CaseStatus.class
+ph\gov\dsr\grievance\service\GrievanceCaseService.class
+ph\gov\dsr\grievance\entity\CaseActivity.class
 ph\gov\dsr\grievance\GrievanceServiceApplication.class
+ph\gov\dsr\grievance\repository\GrievanceCaseRepository.class
+ph\gov\dsr\grievance\entity\GrievanceCase$Priority.class
+ph\gov\dsr\grievance\entity\CaseActivity$ActivityType.class
+ph\gov\dsr\grievance\config\NoDbConfig.class
+ph\gov\dsr\grievance\config\CacheConfig.class
