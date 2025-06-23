@@ -1,2 +1,14 @@
 ph\gov\dsr\analytics\config\NoDbConfig.class
+ph\gov\dsr\analytics\dto\ReportRequest.class
 ph\gov\dsr\analytics\AnalyticsServiceApplication.class
+ph\gov\dsr\analytics\dto\ReportResponse.class
+ph\gov\dsr\analytics\entity\AnalyticsReport$ReportStatus.class
+ph\gov\dsr\analytics\dto\ReportResponse$ReportResponseBuilder.class
+ph\gov\dsr\analytics\repository\AnalyticsReportRepository.class
+ph\gov\dsr\analytics\service\KpiCalculationService.class
+ph\gov\dsr\analytics\entity\AnalyticsReport.class
+ph\gov\dsr\analytics\entity\AnalyticsReport$ReportType.class
+ph\gov\dsr\analytics\service\DataAggregationService.class
+ph\gov\dsr\analytics\config\CacheConfig.class
+ph\gov\dsr\analytics\entity\AnalyticsReport$ReportCategory.class
+ph\gov\dsr\analytics\service\ReportingEngineService.class

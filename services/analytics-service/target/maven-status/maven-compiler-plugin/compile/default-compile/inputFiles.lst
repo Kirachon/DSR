@@ -1,2 +1,10 @@
 D:\GitProjects\DSR\services\analytics-service\src\main\java\ph\gov\dsr\analytics\AnalyticsServiceApplication.java
+D:\GitProjects\DSR\services\analytics-service\src\main\java\ph\gov\dsr\analytics\config\CacheConfig.java
 D:\GitProjects\DSR\services\analytics-service\src\main\java\ph\gov\dsr\analytics\config\NoDbConfig.java
+D:\GitProjects\DSR\services\analytics-service\src\main\java\ph\gov\dsr\analytics\dto\ReportRequest.java
+D:\GitProjects\DSR\services\analytics-service\src\main\java\ph\gov\dsr\analytics\dto\ReportResponse.java
+D:\GitProjects\DSR\services\analytics-service\src\main\java\ph\gov\dsr\analytics\entity\AnalyticsReport.java
+D:\GitProjects\DSR\services\analytics-service\src\main\java\ph\gov\dsr\analytics\repository\AnalyticsReportRepository.java
+D:\GitProjects\DSR\services\analytics-service\src\main\java\ph\gov\dsr\analytics\service\DataAggregationService.java
+D:\GitProjects\DSR\services\analytics-service\src\main\java\ph\gov\dsr\analytics\service\KpiCalculationService.java
+D:\GitProjects\DSR\services\analytics-service\src\main\java\ph\gov\dsr\analytics\service\ReportingEngineService.java
