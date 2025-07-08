@@ -3,17 +3,23 @@
 // Form Component
 // Wrapper component for React Hook Form with Zod validation integration
 
-import React from 'react';
-import { useForm, FormProvider, UseFormReturn, FieldValues, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React from 'react';
+import {
+  useForm,
+  FormProvider,
+  UseFormReturn,
+  FieldValues,
+  SubmitHandler,
+} from 'react-hook-form';
 import { z } from 'zod';
 
-import { cn } from '@/utils';
 import { Button, Loading } from '@/components/ui';
+import { cn } from '@/utils';
 
 // Form props interface
 export interface FormProps<T extends FieldValues> {
-  schema: z.ZodSchema<T>;
+  schema: z.ZodType<T>;
   onSubmit: SubmitHandler<T>;
   defaultValues?: Partial<T>;
   children: React.ReactNode | ((methods: UseFormReturn<T>) => React.ReactNode);
@@ -39,9 +45,13 @@ export function Form<T extends FieldValues>({
   validateOnBlur = true,
 }: FormProps<T>) {
   const methods = useForm<T>({
-    resolver: zodResolver(schema),
-    defaultValues,
-    mode: validateOnChange ? 'onChange' : validateOnBlur ? 'onBlur' : 'onSubmit',
+    resolver: zodResolver(schema as any),
+    defaultValues: defaultValues as any,
+    mode: validateOnChange
+      ? 'onChange'
+      : validateOnBlur
+        ? 'onBlur'
+        : 'onSubmit',
   });
 
   const handleSubmit = async (data: T) => {
@@ -58,18 +68,18 @@ export function Form<T extends FieldValues>({
   return (
     <FormProvider {...methods}>
       <form
-        onSubmit={methods.handleSubmit(handleSubmit)}
+        onSubmit={methods.handleSubmit(handleSubmit as any)}
         className={cn('space-y-4', className)}
         noValidate
       >
         {loading && (
-          <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
-            <Loading size="lg" text="Processing..." />
+          <div className='absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10'>
+            <Loading size='lg' text='Processing...' />
           </div>
         )}
-        
-        <fieldset disabled={disabled || loading} className="space-y-4">
-          {typeof children === 'function' ? children(methods) : children}
+
+        <fieldset disabled={disabled || loading} className='space-y-4'>
+          {typeof children === 'function' ? children(methods as any) : children}
         </fieldset>
       </form>
     </FormProvider>
@@ -115,11 +125,13 @@ export const FormActions: React.FC<FormActionsProps> = ({
   };
 
   return (
-    <div className={cn(
-      'flex items-center space-x-2 pt-4',
-      alignClasses[align],
-      className
-    )}>
+    <div
+      className={cn(
+        'flex items-center space-x-2 pt-4',
+        alignClasses[align],
+        className
+      )}
+    >
       {children}
     </div>
   );
@@ -142,18 +154,16 @@ export const FormSection: React.FC<FormSectionProps> = ({
   return (
     <div className={cn('space-y-4', className)}>
       {(title || description) && (
-        <div className="space-y-1">
+        <div className='space-y-1'>
           {title && (
-            <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+            <h3 className='text-lg font-medium text-gray-900'>{title}</h3>
           )}
           {description && (
-            <p className="text-sm text-gray-500">{description}</p>
+            <p className='text-sm text-gray-500'>{description}</p>
           )}
         </div>
       )}
-      <div className="space-y-4">
-        {children}
-      </div>
+      <div className='space-y-4'>{children}</div>
     </div>
   );
 };
@@ -186,12 +196,9 @@ export const FormGrid: React.FC<FormGridProps> = ({
   };
 
   return (
-    <div className={cn(
-      'grid',
-      columnClasses[columns],
-      gapClasses[gap],
-      className
-    )}>
+    <div
+      className={cn('grid', columnClasses[columns], gapClasses[gap], className)}
+    >
       {children}
     </div>
   );
@@ -203,14 +210,11 @@ export interface FormErrorProps {
   className?: string;
 }
 
-export const FormError: React.FC<FormErrorProps> = ({
-  message,
-  className,
-}) => {
+export const FormError: React.FC<FormErrorProps> = ({ message, className }) => {
   if (!message) return null;
 
   return (
-    <p className={cn('text-sm text-error-600', className)} role="alert">
+    <p className={cn('text-sm text-error-600', className)} role='alert'>
       {message}
     </p>
   );
@@ -228,11 +232,7 @@ export const FormSuccess: React.FC<FormSuccessProps> = ({
 }) => {
   if (!message) return null;
 
-  return (
-    <p className={cn('text-sm text-success-600', className)}>
-      {message}
-    </p>
-  );
+  return <p className={cn('text-sm text-success-600', className)}>{message}</p>;
 };
 
 // Form Helper Text component
@@ -245,11 +245,7 @@ export const FormHelperText: React.FC<FormHelperTextProps> = ({
   children,
   className,
 }) => {
-  return (
-    <p className={cn('text-sm text-gray-500', className)}>
-      {children}
-    </p>
-  );
+  return <p className={cn('text-sm text-gray-500', className)}>{children}</p>;
 };
 
 // Form Submit Button component
@@ -274,7 +270,7 @@ export const FormSubmitButton: React.FC<FormSubmitButtonProps> = ({
 }) => {
   return (
     <Button
-      type="submit"
+      type='submit'
       variant={variant}
       size={size}
       fullWidth={fullWidth}
@@ -305,7 +301,7 @@ export const FormResetButton: React.FC<FormResetButtonProps> = ({
 }) => {
   return (
     <Button
-      type="reset"
+      type='reset'
       variant={variant}
       size={size}
       onClick={onReset}

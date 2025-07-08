@@ -3,8 +3,8 @@
 // Card Component
 // Flexible card component with header, body, footer, and various styling options
 
-import React, { forwardRef } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
+import React, { forwardRef } from 'react';
 
 import { cn } from '@/utils';
 
@@ -57,13 +57,15 @@ export interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 // Card Title props
-export interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+export interface CardTitleProps
+  extends React.HTMLAttributes<HTMLHeadingElement> {
   asChild?: boolean;
   level?: 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 // Card Description props
-export interface CardDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {
+export interface CardDescriptionProps
+  extends React.HTMLAttributes<HTMLParagraphElement> {
   asChild?: boolean;
 }
 
@@ -79,9 +81,12 @@ export interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {
 
 // Main Card component
 const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant, size, interactive, asChild = false, ...props }, ref) => {
+  (
+    { className, variant, size, interactive, asChild = false, ...props },
+    ref
+  ) => {
     const Comp = asChild ? 'div' : 'div';
-    
+
     return (
       <Comp
         ref={ref}
@@ -97,7 +102,7 @@ Card.displayName = 'Card';
 const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
   ({ className, asChild = false, ...props }, ref) => {
     const Comp = asChild ? 'div' : 'div';
-    
+
     return (
       <Comp
         ref={ref}
@@ -116,24 +121,29 @@ const CardTitle = forwardRef<HTMLHeadingElement, CardTitleProps>(
       return (
         <div
           ref={ref as React.Ref<HTMLDivElement>}
-          className={cn('text-2xl font-semibold leading-none tracking-tight', className)}
-          {...props}
+          className={cn(
+            'text-2xl font-semibold leading-none tracking-tight',
+            className
+          )}
+          {...(props as React.HTMLAttributes<HTMLDivElement>)}
         >
           {children}
         </div>
       );
     }
 
-    const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
-    
-    return (
-      <HeadingTag
-        ref={ref as any}
-        className={cn('text-2xl font-semibold leading-none tracking-tight', className)}
-        {...props}
-      >
-        {children}
-      </HeadingTag>
+    // Use React.createElement to avoid complex union type issues
+    return React.createElement(
+      `h${level}`,
+      {
+        ref,
+        className: cn(
+          'text-2xl font-semibold leading-none tracking-tight',
+          className
+        ),
+        ...props,
+      },
+      children
     );
   }
 );
@@ -143,7 +153,7 @@ CardTitle.displayName = 'CardTitle';
 const CardDescription = forwardRef<HTMLParagraphElement, CardDescriptionProps>(
   ({ className, asChild = false, ...props }, ref) => {
     const Comp = asChild ? 'div' : 'p';
-    
+
     return (
       <Comp
         ref={ref as any}
@@ -159,14 +169,8 @@ CardDescription.displayName = 'CardDescription';
 const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
   ({ className, asChild = false, ...props }, ref) => {
     const Comp = asChild ? 'div' : 'div';
-    
-    return (
-      <Comp
-        ref={ref}
-        className={cn('p-6 pt-0', className)}
-        {...props}
-      />
-    );
+
+    return <Comp ref={ref} className={cn('p-6 pt-0', className)} {...props} />;
   }
 );
 CardContent.displayName = 'CardContent';
@@ -175,7 +179,7 @@ CardContent.displayName = 'CardContent';
 const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
   ({ className, asChild = false, ...props }, ref) => {
     const Comp = asChild ? 'div' : 'div';
-    
+
     return (
       <Comp
         ref={ref}

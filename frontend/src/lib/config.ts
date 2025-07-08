@@ -17,6 +17,26 @@ export const config: EnvironmentConfig = {
   enableDarkMode: process.env.NEXT_PUBLIC_ENABLE_DARK_MODE === 'true',
 };
 
+// Service Base URLs Configuration
+export const serviceUrls = {
+  registration:
+    process.env.NEXT_PUBLIC_REGISTRATION_SERVICE_URL || 'http://localhost:8080',
+  dataManagement:
+    process.env.NEXT_PUBLIC_DATA_MANAGEMENT_SERVICE_URL ||
+    'http://localhost:8082',
+  eligibility:
+    process.env.NEXT_PUBLIC_ELIGIBILITY_SERVICE_URL || 'http://localhost:8083',
+  interoperability:
+    process.env.NEXT_PUBLIC_INTEROPERABILITY_SERVICE_URL ||
+    'http://localhost:8084',
+  payment:
+    process.env.NEXT_PUBLIC_PAYMENT_SERVICE_URL || 'http://localhost:8085',
+  grievance:
+    process.env.NEXT_PUBLIC_GRIEVANCE_SERVICE_URL || 'http://localhost:8086',
+  analytics:
+    process.env.NEXT_PUBLIC_ANALYTICS_SERVICE_URL || 'http://localhost:8087',
+};
+
 // API Endpoints Configuration
 export const apiEndpoints: ApiEndpoints = {
   auth: {
@@ -39,7 +59,8 @@ export const apiEndpoints: ApiEndpoints = {
 // JWT Token Configuration
 export const tokenConfig = {
   accessTokenKey: process.env.NEXT_PUBLIC_JWT_STORAGE_KEY || 'dsr_access_token',
-  refreshTokenKey: process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY || 'dsr_refresh_token',
+  refreshTokenKey:
+    process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY || 'dsr_refresh_token',
   tokenPrefix: 'Bearer',
   expirationBuffer: 5 * 60 * 1000, // 5 minutes in milliseconds
 };

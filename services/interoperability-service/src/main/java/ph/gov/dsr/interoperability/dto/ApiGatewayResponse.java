@@ -119,4 +119,11 @@ public class ApiGatewayResponse {
         }
         metadata.put(key, value);
     }
+
+    /**
+     * Get response data (alias for body)
+     */
+    public Object getData() {
+        return body;
+    }
 }

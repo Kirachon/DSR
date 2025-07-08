@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-07-08T01:52:01.455Z",
+  "environment": {
+    "nodeVersion": "v22.14.0",
+    "playwrightVersion": "1.53.1"
+  },
+  "configuration": {
+    "browsers": [
+      "chromium",
+      "firefox",
+      "webkit"
+    ],
+    "retries": 0
+  }
+}

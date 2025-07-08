@@ -2,7 +2,6 @@ package ph.gov.dsr.datamanagement.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import ph.gov.dsr.datamanagement.dto.DeduplicationRequest;
 import ph.gov.dsr.datamanagement.dto.DeduplicationResponse;
@@ -13,13 +12,12 @@ import java.util.*;
 
 /**
  * Production implementation of DeduplicationService with fuzzy matching algorithms
- * 
+ *
  * @author DSR Development Team
  * @version 3.0.0
  * @since 2024-12-23
  */
 @Service
-@Profile("!no-db")
 @RequiredArgsConstructor
 @Slf4j
 public class DeduplicationServiceImpl implements DeduplicationService {

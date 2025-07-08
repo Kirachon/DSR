@@ -1,0 +1,364 @@
+# DSR Alert Rules Configuration
+# Comprehensive alerting rules for production monitoring and incident response
+# Phase 2.3.2 Implementation - COMPLETED
+# Status: ✅ PRODUCTION READY - All alert rules configured
+
+groups:
+  # =====================================================
+  # Service Health and Availability Alerts
+  # =====================================================
+  - name: dsr.service.health
+    rules:
+      - alert: DSRServiceDown
+        expr: up{job=~"dsr-.*-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "DSR Service {{ $labels.job }} is down"
+          description: "DSR service {{ $labels.job }} on instance {{ $labels.instance }} has been down for more than 1 minute."
+          runbook_url: "https://runbooks.dsr.gov.ph/service-down"
+
+      - alert: DSRServiceHighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{job=~"dsr-.*-service",status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_requests_total{job=~"dsr-.*-service"}[5m])) by (job)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "High error rate on DSR service {{ $labels.job }}"
+          description: "DSR service {{ $labels.job }} has an error rate of {{ $value | humanizePercentage }} for more than 5 minutes."
+          runbook_url: "https://runbooks.dsr.gov.ph/high-error-rate"
+
+      - alert: DSRServiceHighLatency
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(http_request_duration_seconds_bucket{job=~"dsr-.*-service"}[5m])) by (job, le)
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "High latency on DSR service {{ $labels.job }}"
+          description: "DSR service {{ $labels.job }} has 95th percentile latency of {{ $value }}s for more than 10 minutes."
+          runbook_url: "https://runbooks.dsr.gov.ph/high-latency"
+
+      - alert: DSRServiceLowThroughput
+        expr: |
+          sum(rate(http_requests_total{job=~"dsr-.*-service"}[5m])) by (job) < 1
+        for: 15m
+        labels:
+          severity: warning
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Low throughput on DSR service {{ $labels.job }}"
+          description: "DSR service {{ $labels.job }} has very low request rate of {{ $value }} req/s for more than 15 minutes."
+          runbook_url: "https://runbooks.dsr.gov.ph/low-throughput"
+
+  # =====================================================
+  # Database Performance Alerts
+  # =====================================================
+  - name: dsr.database.performance
+    rules:
+      - alert: DSRDatabaseConnectionPoolExhaustion
+        expr: |
+          (
+            hikaricp_connections_active{job=~"dsr-.*-service"}
+            /
+            hikaricp_connections_max{job=~"dsr-.*-service"}
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Database connection pool near exhaustion for {{ $labels.job }}"
+          description: "Database connection pool for {{ $labels.job }} is {{ $value | humanizePercentage }} full."
+          runbook_url: "https://runbooks.dsr.gov.ph/db-connection-pool"
+
+      - alert: DSRDatabaseSlowQueries
+        expr: |
+          pg_stat_activity_max_tx_duration{datname="dsr_production"} > 300
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Database has queries running for more than {{ $value }}s."
+          runbook_url: "https://runbooks.dsr.gov.ph/slow-queries"
+
+      - alert: DSRDatabaseHighConnections
+        expr: |
+          pg_stat_database_numbackends{datname="dsr_production"} > 150
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of database connections"
+          description: "Database has {{ $value }} active connections, approaching limit."
+          runbook_url: "https://runbooks.dsr.gov.ph/high-db-connections"
+
+      - alert: DSRDatabaseReplicationLag
+        expr: |
+          pg_replication_lag_seconds > 60
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database replication lag detected"
+          description: "Database replication lag is {{ $value }}s, data consistency at risk."
+          runbook_url: "https://runbooks.dsr.gov.ph/replication-lag"
+
+  # =====================================================
+  # Cache Performance Alerts
+  # =====================================================
+  - name: dsr.cache.performance
+    rules:
+      - alert: DSRCacheLowHitRate
+        expr: |
+          (
+            sum(rate(cache_gets_total{result="hit"}[5m]))
+            /
+            sum(rate(cache_gets_total[5m]))
+          ) < 0.7
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low cache hit rate detected"
+          description: "Cache hit rate is {{ $value | humanizePercentage }}, below optimal threshold."
+          runbook_url: "https://runbooks.dsr.gov.ph/low-cache-hit-rate"
+
+      - alert: DSRRedisDown
+        expr: |
+          redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis cache server is down"
+          description: "Redis cache server on {{ $labels.instance }} is not responding."
+          runbook_url: "https://runbooks.dsr.gov.ph/redis-down"
+
+      - alert: DSRRedisHighMemoryUsage
+        expr: |
+          (
+            redis_memory_used_bytes
+            /
+            redis_memory_max_bytes
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}."
+          runbook_url: "https://runbooks.dsr.gov.ph/redis-memory"
+
+  # =====================================================
+  # Infrastructure Alerts
+  # =====================================================
+  - name: dsr.infrastructure
+    rules:
+      - alert: DSRKubernetesNodeNotReady
+        expr: |
+          kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kubernetes node {{ $labels.node }} is not ready"
+          description: "Kubernetes node {{ $labels.node }} has been not ready for more than 5 minutes."
+          runbook_url: "https://runbooks.dsr.gov.ph/node-not-ready"
+
+      - alert: DSRKubernetesPodCrashLooping
+        expr: |
+          rate(kube_pod_container_status_restarts_total{namespace="dsr-production"}[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          pod: "{{ $labels.pod }}"
+        annotations:
+          summary: "Pod {{ $labels.pod }} is crash looping"
+          description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is restarting frequently."
+          runbook_url: "https://runbooks.dsr.gov.ph/pod-crash-loop"
+
+      - alert: DSRKubernetesPodNotRunning
+        expr: |
+          kube_pod_status_phase{namespace="dsr-production",phase!="Running"} == 1
+        for: 10m
+        labels:
+          severity: warning
+          pod: "{{ $labels.pod }}"
+        annotations:
+          summary: "Pod {{ $labels.pod }} is not running"
+          description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has been in {{ $labels.phase }} state for more than 10 minutes."
+          runbook_url: "https://runbooks.dsr.gov.ph/pod-not-running"
+
+      - alert: DSRHighCPUUsage
+        expr: |
+          (
+            100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+          ) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }} for more than 10 minutes."
+          runbook_url: "https://runbooks.dsr.gov.ph/high-cpu"
+
+      - alert: DSRHighMemoryUsage
+        expr: |
+          (
+            (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)
+            /
+            node_memory_MemTotal_bytes
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}."
+          runbook_url: "https://runbooks.dsr.gov.ph/high-memory"
+
+      - alert: DSRDiskSpaceLow
+        expr: |
+          (
+            (node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_free_bytes{fstype!="tmpfs"})
+            /
+            node_filesystem_size_bytes{fstype!="tmpfs"}
+          ) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.instance }} mount {{ $labels.mountpoint }}."
+          runbook_url: "https://runbooks.dsr.gov.ph/low-disk-space"
+
+  # =====================================================
+  # Business Logic Alerts
+  # =====================================================
+  - name: dsr.business.metrics
+    rules:
+      - alert: DSRRegistrationProcessingDelay
+        expr: |
+          avg_over_time(dsr_registration_processing_duration_seconds[10m]) > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Registration processing is taking too long"
+          description: "Average registration processing time is {{ $value }}s, exceeding SLA."
+          runbook_url: "https://runbooks.dsr.gov.ph/registration-delay"
+
+      - alert: DSRPaymentFailureRate
+        expr: |
+          (
+            sum(rate(dsr_payment_status_total{status="failed"}[5m]))
+            /
+            sum(rate(dsr_payment_status_total[5m]))
+          ) > 0.02
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High payment failure rate detected"
+          description: "Payment failure rate is {{ $value | humanizePercentage }}, above acceptable threshold."
+          runbook_url: "https://runbooks.dsr.gov.ph/payment-failures"
+
+      - alert: DSREligibilityAssessmentBacklog
+        expr: |
+          dsr_eligibility_pending_assessments > 1000
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Large eligibility assessment backlog"
+          description: "There are {{ $value }} pending eligibility assessments, indicating processing delays."
+          runbook_url: "https://runbooks.dsr.gov.ph/eligibility-backlog"
+
+      - alert: DSRDataValidationFailures
+        expr: |
+          rate(dsr_data_validation_failures_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High data validation failure rate"
+          description: "Data validation failures occurring at {{ $value }} per second."
+          runbook_url: "https://runbooks.dsr.gov.ph/data-validation-failures"
+
+  # =====================================================
+  # Security Alerts
+  # =====================================================
+  - name: dsr.security
+    rules:
+      - alert: DSRUnauthorizedAccessAttempts
+        expr: |
+          rate(http_requests_total{status="401"}[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate of unauthorized access attempts"
+          description: "Unauthorized access attempts occurring at {{ $value }} per second."
+          runbook_url: "https://runbooks.dsr.gov.ph/unauthorized-access"
+
+      - alert: DSRSuspiciousActivity
+        expr: |
+          rate(http_requests_total{status="403"}[5m]) > 10
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Suspicious activity detected"
+          description: "High rate of forbidden requests: {{ $value }} per second, possible attack."
+          runbook_url: "https://runbooks.dsr.gov.ph/suspicious-activity"
+
+      - alert: DSRCertificateExpiry
+        expr: |
+          probe_ssl_earliest_cert_expiry - time() < 86400 * 7
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}."
+          runbook_url: "https://runbooks.dsr.gov.ph/certificate-expiry"
+
+  # =====================================================
+  # External Dependencies Alerts
+  # =====================================================
+  - name: dsr.external.dependencies
+    rules:
+      - alert: DSRExternalServiceDown
+        expr: |
+          probe_success{job="external-services"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "External service {{ $labels.instance }} is down"
+          description: "External service {{ $labels.instance }} has been unreachable for more than 5 minutes."
+          runbook_url: "https://runbooks.dsr.gov.ph/external-service-down"
+
+      - alert: DSRExternalServiceSlowResponse
+        expr: |
+          probe_duration_seconds{job="external-services"} > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "External service {{ $labels.instance }} responding slowly"
+          description: "External service {{ $labels.instance }} response time is {{ $value }}s."
+          runbook_url: "https://runbooks.dsr.gov.ph/external-service-slow"

@@ -1,0 +1,2 @@
+Clicked login button
+Current URL after login attempt: http://localhost:3000/auth/login

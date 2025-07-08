@@ -6,6 +6,7 @@ export enum UserRole {
   CITIZEN = 'CITIZEN',
   LGU_STAFF = 'LGU_STAFF',
   DSWD_STAFF = 'DSWD_STAFF',
+  CASE_WORKER = 'CASE_WORKER',
   SYSTEM_ADMIN = 'SYSTEM_ADMIN',
 }
 
@@ -28,6 +29,7 @@ export interface User {
   phoneNumber?: string;
   dateOfBirth?: string;
   address?: string;
+  psn?: string;
   profilePictureUrl?: string;
   emailVerified: boolean;
   phoneVerified: boolean;
@@ -93,6 +95,18 @@ export interface AuthResponse {
   user: User;
 }
 
+// JWT Token Payload
+export interface TokenPayload {
+  sub: string; // Subject (user ID)
+  email: string;
+  role: UserRole;
+  permissions: string[];
+  iat: number; // Issued at
+  exp: number; // Expiration time
+  iss?: string; // Issuer
+  aud?: string; // Audience
+}
+
 export interface MessageResponse {
   message: string;
   success: boolean;
@@ -140,7 +154,7 @@ export interface AuthActions {
   login: (credentials: LoginRequest) => Promise<void>;
   register: (userData: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
-  refreshToken: () => Promise<void>;
+  refreshTokens: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
   changePassword: (data: ChangePasswordRequest) => Promise<void>;
   forgotPassword: (data: ForgotPasswordRequest) => Promise<void>;
@@ -149,6 +163,8 @@ export interface AuthActions {
   resendVerification: (data: ResendVerificationRequest) => Promise<void>;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
+  loadUserProfile: () => Promise<void>;
+  initialize: () => Promise<void>;
 }
 
 // Combined Auth Store Interface

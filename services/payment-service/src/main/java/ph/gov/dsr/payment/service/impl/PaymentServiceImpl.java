@@ -17,7 +17,6 @@ import ph.gov.dsr.payment.service.PaymentService;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Implementation of PaymentService

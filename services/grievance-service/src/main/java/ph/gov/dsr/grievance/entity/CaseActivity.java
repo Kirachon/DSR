@@ -158,6 +158,7 @@ public class CaseActivity {
         CASE_REOPENED,
         NOTE_ADDED,
         SYSTEM_UPDATE,
+        SLA_MONITORING,
         OTHER
     }
 

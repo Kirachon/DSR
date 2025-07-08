@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * Report Request DTO
- * 
+ *
  * @author DSR Development Team
  * @version 3.0.0
  * @since 2024-12-23

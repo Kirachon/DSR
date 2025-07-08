@@ -1,0 +1,2 @@
+Network responses: []
+CORS-enabled responses: 0

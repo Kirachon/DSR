@@ -16,14 +16,19 @@ export interface SelectOption {
 }
 
 // Form Select props interface
-export interface FormSelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'name'> {
-  name: string;
+export interface FormSelectProps
+  extends Omit<
+    React.SelectHTMLAttributes<HTMLSelectElement>,
+    'name' | 'onChange'
+  > {
+  name?: string;
   label?: string;
   description?: string;
   placeholder?: string;
   options: SelectOption[];
   required?: boolean;
   error?: string;
+  onChange?: (value: string | React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
 // Form Select component
@@ -49,17 +54,17 @@ export const FormSelect: React.FC<FormSelectProps> = ({
       name={name}
       control={control}
       render={({ field }) => (
-        <div className="space-y-2">
+        <div className='space-y-2'>
           {label && (
             <label
               htmlFor={field.name}
-              className="block text-sm font-medium text-gray-700"
+              className='block text-sm font-medium text-gray-700'
             >
               {label}
-              {required && <span className="ml-1 text-error-500">*</span>}
+              {required && <span className='ml-1 text-error-500'>*</span>}
             </label>
           )}
-          
+
           <select
             {...field}
             {...props}
@@ -71,17 +76,19 @@ export const FormSelect: React.FC<FormSelectProps> = ({
             )}
             aria-invalid={!!error}
             aria-describedby={
-              error ? `${field.name}-error` : 
-              description ? `${field.name}-description` : 
-              undefined
+              error
+                ? `${field.name}-error`
+                : description
+                  ? `${field.name}-description`
+                  : undefined
             }
           >
             {placeholder && (
-              <option value="" disabled>
+              <option value='' disabled>
                 {placeholder}
               </option>
             )}
-            {options.map((option) => (
+            {options.map(option => (
               <option
                 key={option.value}
                 value={option.value}
@@ -91,21 +98,21 @@ export const FormSelect: React.FC<FormSelectProps> = ({
               </option>
             ))}
           </select>
-          
+
           {error && (
             <p
               id={`${field.name}-error`}
-              className="text-sm text-error-600"
-              role="alert"
+              className='text-sm text-error-600'
+              role='alert'
             >
               {error}
             </p>
           )}
-          
+
           {description && !error && (
             <p
               id={`${field.name}-description`}
-              className="text-sm text-gray-500"
+              className='text-sm text-gray-500'
             >
               {description}
             </p>

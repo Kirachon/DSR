@@ -2,7 +2,6 @@ package ph.gov.dsr.datamanagement.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ph.gov.dsr.datamanagement.dto.DataIngestionRequest;
@@ -37,13 +36,12 @@ import java.util.concurrent.Executors;
 
 /**
  * Production implementation of DataIngestionService
- * 
+ *
  * @author DSR Development Team
  * @version 3.0.0
  * @since 2024-12-23
  */
 @Service
-@Profile("!no-db")
 @RequiredArgsConstructor
 @Slf4j
 public class DataIngestionServiceImpl implements DataIngestionService {

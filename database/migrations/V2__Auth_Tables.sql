@@ -26,7 +26,7 @@ CREATE TABLE dsr_auth.users (
     last_login_at TIMESTAMP WITH TIME ZONE,
     last_login_ip INET,
     failed_login_attempts INTEGER DEFAULT 0,
-    account_locked_until TIMESTAMP WITH TIME ZONE,
+    locked_until TIMESTAMP WITH TIME ZONE,
     password_changed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

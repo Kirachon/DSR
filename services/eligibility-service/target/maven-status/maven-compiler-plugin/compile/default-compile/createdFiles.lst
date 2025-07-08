@@ -26,9 +26,11 @@ ph\gov\dsr\eligibility\entity\EligibilityAssessment$EligibilityStatus.class
 ph\gov\dsr\eligibility\service\EligibilityRulesEngineService$RuleSetConfiguration.class
 ph\gov\dsr\eligibility\dto\ProgramInfo.class
 ph\gov\dsr\eligibility\service\impl\ProductionEligibilityAssessmentServiceImpl$1.class
+ph\gov\dsr\eligibility\service\impl\ProgramRecommendationServiceImpl.class
 ph\gov\dsr\eligibility\dto\EligibilityRequest$HouseholdInfo.class
 ph\gov\dsr\eligibility\dto\EligibilityRequest$LocationInfo.class
 ph\gov\dsr\eligibility\service\impl\PmtCalculatorServiceImpl.class
+ph\gov\dsr\eligibility\service\impl\ProgramManagementServiceImpl.class
 ph\gov\dsr\eligibility\service\EligibilityRulesEngineService$Rule.class
 ph\gov\dsr\eligibility\service\impl\EligibilityRulesEngineServiceImpl.class
 ph\gov\dsr\eligibility\client\DataManagementServiceClient.class
@@ -46,6 +48,7 @@ ph\gov\dsr\eligibility\dto\EligibilityResponse$IncomeAssessment.class
 ph\gov\dsr\eligibility\service\impl\MockEligibilityAssessmentServiceImpl.class
 ph\gov\dsr\eligibility\repository\EligibilityAssessmentRepository.class
 ph\gov\dsr\eligibility\service\impl\EligibilityAssessmentServiceImpl.class
+ph\gov\dsr\eligibility\config\ProductionConfig.class
 ph\gov\dsr\eligibility\service\impl\EligibilityAssessmentServiceImpl$1.class
 ph\gov\dsr\eligibility\security\JwtAuthenticationFilter.class
 ph\gov\dsr\eligibility\dto\EligibilityResponse$AssessmentDetails.class

@@ -9,11 +9,13 @@ import { useFormContext, Controller } from 'react-hook-form';
 import { cn } from '@/utils';
 
 // Form Textarea props interface
-export interface FormTextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'name'> {
-  name: string;
+export interface FormTextareaProps
+  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'name'> {
+  name?: string;
   label?: string;
   description?: string;
   required?: boolean;
+  error?: string;
   resize?: 'none' | 'vertical' | 'horizontal' | 'both';
   showCharCount?: boolean;
   maxLength?: number;
@@ -53,17 +55,17 @@ export const FormTextarea: React.FC<FormTextareaProps> = ({
       name={name}
       control={control}
       render={({ field }) => (
-        <div className="space-y-2">
+        <div className='space-y-2'>
           {label && (
             <label
               htmlFor={field.name}
-              className="block text-sm font-medium text-gray-700"
+              className='block text-sm font-medium text-gray-700'
             >
               {label}
-              {required && <span className="ml-1 text-error-500">*</span>}
+              {required && <span className='ml-1 text-error-500'>*</span>}
             </label>
           )}
-          
+
           <textarea
             {...field}
             {...props}
@@ -77,40 +79,47 @@ export const FormTextarea: React.FC<FormTextareaProps> = ({
             )}
             aria-invalid={!!error}
             aria-describedby={
-              error ? `${field.name}-error` : 
-              description ? `${field.name}-description` : 
-              undefined
+              error
+                ? `${field.name}-error`
+                : description
+                  ? `${field.name}-description`
+                  : undefined
             }
           />
-          
+
           {(showCharCount || maxLength) && (
-            <div className="flex justify-between items-center text-xs text-gray-500">
+            <div className='flex justify-between items-center text-xs text-gray-500'>
               <div />
               {(showCharCount || maxLength) && (
-                <span className={cn(
-                  maxLength && charCount > maxLength * 0.9 && 'text-warning-600',
-                  maxLength && charCount >= maxLength && 'text-error-600'
-                )}>
-                  {charCount}{maxLength && `/${maxLength}`}
+                <span
+                  className={cn(
+                    maxLength &&
+                      charCount > maxLength * 0.9 &&
+                      'text-warning-600',
+                    maxLength && charCount >= maxLength && 'text-error-600'
+                  )}
+                >
+                  {charCount}
+                  {maxLength && `/${maxLength}`}
                 </span>
               )}
             </div>
           )}
-          
+
           {error && (
             <p
               id={`${field.name}-error`}
-              className="text-sm text-error-600"
-              role="alert"
+              className='text-sm text-error-600'
+              role='alert'
             >
               {error}
             </p>
           )}
-          
+
           {description && !error && (
             <p
               id={`${field.name}-description`}
-              className="text-sm text-gray-500"
+              className='text-sm text-gray-500'
             >
               {description}
             </p>

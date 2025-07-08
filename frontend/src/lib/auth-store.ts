@@ -46,10 +46,10 @@ export const useAuthStore = create<AuthStore>()(
         // Actions
         login: async (credentials: LoginRequest) => {
           set({ isLoading: true, error: null });
-          
+
           try {
             const response = await authService.login(credentials);
-            
+
             set({
               isAuthenticated: true,
               isLoading: false,
@@ -76,10 +76,10 @@ export const useAuthStore = create<AuthStore>()(
 
         register: async (userData: RegisterRequest) => {
           set({ isLoading: true, error: null });
-          
+
           try {
             const response = await authService.register(userData);
-            
+
             set({
               isAuthenticated: true,
               isLoading: false,
@@ -106,7 +106,7 @@ export const useAuthStore = create<AuthStore>()(
 
         logout: async () => {
           set({ isLoading: true });
-          
+
           try {
             await authService.logout();
           } catch (error) {
@@ -126,10 +126,10 @@ export const useAuthStore = create<AuthStore>()(
           }
         },
 
-        refreshToken: async () => {
+        refreshTokens: async () => {
           try {
             const response = await authService.refreshToken();
-            
+
             set({
               accessToken: response.accessToken,
               refreshToken: response.refreshToken,
@@ -144,10 +144,10 @@ export const useAuthStore = create<AuthStore>()(
 
         updateProfile: async (updates: Partial<User>) => {
           set({ isLoading: true, error: null });
-          
+
           try {
             const response = await authService.updateProfile(updates);
-            
+
             set({
               isLoading: false,
               user: response.user,
@@ -165,7 +165,7 @@ export const useAuthStore = create<AuthStore>()(
 
         changePassword: async (data: ChangePasswordRequest) => {
           set({ isLoading: true, error: null });
-          
+
           try {
             await authService.changePassword(data);
             set({ isLoading: false });
@@ -180,7 +180,7 @@ export const useAuthStore = create<AuthStore>()(
 
         forgotPassword: async (data: ForgotPasswordRequest) => {
           set({ isLoading: true, error: null });
-          
+
           try {
             await authService.forgotPassword(data);
             set({ isLoading: false });
@@ -195,7 +195,7 @@ export const useAuthStore = create<AuthStore>()(
 
         resetPassword: async (data: ResetPasswordRequest) => {
           set({ isLoading: true, error: null });
-          
+
           try {
             await authService.resetPassword(data);
             set({ isLoading: false });
@@ -210,10 +210,10 @@ export const useAuthStore = create<AuthStore>()(
 
         verifyEmail: async (data: VerifyEmailRequest) => {
           set({ isLoading: true, error: null });
-          
+
           try {
             await authService.verifyEmail(data);
-            
+
             // Update user's email verification status
             const currentUser = get().user;
             if (currentUser) {
@@ -235,7 +235,7 @@ export const useAuthStore = create<AuthStore>()(
 
         resendVerification: async (data: ResendVerificationRequest) => {
           set({ isLoading: true, error: null });
-          
+
           try {
             await authService.resendVerification(data);
             set({ isLoading: false });
@@ -273,16 +273,16 @@ export const useAuthStore = create<AuthStore>()(
         // Helper method to initialize auth state
         initialize: async () => {
           const isAuthenticated = authService.isAuthenticated();
-          
+
           if (isAuthenticated) {
             set({ isAuthenticated: true });
-            
+
             try {
               // Check if token needs refresh
               if (authService.shouldRefreshToken()) {
-                await get().refreshToken();
+                await get().refreshTokens();
               }
-              
+
               // Load user profile
               await get().loadUserProfile();
             } catch (error) {
@@ -296,7 +296,7 @@ export const useAuthStore = create<AuthStore>()(
       }),
       {
         name: 'dsr-auth-store',
-        partialize: (state) => ({
+        partialize: state => ({
           // Only persist essential data, not sensitive tokens
           user: state.user,
           preferences: state.preferences,
@@ -311,31 +311,34 @@ export const useAuthStore = create<AuthStore>()(
 );
 
 // Selector hooks for specific parts of the auth state
-export const useAuth = () => useAuthStore((state) => ({
-  isAuthenticated: state.isAuthenticated,
-  isLoading: state.isLoading,
-  user: state.user,
-  error: state.error,
-}));
+// Note: Main auth hooks are exported from auth-context.tsx to avoid conflicts
+export const useAuthStoreState = () =>
+  useAuthStore(state => ({
+    isAuthenticated: state.isAuthenticated,
+    isLoading: state.isLoading,
+    user: state.user,
+    error: state.error,
+  }));
 
-export const useAuthActions = () => useAuthStore((state) => ({
-  login: state.login,
-  register: state.register,
-  logout: state.logout,
-  refreshToken: state.refreshToken,
-  updateProfile: state.updateProfile,
-  changePassword: state.changePassword,
-  forgotPassword: state.forgotPassword,
-  resetPassword: state.resetPassword,
-  verifyEmail: state.verifyEmail,
-  resendVerification: state.resendVerification,
-  clearError: state.clearError,
-  setLoading: state.setLoading,
-}));
+export const useAuthStoreActions = () =>
+  useAuthStore(state => ({
+    login: state.login,
+    register: state.register,
+    logout: state.logout,
+    refreshTokens: state.refreshTokens,
+    updateProfile: state.updateProfile,
+    changePassword: state.changePassword,
+    forgotPassword: state.forgotPassword,
+    resetPassword: state.resetPassword,
+    verifyEmail: state.verifyEmail,
+    resendVerification: state.resendVerification,
+    clearError: state.clearError,
+    setLoading: state.setLoading,
+  }));
 
-export const useUser = () => useAuthStore((state) => state.user);
-export const usePermissions = () => useAuthStore((state) => state.permissions);
-export const usePreferences = () => useAuthStore((state) => state.preferences);
+export const useUserFromStore = () => useAuthStore(state => state.user);
+export const usePermissionsFromStore = () => useAuthStore(state => state.permissions);
+export const usePreferencesFromStore = () => useAuthStore(state => state.preferences);
 
 // Initialize auth store
 export const initializeAuth = () => useAuthStore.getState().initialize();

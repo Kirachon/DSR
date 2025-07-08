@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Production configuration -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">dsr.gov.ph</domain>
+        <domain includeSubdomains="true">api.dsr.gov.ph</domain>
+        <domain includeSubdomains="true">auth.dsr.gov.ph</domain>
+        <domain includeSubdomains="true">cdn.dsr.gov.ph</domain>
+        
+        <!-- Certificate pinning for enhanced security -->
+        <pin-set expiration="2025-12-31">
+            <!-- DSR production certificate pins -->
+            <pin digest="SHA-256">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>
+            <pin digest="SHA-256">BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=</pin>
+            <!-- Backup pins -->
+            <pin digest="SHA-256">CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC=</pin>
+        </pin-set>
+        
+        <!-- Trust anchors -->
+        <trust-anchors>
+            <!-- Trust system CAs -->
+            <certificates src="system"/>
+            <!-- Trust custom CA if needed -->
+            <!-- <certificates src="@raw/dsr_ca_cert"/> -->
+        </trust-anchors>
+    </domain-config>
+    
+    <!-- Development configuration -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">192.168.1.0/24</domain>
+        <domain includeSubdomains="true">172.16.0.0/12</domain>
+        
+        <!-- Development trust anchors -->
+        <trust-anchors>
+            <certificates src="system"/>
+            <certificates src="user"/>
+        </trust-anchors>
+    </domain-config>
+    
+    <!-- Government services integration -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">philsys.gov.ph</domain>
+        <domain includeSubdomains="true">sss.gov.ph</domain>
+        <domain includeSubdomains="true">gsis.gov.ph</domain>
+        <domain includeSubdomains="true">dswd.gov.ph</domain>
+        <domain includeSubdomains="true">doh.gov.ph</domain>
+        <domain includeSubdomains="true">deped.gov.ph</domain>
+        <domain includeSubdomains="true">dole.gov.ph</domain>
+        
+        <!-- Government services trust anchors -->
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </domain-config>
+    
+    <!-- Firebase and Google services -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">firebase.googleapis.com</domain>
+        <domain includeSubdomains="true">firebaseapp.com</domain>
+        <domain includeSubdomains="true">googleapis.com</domain>
+        <domain includeSubdomains="true">google.com</domain>
+        <domain includeSubdomains="true">gstatic.com</domain>
+        <domain includeSubdomains="true">googleusercontent.com</domain>
+        
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </domain-config>
+    
+    <!-- CDN and asset delivery -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">cloudfront.net</domain>
+        <domain includeSubdomains="true">amazonaws.com</domain>
+        <domain includeSubdomains="true">cloudflare.com</domain>
+        
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </domain-config>
+    
+    <!-- Base configuration for all other domains -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+    
+    <!-- Debug overrides (only active in debug builds) -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system"/>
+            <certificates src="user"/>
+        </trust-anchors>
+    </debug-overrides>
+</network-security-config>

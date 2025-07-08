@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * @since 2024-12-23
  */
 @Service
-@Profile({"no-db", "local"})
+@Profile("no-db")
 @Slf4j
 public class MockProgramManagementServiceImpl implements ProgramManagementService {
 
@@ -161,16 +161,72 @@ public class MockProgramManagementServiceImpl implements ProgramManagementServic
     }
 
     @Override
-    public List<ProgramInfo> getEligiblePrograms(Double householdIncome, Integer householdSize, 
+    public List<ProgramInfo> getEligiblePrograms(String psn, Map<String, Object> householdData) {
+        log.info("Mock getting eligible programs for PSN: {}", psn);
+
+        // Simple mock logic - return active programs
+        return programs.values().stream()
+                .filter(program -> program.getStatus() == ProgramInfo.ProgramStatus.ACTIVE)
+                .filter(program -> Boolean.TRUE.equals(program.getAcceptingApplications()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProgramInfo> getEligiblePrograms(Double householdIncome, Integer householdSize,
                                                Map<String, String> location, List<String> vulnerabilityFactors) {
         log.info("Mock getting eligible programs for income: {}, size: {}", householdIncome, householdSize);
-        
+
         // Simple mock logic - return programs based on income threshold
         return programs.values().stream()
                 .filter(program -> program.getStatus() == ProgramInfo.ProgramStatus.ACTIVE)
                 .filter(program -> Boolean.TRUE.equals(program.getAcceptingApplications()))
                 .filter(program -> isIncomeEligible(program, householdIncome, householdSize))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProgramInfo> searchPrograms(String searchTerm, boolean activeOnly) {
+        log.info("Mock searching programs with term: {}, activeOnly: {}", searchTerm, activeOnly);
+
+        return programs.values().stream()
+                .filter(program -> !activeOnly || program.getStatus() == ProgramInfo.ProgramStatus.ACTIVE)
+                .filter(program -> searchTerm == null || searchTerm.trim().isEmpty() ||
+                        program.getProgramName().toLowerCase().contains(searchTerm.toLowerCase()) ||
+                        program.getDescription().toLowerCase().contains(searchTerm.toLowerCase()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean isProgramActive(String programCode) {
+        log.debug("Mock checking if program is active: {}", programCode);
+
+        ProgramInfo program = programs.get(programCode);
+        return program != null && program.getStatus() == ProgramInfo.ProgramStatus.ACTIVE;
+    }
+
+    @Override
+    public java.math.BigDecimal getProgramBudget(String programCode) {
+        log.info("Mock getting budget for program: {}", programCode);
+
+        ProgramInfo program = programs.get(programCode);
+        return program != null ? program.getBudgetAllocation() : java.math.BigDecimal.ZERO;
+    }
+
+    @Override
+    public List<String> getProgramBeneficiaryCategories(String programCode) {
+        log.info("Mock getting beneficiary categories for program: {}", programCode);
+
+        ProgramInfo program = programs.get(programCode);
+        return program != null ? program.getTargetBeneficiaryCategories() : new ArrayList<>();
+    }
+
+    @Override
+    public Map<String, Object> getProgramEligibilityCriteria(String programCode) {
+        log.info("Mock getting eligibility criteria for program: {}", programCode);
+
+        ProgramInfo program = programs.get(programCode);
+        return program != null && program.getProgramParameters() != null ?
+               program.getProgramParameters() : new HashMap<>();
     }
 
     @Override

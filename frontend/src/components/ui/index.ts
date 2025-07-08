@@ -65,4 +65,21 @@ export {
 } from './alert';
 export type { AlertProps } from './alert';
 
+// Badge components
+export {
+  Badge,
+  StatusBadge,
+  PriorityBadge,
+  CountBadge,
+  badgeVariants,
+} from './badge';
+export type { BadgeProps } from './badge';
 
+// Pagination components
+export {
+  Pagination,
+  SimplePagination,
+  paginationVariants,
+  paginationButtonVariants,
+} from './pagination';
+export type { PaginationProps } from './pagination';

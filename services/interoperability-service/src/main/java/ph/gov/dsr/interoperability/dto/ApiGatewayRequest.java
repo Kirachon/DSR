@@ -1,18 +1,24 @@
 package ph.gov.dsr.interoperability.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
 /**
  * API Gateway Request DTO for routing requests to external systems
- * 
+ *
  * @author DSR Development Team
  * @version 3.0.0
  * @since 2024-12-23
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ApiGatewayRequest {
 
     @NotBlank(message = "System code is required")
@@ -22,6 +28,7 @@ public class ApiGatewayRequest {
     private String endpoint;
 
     @NotBlank(message = "HTTP method is required")
+    @Builder.Default
     private String method = "GET";
 
     private Map<String, String> headers;
@@ -32,6 +39,7 @@ public class ApiGatewayRequest {
 
     private Integer timeoutSeconds;
 
+    @Builder.Default
     private Boolean retryOnFailure = false;
 
     private String requestId;
@@ -40,14 +48,7 @@ public class ApiGatewayRequest {
 
     private String correlationId;
 
-    // Constructors
-    public ApiGatewayRequest() {}
-
-    public ApiGatewayRequest(String systemCode, String endpoint, String method) {
-        this.systemCode = systemCode;
-        this.endpoint = endpoint;
-        this.method = method;
-    }
+    // Constructors (removed to avoid conflict with @Builder)
 
     // Helper methods
     

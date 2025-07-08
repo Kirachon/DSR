@@ -9,9 +9,10 @@ import { useFormContext, Controller } from 'react-hook-form';
 import { cn } from '@/utils';
 
 // Form Checkbox props interface
-export interface FormCheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'name' | 'type'> {
+export interface FormCheckboxProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'name' | 'type'> {
   name: string;
-  label?: string;
+  label?: React.ReactNode;
   description?: string;
   required?: boolean;
 }
@@ -38,39 +39,41 @@ export const FormCheckbox: React.FC<FormCheckboxProps> = ({
       control={control}
       render={({ field: { value, onChange, ...field } }) => (
         <div className={cn('space-y-2', className)}>
-          <div className="flex items-start space-x-3">
+          <div className='flex items-start space-x-3'>
             <input
               {...field}
               {...props}
-              type="checkbox"
+              type='checkbox'
               checked={value || false}
-              onChange={(e) => onChange(e.target.checked)}
+              onChange={e => onChange(e.target.checked)}
               className={cn(
                 'h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 focus:ring-offset-2',
                 error && 'border-error-500 focus:ring-error-500'
               )}
               aria-invalid={!!error}
               aria-describedby={
-                error ? `${field.name}-error` : 
-                description ? `${field.name}-description` : 
-                undefined
+                error
+                  ? `${field.name}-error`
+                  : description
+                    ? `${field.name}-description`
+                    : undefined
               }
             />
-            
+
             {label && (
-              <div className="flex-1">
+              <div className='flex-1'>
                 <label
                   htmlFor={field.name}
-                  className="text-sm font-medium text-gray-700 cursor-pointer"
+                  className='text-sm font-medium text-gray-700 cursor-pointer'
                 >
                   {label}
-                  {required && <span className="ml-1 text-error-500">*</span>}
+                  {required && <span className='ml-1 text-error-500'>*</span>}
                 </label>
-                
+
                 {description && !error && (
                   <p
                     id={`${field.name}-description`}
-                    className="text-sm text-gray-500 mt-1"
+                    className='text-sm text-gray-500 mt-1'
                   >
                     {description}
                   </p>
@@ -78,12 +81,12 @@ export const FormCheckbox: React.FC<FormCheckboxProps> = ({
               </div>
             )}
           </div>
-          
+
           {error && (
             <p
               id={`${field.name}-error`}
-              className="text-sm text-error-600 ml-7"
-              role="alert"
+              className='text-sm text-error-600 ml-7'
+              role='alert'
             >
               {error}
             </p>
@@ -136,28 +139,30 @@ export const FormCheckboxGroup: React.FC<FormCheckboxGroupProps> = ({
         <div className={cn('space-y-3', className)}>
           {label && (
             <div>
-              <label className="text-sm font-medium text-gray-700">
+              <label className='text-sm font-medium text-gray-700'>
                 {label}
-                {required && <span className="ml-1 text-error-500">*</span>}
+                {required && <span className='ml-1 text-error-500'>*</span>}
               </label>
               {description && !error && (
-                <p className="text-sm text-gray-500 mt-1">{description}</p>
+                <p className='text-sm text-gray-500 mt-1'>{description}</p>
               )}
             </div>
           )}
-          
-          <div className={cn(
-            'space-y-2',
-            orientation === 'horizontal' && 'flex flex-wrap gap-4 space-y-0'
-          )}>
-            {options.map((option) => (
-              <div key={option.value} className="flex items-start space-x-3">
+
+          <div
+            className={cn(
+              'space-y-2',
+              orientation === 'horizontal' && 'flex flex-wrap gap-4 space-y-0'
+            )}
+          >
+            {options.map(option => (
+              <div key={option.value} className='flex items-start space-x-3'>
                 <input
-                  type="checkbox"
+                  type='checkbox'
                   id={`${name}-${option.value}`}
                   checked={value.includes(option.value)}
                   disabled={option.disabled}
-                  onChange={(e) => {
+                  onChange={e => {
                     if (e.target.checked) {
                       onChange([...value, option.value]);
                     } else {
@@ -169,17 +174,17 @@ export const FormCheckboxGroup: React.FC<FormCheckboxGroupProps> = ({
                     error && 'border-error-500 focus:ring-error-500'
                   )}
                 />
-                
-                <div className="flex-1">
+
+                <div className='flex-1'>
                   <label
                     htmlFor={`${name}-${option.value}`}
-                    className="text-sm font-medium text-gray-700 cursor-pointer"
+                    className='text-sm font-medium text-gray-700 cursor-pointer'
                   >
                     {option.label}
                   </label>
-                  
+
                   {option.description && (
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className='text-sm text-gray-500 mt-1'>
                       {option.description}
                     </p>
                   )}
@@ -187,9 +192,9 @@ export const FormCheckboxGroup: React.FC<FormCheckboxGroupProps> = ({
               </div>
             ))}
           </div>
-          
+
           {error && (
-            <p className="text-sm text-error-600" role="alert">
+            <p className='text-sm text-error-600' role='alert'>
               {error}
             </p>
           )}

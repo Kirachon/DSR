@@ -55,26 +55,28 @@ class PaymentServiceTest {
         
         testPayment = Payment.builder()
             .paymentId(testPaymentId)
-            .householdId("HH-001")
-            .programName("4Ps")
+            .householdId(UUID.randomUUID())
+            .programId(UUID.randomUUID())
+            .beneficiaryId(UUID.randomUUID())
             .amount(new BigDecimal("1400.00"))
             .paymentMethod(Payment.PaymentMethod.BANK_TRANSFER)
             .status(Payment.PaymentStatus.PENDING)
+            .fspCode("LBP")
             .internalReferenceNumber("PAY-2024-001")
+            .recipientAccountNumber("1234567890")
+            .recipientAccountName("Juan Dela Cruz")
             .createdBy("test-user")
-            .createdDate(LocalDateTime.now())
+            .createdAt(LocalDateTime.now())
             .build();
 
         testPaymentRequest = PaymentRequest.builder()
-            .householdId("HH-001")
-            .programName("4Ps")
+            .programId(UUID.randomUUID())
+            .beneficiaryId(UUID.randomUUID())
             .amount(new BigDecimal("1400.00"))
             .paymentMethod(Payment.PaymentMethod.BANK_TRANSFER)
-            .beneficiaryAccount(PaymentRequest.BeneficiaryAccount.builder()
-                .accountNumber("1234567890")
-                .bankCode("LBP")
-                .accountName("Juan Dela Cruz")
-                .build())
+            .fspCode("LBP")
+            .recipientAccountNumber("1234567890")
+            .recipientAccountName("Juan Dela Cruz")
             .build();
     }
 
@@ -102,7 +104,6 @@ class PaymentServiceTest {
     void createPayment_InvalidRequest_ThrowsException() {
         // Arrange
         PaymentRequest invalidRequest = PaymentRequest.builder()
-            .householdId("")
             .amount(BigDecimal.ZERO)
             .build();
 

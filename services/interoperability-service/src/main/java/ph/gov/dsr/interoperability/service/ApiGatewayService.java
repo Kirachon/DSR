@@ -15,6 +15,7 @@ import ph.gov.dsr.interoperability.repository.ExternalSystemIntegrationRepositor
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * API Gateway Service for routing requests to external systems
@@ -338,5 +339,517 @@ public class ApiGatewayService {
                 .errorMessage(errorMessage)
                 .timestamp(LocalDateTime.now())
                 .build();
+    }
+
+    /**
+     * Enhanced API gateway with circuit breaker and retry mechanisms
+     */
+    public ApiGatewayResponse routeRequestWithResilience(ApiGatewayRequest request) {
+        log.info("Routing request with resilience patterns to system: {}", request.getSystemCode());
+
+        return executeWithCircuitBreaker(request.getSystemCode(), () -> {
+            return executeWithRetry(request, 3);
+        });
+    }
+
+    private ApiGatewayResponse executeWithRetry(ApiGatewayRequest request, int maxRetries) {
+        Exception lastException = null;
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                log.debug("Attempt {} of {} for system: {}", attempt, maxRetries, request.getSystemCode());
+                return routeRequest(request);
+
+            } catch (Exception e) {
+                lastException = e;
+                log.warn("Attempt {} failed for system {}: {}", attempt, request.getSystemCode(), e.getMessage());
+
+                if (attempt < maxRetries) {
+                    try {
+                        // Exponential backoff
+                        long delay = (long) Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s
+                        Thread.sleep(delay);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
+        }
+
+        log.error("All {} attempts failed for system: {}", maxRetries, request.getSystemCode());
+        return createErrorResponse("RETRY_EXHAUSTED",
+            "Failed after " + maxRetries + " attempts: " +
+            (lastException != null ? lastException.getMessage() : "Unknown error"));
+    }
+
+    private ApiGatewayResponse executeWithCircuitBreaker(String systemCode,
+                                                       java.util.function.Supplier<ApiGatewayResponse> operation) {
+        // Simple circuit breaker implementation
+        CircuitBreakerState state = getCircuitBreakerState(systemCode);
+
+        if (state.isOpen()) {
+            log.warn("Circuit breaker is OPEN for system: {}", systemCode);
+            return createErrorResponse("CIRCUIT_BREAKER_OPEN",
+                "Circuit breaker is open for system: " + systemCode);
+        }
+
+        try {
+            ApiGatewayResponse response = operation.get();
+
+            if (response.isSuccess()) {
+                state.recordSuccess();
+            } else {
+                state.recordFailure();
+            }
+
+            return response;
+
+        } catch (Exception e) {
+            state.recordFailure();
+            throw e;
+        }
+    }
+
+    private CircuitBreakerState getCircuitBreakerState(String systemCode) {
+        return circuitBreakerStates.computeIfAbsent(systemCode, k -> new CircuitBreakerState());
+    }
+
+    // Circuit breaker state tracking
+    private final Map<String, CircuitBreakerState> circuitBreakerStates = new ConcurrentHashMap<>();
+
+    private static class CircuitBreakerState {
+        private int failureCount = 0;
+        private LocalDateTime lastFailureTime;
+        private boolean isOpen = false;
+        private final int failureThreshold = 5;
+        private final long timeoutMinutes = 5;
+
+        public boolean isOpen() {
+            if (isOpen && lastFailureTime != null) {
+                // Check if timeout period has passed
+                if (LocalDateTime.now().isAfter(lastFailureTime.plusMinutes(timeoutMinutes))) {
+                    isOpen = false;
+                    failureCount = 0;
+                    log.info("Circuit breaker transitioning to HALF_OPEN state");
+                }
+            }
+            return isOpen;
+        }
+
+        public void recordSuccess() {
+            failureCount = 0;
+            isOpen = false;
+            lastFailureTime = null;
+        }
+
+        public void recordFailure() {
+            failureCount++;
+            lastFailureTime = LocalDateTime.now();
+
+            if (failureCount >= failureThreshold) {
+                isOpen = true;
+                log.warn("Circuit breaker OPENED after {} failures", failureCount);
+            }
+        }
+    }
+
+    /**
+     * Batch health check for multiple systems
+     */
+    public Map<String, Map<String, Object>> batchHealthCheck(List<String> systemCodes) {
+        log.info("Performing batch health check for {} systems", systemCodes.size());
+
+        Map<String, Map<String, Object>> results = new ConcurrentHashMap<>();
+
+        // Execute health checks in parallel
+        systemCodes.parallelStream().forEach(systemCode -> {
+            try {
+                Map<String, Object> healthStatus = checkSystemHealth(systemCode);
+                results.put(systemCode, healthStatus);
+            } catch (Exception e) {
+                Map<String, Object> errorStatus = new HashMap<>();
+                errorStatus.put("status", "ERROR");
+                errorStatus.put("error", e.getMessage());
+                errorStatus.put("lastChecked", LocalDateTime.now());
+                results.put(systemCode, errorStatus);
+            }
+        });
+
+        return results;
+    }
+
+    /**
+     * Advanced request routing with load balancing
+     */
+    public ApiGatewayResponse routeWithLoadBalancing(ApiGatewayRequest request) {
+        log.info("Routing request with load balancing for system type: {}", request.getSystemCode());
+
+        // Find all healthy systems of the same type
+        List<ExternalSystemIntegration> healthySystems = findHealthySystemsByType(request.getSystemCode());
+
+        if (healthySystems.isEmpty()) {
+            return createErrorResponse("NO_HEALTHY_SYSTEMS",
+                "No healthy systems available for type: " + request.getSystemCode());
+        }
+
+        // Select system using round-robin load balancing
+        ExternalSystemIntegration selectedSystem = selectSystemWithLoadBalancing(healthySystems);
+
+        // Update request with selected system
+        ApiGatewayRequest routedRequest = new ApiGatewayRequest();
+        routedRequest.setSystemCode(selectedSystem.getSystemCode());
+        routedRequest.setEndpoint(request.getEndpoint());
+        routedRequest.setMethod(request.getMethod());
+        routedRequest.setHeaders(request.getHeaders());
+        routedRequest.setBody(request.getBody());
+        routedRequest.setTimeoutSeconds(request.getTimeoutSeconds());
+
+        return routeRequestWithResilience(routedRequest);
+    }
+
+    private List<ExternalSystemIntegration> findHealthySystemsByType(String systemType) {
+        return systemRepository.findByIsActiveTrue().stream()
+            .filter(system -> system.isHealthy() && system.getSystemType().name().equals(systemType))
+            .sorted((s1, s2) -> {
+                // Sort by health score (success rate + response time)
+                double score1 = calculateHealthScore(s1);
+                double score2 = calculateHealthScore(s2);
+                return Double.compare(score2, score1); // Higher score first
+            })
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    private ExternalSystemIntegration selectSystemWithLoadBalancing(List<ExternalSystemIntegration> systems) {
+        if (systems.isEmpty()) {
+            return null;
+        }
+
+        // Weighted load balancing based on system health and capacity
+        return selectSystemWithWeightedLoadBalancing(systems);
+    }
+
+    /**
+     * Advanced weighted load balancing algorithm
+     */
+    private ExternalSystemIntegration selectSystemWithWeightedLoadBalancing(List<ExternalSystemIntegration> systems) {
+        // Calculate weights based on health score and inverse response time
+        Map<ExternalSystemIntegration, Double> weights = new HashMap<>();
+        double totalWeight = 0.0;
+
+        for (ExternalSystemIntegration system : systems) {
+            double healthScore = calculateHealthScore(system);
+            double responseTimeFactor = 1.0 / Math.max(system.getAverageResponseTimeMs(), 1.0);
+            double weight = healthScore * responseTimeFactor * 100; // Scale up for better precision
+
+            weights.put(system, weight);
+            totalWeight += weight;
+        }
+
+        // Select system based on weighted random selection
+        double random = Math.random() * totalWeight;
+        double currentWeight = 0.0;
+
+        for (Map.Entry<ExternalSystemIntegration, Double> entry : weights.entrySet()) {
+            currentWeight += entry.getValue();
+            if (random <= currentWeight) {
+                log.debug("Selected system {} with weight {} (health score: {})",
+                         entry.getKey().getSystemCode(), entry.getValue(),
+                         calculateHealthScore(entry.getKey()));
+                return entry.getKey();
+            }
+        }
+
+        // Fallback to first system if selection fails
+        return systems.get(0);
+    }
+
+    /**
+     * Calculate health score for load balancing decisions
+     */
+    private double calculateHealthScore(ExternalSystemIntegration system) {
+        double successRate = system.getSuccessRate();
+        double uptimePercentage = system.getUptimePercentage();
+        double responseTimeFactor = Math.max(0.1, 1.0 - (system.getAverageResponseTimeMs() / 10000.0)); // Normalize to 0.1-1.0
+
+        // Weighted health score: 50% success rate, 30% uptime, 20% response time
+        return (successRate * 0.5) + (uptimePercentage * 0.3) + (responseTimeFactor * 0.2);
+    }
+
+    /**
+     * Advanced routing with path-based routing and request transformation
+     */
+    public ApiGatewayResponse routeWithAdvancedRouting(ApiGatewayRequest request) {
+        log.info("Routing request with advanced routing for system: {} path: {}",
+                request.getSystemCode(), request.getEndpoint());
+
+        try {
+            // Apply request transformation rules
+            ApiGatewayRequest transformedRequest = applyRequestTransformation(request);
+
+            // Determine routing strategy based on path and system type
+            RoutingStrategy strategy = determineRoutingStrategy(transformedRequest);
+
+            switch (strategy) {
+                case LOAD_BALANCED:
+                    return routeWithLoadBalancing(transformedRequest);
+                case FAILOVER:
+                    return routeWithFailover(transformedRequest);
+                case DIRECT:
+                    return routeRequestWithResilience(transformedRequest);
+                case BROADCAST:
+                    return routeWithBroadcast(transformedRequest);
+                default:
+                    return routeRequestWithResilience(transformedRequest);
+            }
+
+        } catch (Exception e) {
+            log.error("Error in advanced routing for system: {}", request.getSystemCode(), e);
+            return createErrorResponse("ROUTING_ERROR", "Advanced routing failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Apply request transformation rules
+     */
+    private ApiGatewayRequest applyRequestTransformation(ApiGatewayRequest request) {
+        ApiGatewayRequest transformed = new ApiGatewayRequest();
+        transformed.setSystemCode(request.getSystemCode());
+        transformed.setMethod(request.getMethod());
+        transformed.setHeaders(request.getHeaders());
+        transformed.setBody(request.getBody());
+        transformed.setTimeoutSeconds(request.getTimeoutSeconds());
+
+        // Transform endpoint based on system-specific rules
+        String transformedEndpoint = transformEndpoint(request.getSystemCode(), request.getEndpoint());
+        transformed.setEndpoint(transformedEndpoint);
+
+        // Add system-specific headers
+        Map<String, String> enhancedHeaders = enhanceHeaders(request.getSystemCode(), request.getHeaders());
+        transformed.setHeaders(enhancedHeaders);
+
+        return transformed;
+    }
+
+    /**
+     * Transform endpoint based on system-specific rules
+     */
+    private String transformEndpoint(String systemCode, String endpoint) {
+        // Apply system-specific endpoint transformations
+        switch (systemCode.toUpperCase()) {
+            case "PHILSYS":
+                return endpoint.startsWith("/api/") ? endpoint : "/api/v2" + endpoint;
+            case "SSS":
+                return endpoint.startsWith("/sss/") ? endpoint : "/sss/api/v1" + endpoint;
+            case "GSIS":
+                return endpoint.startsWith("/gsis/") ? endpoint : "/gsis/api/v1" + endpoint;
+            case "PHILHEALTH":
+                return endpoint.startsWith("/philhealth/") ? endpoint : "/philhealth/api/v1" + endpoint;
+            case "DOH":
+                return endpoint.startsWith("/fhir/") ? endpoint : "/fhir/R4" + endpoint;
+            default:
+                return endpoint;
+        }
+    }
+
+    /**
+     * Enhance headers with system-specific requirements
+     */
+    private Map<String, String> enhanceHeaders(String systemCode, Map<String, String> originalHeaders) {
+        Map<String, String> enhanced = new HashMap<>(originalHeaders != null ? originalHeaders : new HashMap<>());
+
+        // Add common headers
+        enhanced.put("X-DSR-Gateway", "true");
+        enhanced.put("X-DSR-Timestamp", LocalDateTime.now().toString());
+        enhanced.put("X-DSR-Request-ID", java.util.UUID.randomUUID().toString());
+
+        // Add system-specific headers
+        switch (systemCode.toUpperCase()) {
+            case "DOH":
+                enhanced.put("Accept", "application/fhir+json");
+                enhanced.put("Content-Type", "application/fhir+json");
+                break;
+            case "PHILSYS":
+                enhanced.put("X-PhilSys-Version", "2.0");
+                break;
+            case "SSS":
+                enhanced.put("X-SSS-Client", "DSR-Gateway");
+                break;
+        }
+
+        return enhanced;
+    }
+
+    /**
+     * Determine routing strategy based on request characteristics
+     */
+    private RoutingStrategy determineRoutingStrategy(ApiGatewayRequest request) {
+        String systemCode = request.getSystemCode().toUpperCase();
+        String endpoint = request.getEndpoint();
+
+        // Critical systems use failover strategy
+        if (systemCode.contains("PHILSYS") || systemCode.contains("SSS") || systemCode.contains("GSIS")) {
+            return RoutingStrategy.FAILOVER;
+        }
+
+        // Batch operations use load balancing
+        if (endpoint.contains("/batch") || endpoint.contains("/bulk")) {
+            return RoutingStrategy.LOAD_BALANCED;
+        }
+
+        // Notification endpoints use broadcast
+        if (endpoint.contains("/notify") || endpoint.contains("/broadcast")) {
+            return RoutingStrategy.BROADCAST;
+        }
+
+        // Default to direct routing
+        return RoutingStrategy.DIRECT;
+    }
+
+    /**
+     * Route with failover capability
+     */
+    private ApiGatewayResponse routeWithFailover(ApiGatewayRequest request) {
+        log.info("Routing with failover for system: {}", request.getSystemCode());
+
+        List<ExternalSystemIntegration> systems = findHealthySystemsByType(request.getSystemCode());
+
+        if (systems.isEmpty()) {
+            return createErrorResponse("NO_SYSTEMS_AVAILABLE",
+                "No systems available for failover: " + request.getSystemCode());
+        }
+
+        // Try each system in order of health score
+        for (ExternalSystemIntegration system : systems) {
+            try {
+                ApiGatewayRequest systemRequest = new ApiGatewayRequest();
+                systemRequest.setSystemCode(system.getSystemCode());
+                systemRequest.setEndpoint(request.getEndpoint());
+                systemRequest.setMethod(request.getMethod());
+                systemRequest.setHeaders(request.getHeaders());
+                systemRequest.setBody(request.getBody());
+                systemRequest.setTimeoutSeconds(request.getTimeoutSeconds());
+
+                ApiGatewayResponse response = routeRequestWithResilience(systemRequest);
+
+                if (response.isSuccess()) {
+                    log.info("Failover successful using system: {}", system.getSystemCode());
+                    return response;
+                }
+
+                log.warn("Failover attempt failed for system: {} - trying next", system.getSystemCode());
+
+            } catch (Exception e) {
+                log.warn("Failover attempt error for system: {} - {}", system.getSystemCode(), e.getMessage());
+            }
+        }
+
+        return createErrorResponse("FAILOVER_EXHAUSTED",
+            "All failover attempts failed for system type: " + request.getSystemCode());
+    }
+
+    /**
+     * Route with broadcast to multiple systems
+     */
+    private ApiGatewayResponse routeWithBroadcast(ApiGatewayRequest request) {
+        log.info("Broadcasting request to multiple systems for type: {}", request.getSystemCode());
+
+        List<ExternalSystemIntegration> systems = findHealthySystemsByType(request.getSystemCode());
+
+        if (systems.isEmpty()) {
+            return createErrorResponse("NO_SYSTEMS_AVAILABLE",
+                "No systems available for broadcast: " + request.getSystemCode());
+        }
+
+        List<ApiGatewayResponse> responses = new ArrayList<>();
+        List<CompletableFuture<ApiGatewayResponse>> futures = new ArrayList<>();
+
+        // Execute requests in parallel
+        for (ExternalSystemIntegration system : systems) {
+            CompletableFuture<ApiGatewayResponse> future = CompletableFuture.supplyAsync(() -> {
+                try {
+                    ApiGatewayRequest systemRequest = new ApiGatewayRequest();
+                    systemRequest.setSystemCode(system.getSystemCode());
+                    systemRequest.setEndpoint(request.getEndpoint());
+                    systemRequest.setMethod(request.getMethod());
+                    systemRequest.setHeaders(request.getHeaders());
+                    systemRequest.setBody(request.getBody());
+                    systemRequest.setTimeoutSeconds(request.getTimeoutSeconds());
+
+                    return routeRequestWithResilience(systemRequest);
+
+                } catch (Exception e) {
+                    log.error("Broadcast error for system: {}", system.getSystemCode(), e);
+                    return createErrorResponse("BROADCAST_ERROR",
+                        "Broadcast failed for system: " + system.getSystemCode() + " - " + e.getMessage());
+                }
+            });
+
+            futures.add(future);
+        }
+
+        // Wait for all responses
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get(30, java.util.concurrent.TimeUnit.SECONDS);
+
+            for (CompletableFuture<ApiGatewayResponse> future : futures) {
+                responses.add(future.get());
+            }
+
+        } catch (Exception e) {
+            log.error("Broadcast timeout or error", e);
+            return createErrorResponse("BROADCAST_TIMEOUT", "Broadcast operation timed out or failed");
+        }
+
+        // Aggregate responses
+        return aggregateBroadcastResponses(responses);
+    }
+
+    /**
+     * Aggregate multiple broadcast responses
+     */
+    private ApiGatewayResponse aggregateBroadcastResponses(List<ApiGatewayResponse> responses) {
+        int successCount = 0;
+        int totalCount = responses.size();
+        List<String> errors = new ArrayList<>();
+
+        for (ApiGatewayResponse response : responses) {
+            if (response.isSuccess()) {
+                successCount++;
+            } else {
+                errors.add(response.getErrorMessage());
+            }
+        }
+
+        boolean overallSuccess = successCount > 0; // At least one success
+
+        Map<String, Object> aggregatedBody = new HashMap<>();
+        aggregatedBody.put("totalSystems", totalCount);
+        aggregatedBody.put("successfulSystems", successCount);
+        aggregatedBody.put("failedSystems", totalCount - successCount);
+        aggregatedBody.put("successRate", (double) successCount / totalCount);
+
+        if (!errors.isEmpty()) {
+            aggregatedBody.put("errors", errors);
+        }
+
+        return ApiGatewayResponse.builder()
+                .success(overallSuccess)
+                .statusCode(overallSuccess ? 200 : 207) // 207 Multi-Status for partial success
+                .body(aggregatedBody)
+                .responseTime(0L) // Aggregate timing would be complex
+                .systemCode("BROADCAST")
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    /**
+     * Routing strategy enumeration
+     */
+    private enum RoutingStrategy {
+        DIRECT,
+        LOAD_BALANCED,
+        FAILOVER,
+        BROADCAST
     }
 }

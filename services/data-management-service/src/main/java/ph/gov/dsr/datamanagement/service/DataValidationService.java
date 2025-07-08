@@ -1,5 +1,6 @@
 package ph.gov.dsr.datamanagement.service;
 
+import ph.gov.dsr.datamanagement.dto.HouseholdDataRequest;
 import ph.gov.dsr.datamanagement.dto.ValidationRequest;
 import ph.gov.dsr.datamanagement.dto.ValidationResponse;
 
@@ -44,4 +45,9 @@ public interface DataValidationService {
      * Remove validation rule
      */
     void removeValidationRule(String dataType, String ruleName);
+
+    /**
+     * Validate household data specifically
+     */
+    boolean validateHouseholdData(HouseholdDataRequest request);
 }

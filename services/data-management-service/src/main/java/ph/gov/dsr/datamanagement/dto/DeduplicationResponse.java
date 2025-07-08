@@ -18,16 +18,23 @@ import java.util.UUID;
 public class DeduplicationResponse {
 
     private boolean hasDuplicates;
-    
+
     private int totalMatches;
-    
+
     private LocalDateTime processedAt;
-    
+
     private List<DuplicateMatch> matches;
-    
+
     private String recommendation; // PROCEED, REVIEW_REQUIRED, REJECT
-    
+
     private long processingTimeMs;
+
+    // Additional fields for test compatibility
+    private String entityType; // HOUSEHOLD, INDIVIDUAL
+
+    private String matchingAlgorithm; // FUZZY, EXACT, PHONETIC
+
+    private double matchThreshold; // Similarity threshold used
     
     @Data
     public static class DuplicateMatch {

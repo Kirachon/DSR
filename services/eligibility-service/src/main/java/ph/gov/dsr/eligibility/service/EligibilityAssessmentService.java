@@ -101,9 +101,18 @@ public interface EligibilityAssessmentService {
 
     /**
      * Calculate eligibility score for debugging purposes
-     * 
+     *
      * @param request Eligibility assessment request
      * @return Detailed scoring breakdown
      */
     Map<String, Object> calculateEligibilityScore(EligibilityRequest request);
+
+    /**
+     * Process life events that may trigger eligibility reassessment
+     *
+     * @param psn Philippine Statistical Number
+     * @param eventType Type of life event (BIRTH, DEATH, EMPLOYMENT_CHANGE, etc.)
+     * @param eventData Additional data about the life event
+     */
+    void processLifeEvent(String psn, String eventType, Map<String, Object> eventData);
 }

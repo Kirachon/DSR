@@ -16,7 +16,10 @@ import ph.gov.dsr.datamanagement.service.impl.HouseholdDataServiceImpl;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -72,7 +75,7 @@ class HouseholdDataServiceTest {
         sampleHousehold.setProvince("Metro Manila");
         sampleHousehold.setMunicipality("Quezon City");
         sampleHousehold.setBarangay("Barangay Commonwealth");
-        sampleHousehold.setStatus(Household.HouseholdStatus.ACTIVE);
+        sampleHousehold.setStatus("ACTIVE");
         sampleHousehold.setCreatedAt(LocalDateTime.now());
 
         sampleMember = new HouseholdMember();
@@ -81,7 +84,7 @@ class HouseholdDataServiceTest {
         sampleMember.setPsn("1234-5678-9012");
         sampleMember.setFirstName("Juan");
         sampleMember.setLastName("Dela Cruz");
-        sampleMember.setDateOfBirth(LocalDate.of(1985, 5, 15));
+        sampleMember.setBirthDate(LocalDate.of(1985, 5, 15));
         sampleMember.setGender("M");
         sampleMember.setIsHeadOfHousehold(true);
         sampleMember.setRelationshipToHead("HEAD");
@@ -144,11 +147,12 @@ class HouseholdDataServiceTest {
                 .thenReturn(Optional.of(sampleHousehold));
 
         // When
-        Optional<Household> result = householdDataService.getHouseholdByNumber(householdNumber);
+        HouseholdDataResponse result = householdDataService.getHouseholdByNumber(householdNumber);
 
         // Then
-        assertTrue(result.isPresent());
-        assertEquals(sampleHousehold.getHouseholdNumber(), result.get().getHouseholdNumber());
+        assertNotNull(result);
+        assertEquals("SUCCESS", result.getStatus());
+        assertEquals(sampleHousehold.getHouseholdNumber(), result.getHouseholdNumber());
         verify(householdRepository).findByHouseholdNumber(householdNumber);
     }
 
@@ -160,10 +164,11 @@ class HouseholdDataServiceTest {
                 .thenReturn(Optional.empty());
 
         // When
-        Optional<Household> result = householdDataService.getHouseholdByNumber(householdNumber);
+        HouseholdDataResponse result = householdDataService.getHouseholdByNumber(householdNumber);
 
         // Then
-        assertFalse(result.isPresent());
+        assertNotNull(result);
+        assertEquals("ERROR", result.getStatus());
         verify(householdRepository).findByHouseholdNumber(householdNumber);
     }
 
@@ -175,11 +180,12 @@ class HouseholdDataServiceTest {
                 .thenReturn(Optional.of(sampleHousehold));
 
         // When
-        Optional<Household> result = householdDataService.getHouseholdByHeadPsn(headPsn);
+        HouseholdDataResponse result = householdDataService.getHouseholdByHeadPsn(headPsn);
 
         // Then
-        assertTrue(result.isPresent());
-        assertEquals(sampleHousehold.getHeadOfHouseholdPsn(), result.get().getHeadOfHouseholdPsn());
+        assertNotNull(result);
+        assertEquals("SUCCESS", result.getStatus());
+        assertEquals(sampleHousehold.getHeadOfHouseholdPsn(), result.getHeadOfHouseholdPsn());
         verify(householdRepository).findByHeadOfHouseholdPsn(headPsn);
     }
 
@@ -258,15 +264,17 @@ class HouseholdDataServiceTest {
     void testGetHouseholdStatistics() {
         // Given
         Object[] mockStats = {1000L, new BigDecimal("18500"), 4.2, 850L};
-        when(householdRepository.getHouseholdStatistics()).thenReturn(mockStats);
+        List<Object[]> statsList = new ArrayList<>();
+        statsList.add(mockStats);
+        when(householdRepository.getHouseholdStatistics()).thenReturn(statsList);
 
         // When
-        Object[] result = householdDataService.getHouseholdStatistics();
+        Map<String, Object> result = householdDataService.getHouseholdStatistics();
 
         // Then
         assertNotNull(result);
-        assertEquals(4, result.length);
-        assertEquals(1000L, result[0]);
+        assertEquals(1000L, result.get("totalHouseholds"));
+        assertEquals(new BigDecimal("18500"), result.get("averageIncome"));
         verify(householdRepository).getHouseholdStatistics();
     }
 
@@ -276,10 +284,11 @@ class HouseholdDataServiceTest {
         when(dataValidationService.validateHouseholdData(any(HouseholdDataRequest.class))).thenReturn(true);
 
         // When
-        boolean isValid = householdDataService.validateHouseholdData(validRequest);
+        HouseholdDataResponse result = householdDataService.validateHousehold(validRequest);
 
         // Then
-        assertTrue(isValid);
+        assertNotNull(result);
+        assertEquals("SUCCESS", result.getStatus());
         verify(dataValidationService).validateHouseholdData(validRequest);
     }
 
@@ -289,10 +298,11 @@ class HouseholdDataServiceTest {
         when(dataValidationService.validateHouseholdData(any(HouseholdDataRequest.class))).thenReturn(false);
 
         // When
-        boolean isValid = householdDataService.validateHouseholdData(validRequest);
+        HouseholdDataResponse result = householdDataService.validateHousehold(validRequest);
 
         // Then
-        assertFalse(isValid);
+        assertNotNull(result);
+        assertEquals("ERROR", result.getStatus());
         verify(dataValidationService).validateHouseholdData(validRequest);
     }
 

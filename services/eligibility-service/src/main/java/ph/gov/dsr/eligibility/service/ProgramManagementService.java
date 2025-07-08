@@ -115,16 +115,66 @@ public interface ProgramManagementService {
                                      String reason, String updatedBy);
 
     /**
+     * Get programs that a beneficiary might be eligible for based on PSN and household data
+     *
+     * @param psn Personal Social Number
+     * @param householdData Household data for eligibility assessment
+     * @return List of potentially eligible programs
+     */
+    List<ProgramInfo> getEligiblePrograms(String psn, Map<String, Object> householdData);
+
+    /**
      * Get programs that a beneficiary might be eligible for
-     * 
+     *
      * @param householdIncome Monthly household income
      * @param householdSize Number of household members
      * @param location Geographic location information
      * @param vulnerabilityFactors List of vulnerability factors
      * @return List of potentially eligible programs
      */
-    List<ProgramInfo> getEligiblePrograms(Double householdIncome, Integer householdSize, 
+    List<ProgramInfo> getEligiblePrograms(Double householdIncome, Integer householdSize,
                                          Map<String, String> location, List<String> vulnerabilityFactors);
+
+    /**
+     * Search programs by search term
+     *
+     * @param searchTerm Search term to match against program names and descriptions
+     * @param activeOnly Whether to return only active programs
+     * @return List of matching programs
+     */
+    List<ProgramInfo> searchPrograms(String searchTerm, boolean activeOnly);
+
+    /**
+     * Check if a program is currently active
+     *
+     * @param programCode Program code
+     * @return True if program is active, false otherwise
+     */
+    boolean isProgramActive(String programCode);
+
+    /**
+     * Get program budget allocation
+     *
+     * @param programCode Program code
+     * @return Budget allocation amount
+     */
+    java.math.BigDecimal getProgramBudget(String programCode);
+
+    /**
+     * Get program target beneficiary categories
+     *
+     * @param programCode Program code
+     * @return List of target beneficiary categories
+     */
+    List<String> getProgramBeneficiaryCategories(String programCode);
+
+    /**
+     * Get program eligibility criteria
+     *
+     * @param programCode Program code
+     * @return Map containing eligibility criteria
+     */
+    Map<String, Object> getProgramEligibilityCriteria(String programCode);
 
     /**
      * Get program enrollment trends

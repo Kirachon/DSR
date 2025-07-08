@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,15 +44,14 @@ class DataSecurityTest {
     @BeforeEach
     void setUp() {
         testPaymentRequest = PaymentRequest.builder()
-            .householdId("HH-001")
-            .programName("4Ps")
+            .householdId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
+            .programId(UUID.fromString("123e4567-e89b-12d3-a456-426614174001"))
+            .beneficiaryId(UUID.fromString("123e4567-e89b-12d3-a456-426614174002"))
             .amount(new BigDecimal("1400.00"))
             .paymentMethod(Payment.PaymentMethod.BANK_TRANSFER)
-            .beneficiaryAccount(PaymentRequest.BeneficiaryAccount.builder()
-                .accountNumber("1234567890")
-                .bankCode("LBP")
-                .accountName("Juan Dela Cruz")
-                .build())
+            .fspCode("LBP")
+            .recipientAccountNumber("1234567890")
+            .recipientAccountName("Juan Dela Cruz")
             .build();
     }
 
@@ -84,7 +84,8 @@ class DataSecurityTest {
         PaymentResponse payment = paymentService.createPayment(testPaymentRequest, "audit-test-user");
         
         // Verify audit log entry was created
-        List<PaymentAuditLog> auditLogs = auditLogRepository.findByPaymentId(payment.getPaymentId());
+        List<PaymentAuditLog> auditLogs = auditLogRepository.findByPaymentIdOrderByCreatedAtDesc(
+            payment.getPaymentId(), PageRequest.of(0, 100)).getContent();
         assertFalse(auditLogs.isEmpty());
         
         PaymentAuditLog creationLog = auditLogs.stream()
@@ -95,7 +96,7 @@ class DataSecurityTest {
         assertNotNull(creationLog);
         assertEquals("audit-test-user", creationLog.getUserId());
         assertEquals(payment.getPaymentId(), creationLog.getPaymentId());
-        assertNotNull(creationLog.getTimestamp());
+        assertNotNull(creationLog.getCreatedAt());
     }
 
     @Test
@@ -112,11 +113,12 @@ class DataSecurityTest {
         );
         
         // Verify audit log entries
-        List<PaymentAuditLog> auditLogs = auditLogRepository.findByPaymentId(payment.getPaymentId());
+        List<PaymentAuditLog> auditLogs = auditLogRepository.findByPaymentIdOrderByCreatedAtDesc(
+            payment.getPaymentId(), PageRequest.of(0, 100)).getContent();
         assertTrue(auditLogs.size() >= 2); // Creation + Status update
         
         PaymentAuditLog statusUpdateLog = auditLogs.stream()
-            .filter(log -> log.getEventType() == PaymentAuditLog.EventType.STATUS_CHANGED)
+            .filter(log -> log.getEventType() == PaymentAuditLog.EventType.PAYMENT_PROCESSING)
             .findFirst()
             .orElse(null);
         
@@ -130,15 +132,14 @@ class DataSecurityTest {
     void dataValidation_InvalidAccountNumber_Rejected() {
         // Test with invalid account number format
         PaymentRequest invalidRequest = PaymentRequest.builder()
-            .householdId("HH-001")
-            .programName("4Ps")
+            .householdId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
+            .programId(UUID.fromString("123e4567-e89b-12d3-a456-426614174001"))
+            .beneficiaryId(UUID.fromString("123e4567-e89b-12d3-a456-426614174002"))
             .amount(new BigDecimal("1400.00"))
             .paymentMethod(Payment.PaymentMethod.BANK_TRANSFER)
-            .beneficiaryAccount(PaymentRequest.BeneficiaryAccount.builder()
-                .accountNumber("invalid-account") // Invalid format
-                .bankCode("LBP")
-                .accountName("Juan Dela Cruz")
-                .build())
+            .fspCode("LBP")
+            .recipientAccountNumber("invalid-account") // Invalid format
+            .recipientAccountName("Juan Dela Cruz")
             .build();
 
         // Should throw validation exception
@@ -151,15 +152,14 @@ class DataSecurityTest {
     void dataValidation_ExcessiveAmount_Rejected() {
         // Test with amount exceeding limits
         PaymentRequest invalidRequest = PaymentRequest.builder()
-            .householdId("HH-001")
-            .programName("4Ps")
+            .householdId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
+            .programId(UUID.fromString("123e4567-e89b-12d3-a456-426614174001"))
+            .beneficiaryId(UUID.fromString("123e4567-e89b-12d3-a456-426614174002"))
             .amount(new BigDecimal("999999999999.99")) // Excessive amount
             .paymentMethod(Payment.PaymentMethod.BANK_TRANSFER)
-            .beneficiaryAccount(PaymentRequest.BeneficiaryAccount.builder()
-                .accountNumber("1234567890")
-                .bankCode("LBP")
-                .accountName("Juan Dela Cruz")
-                .build())
+            .fspCode("LBP")
+            .recipientAccountNumber("1234567890")
+            .recipientAccountName("Juan Dela Cruz")
             .build();
 
         // Should throw validation exception
@@ -189,7 +189,8 @@ class DataSecurityTest {
         );
         
         // Verify complete audit trail
-        List<PaymentAuditLog> auditLogs = auditLogRepository.findByPaymentId(payment.getPaymentId());
+        List<PaymentAuditLog> auditLogs = auditLogRepository.findByPaymentIdOrderByCreatedAtDesc(
+            payment.getPaymentId(), PageRequest.of(0, 100)).getContent();
         assertTrue(auditLogs.size() >= 3); // Creation + 2 status updates
         
         // Verify chronological order and data integrity
@@ -202,7 +203,7 @@ class DataSecurityTest {
         
         // Verify status change logs
         List<PaymentAuditLog> statusLogs = auditLogs.stream()
-            .filter(log -> log.getEventType() == PaymentAuditLog.EventType.STATUS_CHANGED)
+            .filter(log -> log.getEventType() == PaymentAuditLog.EventType.PAYMENT_PROCESSING)
             .toList();
         assertEquals(2, statusLogs.size());
     }
@@ -213,15 +214,14 @@ class DataSecurityTest {
         PaymentResponse payment1 = paymentService.createPayment(testPaymentRequest, "user1");
         
         PaymentRequest request2 = PaymentRequest.builder()
-            .householdId("HH-002")
-            .programName("4Ps")
+            .householdId(UUID.fromString("123e4567-e89b-12d3-a456-426614174003"))
+            .programId(UUID.fromString("123e4567-e89b-12d3-a456-426614174001"))
+            .beneficiaryId(UUID.fromString("123e4567-e89b-12d3-a456-426614174004"))
             .amount(new BigDecimal("1500.00"))
             .paymentMethod(Payment.PaymentMethod.BANK_TRANSFER)
-            .beneficiaryAccount(PaymentRequest.BeneficiaryAccount.builder()
-                .accountNumber("0987654321")
-                .bankCode("BPI")
-                .accountName("Maria Santos")
-                .build())
+            .fspCode("BPI")
+            .recipientAccountNumber("0987654321")
+            .recipientAccountName("Maria Santos")
             .build();
         PaymentResponse payment2 = paymentService.createPayment(request2, "user2");
         
@@ -256,9 +256,11 @@ class DataSecurityTest {
         // Test with malformed request that might cause exceptions
         PaymentRequest malformedRequest = PaymentRequest.builder()
             .householdId(null) // This should cause validation error
-            .programName("4Ps")
+            .programId(UUID.fromString("123e4567-e89b-12d3-a456-426614174001"))
+            .beneficiaryId(UUID.fromString("123e4567-e89b-12d3-a456-426614174002"))
             .amount(new BigDecimal("1400.00"))
             .paymentMethod(Payment.PaymentMethod.BANK_TRANSFER)
+            .fspCode("LBP")
             .build();
 
         // Verify exception doesn't leak sensitive information
@@ -283,10 +285,10 @@ class DataSecurityTest {
         // For now, we test sequential operations to verify data consistency
         
         // First update
-        PaymentResponse updated1 = paymentService.updatePaymentStatus(
-            payment.getPaymentId(), 
-            Payment.PaymentStatus.PROCESSING, 
-            "Processing started", 
+        paymentService.updatePaymentStatus(
+            payment.getPaymentId(),
+            Payment.PaymentStatus.PROCESSING,
+            "Processing started",
             "user1"
         );
         
@@ -302,9 +304,10 @@ class DataSecurityTest {
         assertEquals(Payment.PaymentStatus.COMPLETED, updated2.getStatus());
         
         // Verify audit trail shows both updates
-        List<PaymentAuditLog> auditLogs = auditLogRepository.findByPaymentId(payment.getPaymentId());
+        List<PaymentAuditLog> auditLogs = auditLogRepository.findByPaymentIdOrderByCreatedAtDesc(
+            payment.getPaymentId(), PageRequest.of(0, 100)).getContent();
         long statusChangeCount = auditLogs.stream()
-            .filter(log -> log.getEventType() == PaymentAuditLog.EventType.STATUS_CHANGED)
+            .filter(log -> log.getEventType() == PaymentAuditLog.EventType.PAYMENT_PROCESSING)
             .count();
         assertEquals(2, statusChangeCount);
     }
@@ -313,15 +316,14 @@ class DataSecurityTest {
     void inputSanitization_SpecialCharacters_HandledSafely() {
         // Test with special characters that might cause issues
         PaymentRequest specialCharRequest = PaymentRequest.builder()
-            .householdId("HH-001")
-            .programName("4Ps")
+            .householdId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
+            .programId(UUID.fromString("123e4567-e89b-12d3-a456-426614174001"))
+            .beneficiaryId(UUID.fromString("123e4567-e89b-12d3-a456-426614174002"))
             .amount(new BigDecimal("1400.00"))
             .paymentMethod(Payment.PaymentMethod.BANK_TRANSFER)
-            .beneficiaryAccount(PaymentRequest.BeneficiaryAccount.builder()
-                .accountNumber("1234567890")
-                .bankCode("LBP")
-                .accountName("José María Ñoño") // Special characters
-                .build())
+            .fspCode("LBP")
+            .recipientAccountNumber("1234567890")
+            .recipientAccountName("José María Ñoño") // Special characters
             .build();
 
         // Should handle special characters properly

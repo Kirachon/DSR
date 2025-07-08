@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Export method for App Store distribution -->
+    <key>method</key>
+    <string>app-store</string>
+    
+    <!-- Team ID for code signing -->
+    <key>teamID</key>
+    <string>YOUR_TEAM_ID</string>
+    
+    <!-- Upload symbols for crash reporting -->
+    <key>uploadSymbols</key>
+    <true/>
+    
+    <!-- Upload bitcode (deprecated in Xcode 14+) -->
+    <key>uploadBitcode</key>
+    <false/>
+    
+    <!-- Compile bitcode (deprecated in Xcode 14+) -->
+    <key>compileBitcode</key>
+    <false/>
+    
+    <!-- Strip Swift symbols -->
+    <key>stripSwiftSymbols</key>
+    <true/>
+    
+    <!-- Thinning for App Store -->
+    <key>thinning</key>
+    <string>&lt;thin-for-all-variants&gt;</string>
+    
+    <!-- Provisioning profiles -->
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>ph.gov.dsr.mobile</key>
+        <string>DSR Mobile App Store Profile</string>
+    </dict>
+    
+    <!-- Signing certificate -->
+    <key>signingCertificate</key>
+    <string>Apple Distribution</string>
+    
+    <!-- Signing style -->
+    <key>signingStyle</key>
+    <string>manual</string>
+    
+    <!-- Destination for export -->
+    <key>destination</key>
+    <string>export</string>
+    
+    <!-- Generate app size report -->
+    <key>generateAppStoreInformation</key>
+    <true/>
+    
+    <!-- Include manifest for enterprise distribution -->
+    <key>manifest</key>
+    <dict>
+        <key>appURL</key>
+        <string>https://dsr.gov.ph/mobile/app.ipa</string>
+        <key>displayImageURL</key>
+        <string>https://dsr.gov.ph/mobile/icon-57.png</string>
+        <key>fullSizeImageURL</key>
+        <string>https://dsr.gov.ph/mobile/icon-512.png</string>
+    </dict>
+    
+    <!-- App Store Connect API key (optional) -->
+    <!--
+    <key>apiKey</key>
+    <string>YOUR_API_KEY_ID</string>
+    <key>apiIssuer</key>
+    <string>YOUR_ISSUER_ID</string>
+    -->
+    
+    <!-- Distribution bundle identifier -->
+    <key>distributionBundleIdentifier</key>
+    <string>ph.gov.dsr.mobile</string>
+    
+    <!-- Embed provisioning profile -->
+    <key>embedOnDemandResourcesAssetPacksInBundle</key>
+    <false/>
+    
+    <!-- iCloud container environment -->
+    <key>iCloudContainerEnvironment</key>
+    <string>Production</string>
+    
+    <!-- App Store Connect compliance -->
+    <key>manageAppVersionAndBuildNumber</key>
+    <false/>
+    
+    <!-- TestFlight internal testing -->
+    <key>testFlightInternalTestingOnly</key>
+    <false/>
+</dict>
+</plist>

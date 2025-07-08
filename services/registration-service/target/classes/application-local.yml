@@ -1,5 +1,5 @@
 # Philippine Dynamic Social Registry (DSR) - Registration Service
-# Local Development Configuration
+# Default Configuration
 # Version: 1.0.0
 
 server:
@@ -20,7 +20,7 @@ spring:
 
   # Database Configuration
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/dsr_local}
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/dsr_local?currentSchema=dsr_auth,dsr_core,public}
     username: ${DATABASE_USERNAME:dsr_user}
     password: ${DATABASE_PASSWORD:dsr_local_password}
     driver-class-name: org.postgresql.Driver
@@ -36,17 +36,23 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
-    show-sql: ${SPRING_JPA_SHOW_SQL:false}
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: ${SPRING_JPA_FORMAT_SQL:false}
+        default_schema: dsr_auth
+        format_sql: ${SPRING_JPA_FORMAT_SQL:true}
         jdbc:
           batch_size: 20
         order_inserts: true
         order_updates: true
         generate_statistics: false
-        default_schema: dsr_core
+        show_sql: true
+        use_sql_comments: true
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
   
   # Kafka Configuration
   kafka:

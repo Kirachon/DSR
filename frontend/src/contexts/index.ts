@@ -18,5 +18,3 @@ export {
   useIsLoading,
   useAuthError,
 } from './auth-context';
-
-

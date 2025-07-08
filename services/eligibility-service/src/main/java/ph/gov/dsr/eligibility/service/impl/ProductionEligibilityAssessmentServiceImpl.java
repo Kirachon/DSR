@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
  * @since 2024-12-23
  */
 @Service
+@Profile("!no-db")
 @ConditionalOnProperty(name = "features.database-persistence", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
 @Slf4j
@@ -272,47 +274,155 @@ public class ProductionEligibilityAssessmentServiceImpl implements EligibilityAs
     private EligibilityRequest enrichRequestWithHouseholdData(EligibilityRequest request) {
         try {
             String authToken = getAuthToken();
+
+            // Fetch household data with retry mechanism
             Optional<DataManagementServiceClient.HouseholdData> householdData =
-                dataManagementClient.getHouseholdByPsn(request.getPsn(), authToken);
+                fetchHouseholdDataWithRetry(request.getPsn(), authToken);
 
             if (householdData.isPresent()) {
-                DataManagementServiceClient.HouseholdData household = householdData.get();
-
-                // Enrich household info
-                if (request.getHouseholdInfo() == null) {
-                    request.setHouseholdInfo(new EligibilityRequest.HouseholdInfo());
-                }
-
-                EligibilityRequest.HouseholdInfo householdInfo = request.getHouseholdInfo();
-                householdInfo.setHouseholdNumber(household.getHouseholdNumber());
-                householdInfo.setMonthlyIncome(household.getMonthlyIncome());
-                householdInfo.setTotalMembers(household.getTotalMembers());
-
-                // Set location info
-                if (householdInfo.getLocation() == null) {
-                    householdInfo.setLocation(new EligibilityRequest.LocationInfo());
-                }
-                EligibilityRequest.LocationInfo location = householdInfo.getLocation();
-                location.setRegion(household.getRegion());
-                location.setProvince(household.getProvince());
-                location.setCityMunicipality(household.getMunicipality());
-                location.setBarangay(household.getBarangay());
-
-                // Set vulnerability indicators using existing boolean fields
-                householdInfo.setIsIndigenous(household.getIsIndigenous());
-                householdInfo.setHasPwdMembers(household.getIsPwdHousehold());
-                householdInfo.setHasSeniorCitizens(household.getIsSeniorCitizenHousehold());
-                householdInfo.setIsSoloParentHousehold(household.getIsSoloParentHousehold());
-
-                log.debug("Enriched request with household data for PSN: {}", request.getPsn());
+                // Enrich request with comprehensive household data
+                return enrichRequestWithComprehensiveData(request, householdData.get(), authToken);
             } else {
-                log.warn("No household data found for PSN: {}", request.getPsn());
+                log.warn("No household data found for PSN: {}, proceeding with basic assessment", request.getPsn());
+                return request;
             }
         } catch (Exception e) {
-            log.warn("Failed to enrich request with household data for PSN: {}: {}", request.getPsn(), e.getMessage());
+            log.error("Error enriching request with household data for PSN: {}", request.getPsn(), e);
+            return request; // Proceed with basic assessment if enrichment fails
+        }
+    }
+
+    private Optional<DataManagementServiceClient.HouseholdData> fetchHouseholdDataWithRetry(String psn, String authToken) {
+        int maxRetries = 3;
+        int retryDelay = 1000; // 1 second
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                Optional<DataManagementServiceClient.HouseholdData> householdData =
+                    dataManagementClient.getHouseholdByPsn(psn, authToken);
+
+                if (householdData.isPresent()) {
+                    return householdData;
+                }
+
+            } catch (Exception e) {
+                log.warn("Attempt {} failed to fetch household data for PSN: {}: {}", attempt, psn, e.getMessage());
+
+                if (attempt < maxRetries) {
+                    try {
+                        Thread.sleep(retryDelay * attempt); // Exponential backoff
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
         }
 
-        return request;
+        return Optional.empty();
+    }
+
+    private EligibilityRequest enrichRequestWithComprehensiveData(EligibilityRequest request,
+                                                                DataManagementServiceClient.HouseholdData householdData,
+                                                                String authToken) {
+        try {
+            // Create enriched request copy
+            EligibilityRequest enrichedRequest = new EligibilityRequest();
+            enrichedRequest.setPsn(request.getPsn());
+            enrichedRequest.setProgramCode(request.getProgramCode());
+            enrichedRequest.setForceReassessment(request.getForceReassessment());
+
+            // Enrich with household data
+            if (enrichedRequest.getHouseholdInfo() == null) {
+                enrichedRequest.setHouseholdInfo(new EligibilityRequest.HouseholdInfo());
+            }
+
+            EligibilityRequest.HouseholdInfo householdInfo = enrichedRequest.getHouseholdInfo();
+            householdInfo.setHouseholdNumber(householdData.getHouseholdNumber());
+            householdInfo.setTotalMembers(householdData.getTotalMembers());
+            householdInfo.setMonthlyIncome(householdData.getMonthlyIncome());
+            householdInfo.setIsIndigenous(householdData.getIsIndigenous());
+            householdInfo.setHasPwdMembers(householdData.getIsPwdHousehold());
+            householdInfo.setHasSeniorCitizens(householdData.getIsSeniorCitizenHousehold());
+            householdInfo.setIsSoloParentHousehold(householdData.getIsSoloParentHousehold());
+
+            // Set location information
+            if (householdInfo.getLocation() == null) {
+                householdInfo.setLocation(new EligibilityRequest.LocationInfo());
+            }
+            EligibilityRequest.LocationInfo location = householdInfo.getLocation();
+            location.setRegion(householdData.getRegion());
+            location.setProvince(householdData.getProvince());
+            location.setCityMunicipality(householdData.getMunicipality());
+            location.setBarangay(householdData.getBarangay());
+
+            // Fetch and enrich with economic profile
+            Optional<DataManagementServiceClient.EconomicProfileData> economicProfile =
+                dataManagementClient.getEconomicProfile(householdData.getId(), authToken);
+
+            if (economicProfile.isPresent()) {
+                enrichRequestWithEconomicData(enrichedRequest, economicProfile.get());
+            }
+
+            // Enrich with housing and utility data from household data
+            enrichRequestWithHousingData(enrichedRequest, householdData);
+
+            return enrichedRequest;
+
+        } catch (Exception e) {
+            log.error("Error creating comprehensive enriched request for PSN: {}", request.getPsn(), e);
+            return request; // Return original request if enrichment fails
+        }
+    }
+
+    private void enrichRequestWithEconomicData(EligibilityRequest request,
+                                             DataManagementServiceClient.EconomicProfileData economicProfile) {
+        // Enrich household info with economic data
+        if (request.getHouseholdInfo() == null) {
+            request.setHouseholdInfo(new EligibilityRequest.HouseholdInfo());
+        }
+
+        EligibilityRequest.HouseholdInfo householdInfo = request.getHouseholdInfo();
+
+        // Update monthly income if available from economic profile
+        if (economicProfile.getTotalHouseholdIncome() != null) {
+            householdInfo.setMonthlyIncome(economicProfile.getTotalHouseholdIncome());
+        }
+
+        // Add economic indicators to additional parameters
+        if (request.getAdditionalParameters() == null) {
+            request.setAdditionalParameters(new HashMap<>());
+        }
+
+        Map<String, Object> additionalParams = request.getAdditionalParameters();
+        additionalParams.put("perCapitaIncome", economicProfile.getPerCapitaIncome());
+        additionalParams.put("totalAssetsValue", economicProfile.getTotalAssetsValue());
+        additionalParams.put("pmtScore", economicProfile.getPmtScore());
+        additionalParams.put("povertyThreshold", economicProfile.getPovertyThreshold());
+        additionalParams.put("isPoor", economicProfile.getIsPoor());
+        additionalParams.put("hasSalaryIncome", economicProfile.getHasSalaryIncome());
+        additionalParams.put("hasBusinessIncome", economicProfile.getHasBusinessIncome());
+        additionalParams.put("hasAgriculturalIncome", economicProfile.getHasAgriculturalIncome());
+        additionalParams.put("hasRemittanceIncome", economicProfile.getHasRemittanceIncome());
+        additionalParams.put("ownsHouse", economicProfile.getOwnsHouse());
+        additionalParams.put("ownsLand", economicProfile.getOwnsLand());
+        additionalParams.put("ownsVehicle", economicProfile.getOwnsVehicle());
+        additionalParams.put("hasSavings", economicProfile.getHasSavings());
+    }
+
+    private void enrichRequestWithHousingData(EligibilityRequest request,
+                                            DataManagementServiceClient.HouseholdData householdData) {
+        if (request.getAdditionalParameters() == null) {
+            request.setAdditionalParameters(new HashMap<>());
+        }
+
+        Map<String, Object> additionalParams = request.getAdditionalParameters();
+        additionalParams.put("housingType", householdData.getHousingType());
+        additionalParams.put("housingTenure", householdData.getHousingTenure());
+        additionalParams.put("waterSource", householdData.getWaterSource());
+        additionalParams.put("toiletFacility", householdData.getToiletFacility());
+        additionalParams.put("electricitySource", householdData.getElectricitySource());
+        additionalParams.put("cookingFuel", householdData.getCookingFuel());
     }
 
     private EligibilityAssessment createAssessment(EligibilityRequest request,
@@ -505,5 +615,183 @@ public class ProductionEligibilityAssessmentServiceImpl implements EligibilityAs
             return "Bearer " + auth.getCredentials().toString();
         }
         return null;
+    }
+
+    /**
+     * Process life events that may trigger eligibility reassessment
+     */
+    @Override
+    @Transactional
+    public void processLifeEvent(String psn, String eventType, Map<String, Object> eventData) {
+        log.info("Processing life event for PSN: {}, event type: {}", psn, eventType);
+
+        try {
+            // Determine if this life event requires eligibility reassessment
+            boolean requiresReassessment = shouldTriggerReassessment(eventType, eventData);
+
+            if (requiresReassessment) {
+                // Get all active program enrollments for this PSN
+                List<EligibilityAssessment> activeAssessments =
+                    assessmentRepository.findActiveProgramsByPsn(psn);
+
+                for (EligibilityAssessment assessment : activeAssessments) {
+                    // Create reassessment request
+                    EligibilityRequest reassessmentRequest = createReassessmentRequest(psn,
+                        assessment.getProgramCode(), eventType, eventData);
+
+                    // Perform reassessment
+                    EligibilityResponse reassessmentResult = assessEligibility(reassessmentRequest);
+
+                    // Log reassessment result
+                    log.info("Life event reassessment completed for PSN: {}, program: {}, new status: {}",
+                            psn, assessment.getProgramCode(), reassessmentResult.getStatus());
+
+                    // Update assessment with life event trigger information
+                    updateAssessmentWithLifeEvent(assessment, eventType, eventData, reassessmentResult);
+                }
+            } else {
+                log.debug("Life event {} for PSN {} does not require eligibility reassessment", eventType, psn);
+            }
+
+        } catch (Exception e) {
+            log.error("Error processing life event for PSN: {}, event type: {}", psn, eventType, e);
+            throw new RuntimeException("Failed to process life event", e);
+        }
+    }
+
+    private boolean shouldTriggerReassessment(String eventType, Map<String, Object> eventData) {
+        // Define life events that trigger reassessment
+        Set<String> reassessmentTriggers = Set.of(
+            "BIRTH", "DEATH", "EMPLOYMENT_CHANGE", "INCOME_CHANGE",
+            "ADDRESS_CHANGE", "MARRIAGE", "SEPARATION", "DISABILITY_STATUS_CHANGE",
+            "EDUCATION_COMPLETION", "HOUSEHOLD_COMPOSITION_CHANGE"
+        );
+
+        return reassessmentTriggers.contains(eventType);
+    }
+
+    private EligibilityRequest createReassessmentRequest(String psn, String programCode,
+                                                       String eventType, Map<String, Object> eventData) {
+        EligibilityRequest request = new EligibilityRequest();
+        request.setPsn(psn);
+        request.setProgramCode(programCode);
+        request.setForceReassessment(true);
+
+        // Add life event context to additional parameters
+        Map<String, Object> additionalParams = new HashMap<>();
+        additionalParams.put("lifeEventType", eventType);
+        additionalParams.put("lifeEventData", eventData);
+        additionalParams.put("reassessmentTrigger", "LIFE_EVENT");
+        additionalParams.put("reassessmentDate", LocalDateTime.now());
+
+        request.setAdditionalParameters(additionalParams);
+
+        return request;
+    }
+
+    private void updateAssessmentWithLifeEvent(EligibilityAssessment assessment, String eventType,
+                                             Map<String, Object> eventData, EligibilityResponse reassessmentResult) {
+        // Update assessment with life event information
+        Map<String, Object> lifeEventInfo = new HashMap<>();
+        lifeEventInfo.put("eventType", eventType);
+        lifeEventInfo.put("eventData", eventData);
+        lifeEventInfo.put("reassessmentDate", LocalDateTime.now());
+        lifeEventInfo.put("previousStatus", assessment.getStatus());
+        lifeEventInfo.put("newStatus", reassessmentResult.getStatus());
+
+        // Store life event information in assessment notes or additional data
+        String currentNotes = assessment.getNotes() != null ? assessment.getNotes() : "";
+        String lifeEventNote = String.format("Life event processed: %s at %s. Status changed from %s to %s.",
+                eventType, LocalDateTime.now(), assessment.getStatus(), reassessmentResult.getStatus());
+
+        assessment.setNotes(currentNotes + "\n" + lifeEventNote);
+        assessment.setUpdatedAt(LocalDateTime.now());
+
+        assessmentRepository.save(assessment);
+    }
+
+    /**
+     * Enhanced recommendation generator with program-specific logic
+     */
+    private List<String> generateAdvancedRecommendations(EligibilityResponse.EligibilityStatus status,
+                                                        PmtCalculatorService.PmtCalculationResult pmtResult,
+                                                        EligibilityRulesEngineService.RuleEvaluationResult rulesResult,
+                                                        String programCode) {
+        List<String> recommendations = new ArrayList<>();
+
+        switch (status) {
+            case ELIGIBLE:
+                recommendations.addAll(generateEligibleRecommendations(programCode, pmtResult));
+                break;
+            case CONDITIONAL:
+                recommendations.addAll(generateConditionalRecommendations(programCode, rulesResult));
+                break;
+            case INELIGIBLE:
+                recommendations.addAll(generateIneligibleRecommendations(programCode, pmtResult, rulesResult));
+                break;
+            default:
+                recommendations.add("Contact your local DSWD office for assistance");
+        }
+
+        return recommendations;
+    }
+
+    private List<String> generateEligibleRecommendations(String programCode,
+                                                       PmtCalculatorService.PmtCalculationResult pmtResult) {
+        List<String> recommendations = new ArrayList<>();
+
+        recommendations.add("Proceed with program enrollment immediately");
+        recommendations.add("Prepare all required documents for submission");
+
+        if ("4PS_CONDITIONAL_CASH".equals(programCode)) {
+            recommendations.add("Ensure children are enrolled in school and attend regularly");
+            recommendations.add("Schedule regular health check-ups for pregnant women and children");
+            recommendations.add("Participate in Family Development Sessions (FDS)");
+        } else if ("SOCIAL_PENSION".equals(programCode)) {
+            recommendations.add("Bring valid ID and proof of age for enrollment");
+            recommendations.add("Designate an authorized representative if needed");
+        }
+
+        return recommendations;
+    }
+
+    private List<String> generateConditionalRecommendations(String programCode,
+                                                          EligibilityRulesEngineService.RuleEvaluationResult rulesResult) {
+        List<String> recommendations = new ArrayList<>();
+
+        recommendations.add("Schedule manual review with DSWD staff");
+        recommendations.add("Provide additional documentation to verify eligibility");
+
+        // Add specific recommendations based on failed rules
+        if (rulesResult.getRuleResults() != null) {
+            for (EligibilityRulesEngineService.RuleResult ruleResult : rulesResult.getRuleResults()) {
+                if (!ruleResult.isPassed()) {
+                    recommendations.add("Address requirement: " + ruleResult.getFailureMessage());
+                }
+            }
+        }
+
+        return recommendations;
+    }
+
+    private List<String> generateIneligibleRecommendations(String programCode,
+                                                         PmtCalculatorService.PmtCalculationResult pmtResult,
+                                                         EligibilityRulesEngineService.RuleEvaluationResult rulesResult) {
+        List<String> recommendations = new ArrayList<>();
+
+        if (!pmtResult.isPoor()) {
+            recommendations.add("Household income exceeds poverty threshold for this program");
+            recommendations.add("Consider other social protection programs with higher income limits");
+        }
+
+        if (!rulesResult.isPassed()) {
+            recommendations.add("Review program eligibility criteria and address gaps");
+            recommendations.add("Consider reapplying after 6 months if circumstances change");
+        }
+
+        recommendations.add("Explore alternative livelihood and employment opportunities");
+        recommendations.add("Contact local government units for other available assistance programs");
+
+        return recommendations;
     }
 }

@@ -19,7 +19,7 @@ interface AuthProviderProps {
 // Authentication Provider Component
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
-  
+
   // Get auth state and actions from Zustand store
   const authState = useAuthStore();
 
@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Set up automatic token refresh
   useEffect(() => {
-    if (!authState.isAuthenticated) return;
+    if (!authState.isAuthenticated) return undefined;
 
     const interval = setInterval(async () => {
       try {
@@ -50,9 +50,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const payload = JSON.parse(atob(token.split('.')[1]));
           const currentTime = Date.now() / 1000;
           const bufferTime = 5 * 60; // 5 minutes
-          
-          if (payload.exp < (currentTime + bufferTime)) {
-            await authState.refreshToken();
+
+          if (payload.exp < currentTime + bufferTime) {
+            await authState.refreshTokens();
           }
         }
       } catch (error) {
@@ -63,7 +63,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, 60000); // Check every minute
 
     return () => clearInterval(interval);
-  }, [authState.isAuthenticated, authState.accessToken, authState.refreshToken, authState.logout]);
+  }, [
+    authState.isAuthenticated,
+    authState.accessToken,
+    authState.refreshTokens,
+    authState.logout,
+  ]);
 
   // Context value
   const contextValue: AuthContextType = {
@@ -74,33 +79,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Show loading spinner while initializing
   if (!isInitialized) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className='flex items-center justify-center min-h-screen'>
+        <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600'></div>
       </div>
     );
   }
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 
 // Hook to use authentication context
 export const useAuthContext = (): AuthContextType => {
   const context = useContext(AuthContext);
-  
+
   if (context === undefined) {
     throw new Error('useAuthContext must be used within an AuthProvider');
   }
-  
+
   return context;
 };
 
 // Convenience hooks that use the context
 export const useAuth = () => {
-  const { isAuthenticated, isLoading, user, error, isInitialized } = useAuthContext();
+  const { isAuthenticated, isLoading, user, error, isInitialized } =
+    useAuthContext();
   return { isAuthenticated, isLoading, user, error, isInitialized };
 };
 
@@ -119,7 +123,7 @@ export const useAuthActions = () => {
     clearError,
     setLoading,
   } = useAuthContext();
-  
+
   return {
     login,
     register,
@@ -169,7 +173,9 @@ export const useHasAnyRole = (requiredRoles: string[]) => {
 
 export const useHasAnyPermission = (requiredPermissions: string[]) => {
   const permissions = usePermissions();
-  return requiredPermissions.some(permission => permissions.includes(permission));
+  return requiredPermissions.some(permission =>
+    permissions.includes(permission)
+  );
 };
 
 // Authentication status hooks

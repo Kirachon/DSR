@@ -1,0 +1,115 @@
+package ph.gov.dsr.security.dto;
+
+import lombok.Builder;
+import lombok.Data;
+import lombok.extern.jackson.Jacksonized;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * Comprehensive security scan result across all DSR services
+ * 
+ * @author DSR Development Team
+ * @version 3.0.0
+ * @since 2024-12-28
+ */
+@Data
+@Builder
+@Jacksonized
+public class ComprehensiveSecurityScanResult {
+    
+    private String scanId;
+    private LocalDateTime startedAt;
+    private LocalDateTime completedAt;
+    private int totalServices;
+    private List<ServiceSecurityScanResult> serviceResults;
+    private double overallRiskScore;
+    private int criticalVulnerabilities;
+    private int highVulnerabilities;
+    private int mediumVulnerabilities;
+    private int lowVulnerabilities;
+    
+    /**
+     * Get total number of vulnerabilities
+     */
+    public int getTotalVulnerabilities() {
+        return criticalVulnerabilities + highVulnerabilities + mediumVulnerabilities + lowVulnerabilities;
+    }
+    
+    /**
+     * Get scan duration in milliseconds
+     */
+    public long getScanDurationMs() {
+        if (startedAt != null && completedAt != null) {
+            return java.time.Duration.between(startedAt, completedAt).toMillis();
+        }
+        return 0L;
+    }
+    
+    /**
+     * Get overall risk level
+     */
+    public String getOverallRiskLevel() {
+        if (overallRiskScore >= 8.0) return "CRITICAL";
+        if (overallRiskScore >= 6.0) return "HIGH";
+        if (overallRiskScore >= 4.0) return "MEDIUM";
+        if (overallRiskScore >= 2.0) return "LOW";
+        return "MINIMAL";
+    }
+    
+    /**
+     * Get success rate of service scans
+     */
+    public double getSuccessRate() {
+        if (serviceResults.isEmpty()) return 0.0;
+        
+        long successfulScans = serviceResults.stream()
+            .mapToLong(result -> result.isSuccessful() ? 1 : 0)
+            .sum();
+            
+        return (double) successfulScans / serviceResults.size();
+    }
+    
+    /**
+     * Check if system passes security validation
+     */
+    public boolean passesSecurityValidation() {
+        return criticalVulnerabilities == 0 && 
+               highVulnerabilities <= 2 && 
+               overallRiskScore < 6.0;
+    }
+    
+    /**
+     * Get security certification status
+     */
+    public String getSecurityCertificationStatus() {
+        if (passesSecurityValidation()) {
+            return "CERTIFIED";
+        } else if (criticalVulnerabilities == 0 && overallRiskScore < 8.0) {
+            return "CONDITIONAL";
+        } else {
+            return "FAILED";
+        }
+    }
+    
+    /**
+     * Get services with critical vulnerabilities
+     */
+    public List<String> getServicesWithCriticalVulnerabilities() {
+        return serviceResults.stream()
+            .filter(result -> result.getCriticalCount() > 0)
+            .map(ServiceSecurityScanResult::getServiceName)
+            .toList();
+    }
+    
+    /**
+     * Get services with high vulnerabilities
+     */
+    public List<String> getServicesWithHighVulnerabilities() {
+        return serviceResults.stream()
+            .filter(result -> result.getHighCount() > 0)
+            .map(ServiceSecurityScanResult::getServiceName)
+            .toList();
+    }
+}

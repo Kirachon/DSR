@@ -242,7 +242,7 @@ class PaymentWorkflowIntegrationTest {
             .householdId("HH-003")
             .programName("DSWD-SLP")
             .amount(new BigDecimal("2000.00"))
-            .paymentMethod(Payment.PaymentMethod.CASH)
+            .paymentMethod(Payment.PaymentMethod.CASH_PICKUP)
             .build();
         PaymentResponse payment2 = paymentService.createPayment(request2, "test-user");
 

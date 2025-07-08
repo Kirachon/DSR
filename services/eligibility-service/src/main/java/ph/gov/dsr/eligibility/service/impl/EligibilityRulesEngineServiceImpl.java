@@ -371,4 +371,146 @@ public class EligibilityRulesEngineServiceImpl implements EligibilityRulesEngine
         
         return ruleSets;
     }
+
+    /**
+     * Enhanced rule evaluation with program-specific logic
+     */
+    public RuleEvaluationResult evaluateAdvancedRules(EligibilityRequest request, String programCode) {
+        log.info("Evaluating advanced eligibility rules for program: {}", programCode);
+
+        // Get base rule evaluation
+        RuleEvaluationResult baseResult = evaluateEligibilityRules(request, programCode);
+
+        // Apply program-specific enhancements
+        enhanceRuleEvaluationForProgram(baseResult, request, programCode);
+
+        return baseResult;
+    }
+
+    private void enhanceRuleEvaluationForProgram(RuleEvaluationResult result, EligibilityRequest request, String programCode) {
+        switch (programCode) {
+            case "4PS_CONDITIONAL_CASH":
+                enhance4PSRules(result, request);
+                break;
+            case "SOCIAL_PENSION":
+                enhanceSocialPensionRules(result, request);
+                break;
+            case "DSWD_ASSISTANCE":
+                enhanceDSWDAssistanceRules(result, request);
+                break;
+            default:
+                log.debug("No specific enhancements for program: {}", programCode);
+        }
+    }
+
+    private void enhance4PSRules(RuleEvaluationResult result, EligibilityRequest request) {
+        // Add 4Ps-specific rule enhancements
+        List<RuleResult> additionalRules = new ArrayList<>();
+
+        // Check for school-age children
+        if (request.getMembers() != null) {
+            boolean hasSchoolAgeChildren = request.getMembers().stream()
+                .anyMatch(member -> {
+                    int age = calculateAge(member.getDateOfBirth());
+                    return age >= 3 && age <= 18;
+                });
+
+            RuleResult schoolAgeRule = new RuleResult();
+            schoolAgeRule.setRuleName("HAS_SCHOOL_AGE_CHILDREN");
+            schoolAgeRule.setExpression("hasSchoolAgeChildren == true");
+            schoolAgeRule.setPassed(hasSchoolAgeChildren);
+            schoolAgeRule.setEvaluatedValue(hasSchoolAgeChildren);
+            if (!hasSchoolAgeChildren) {
+                schoolAgeRule.setFailureMessage("Household must have children aged 3-18 for 4Ps eligibility");
+            }
+            additionalRules.add(schoolAgeRule);
+        }
+
+        // Check for pregnant/lactating women
+        if (request.getMembers() != null) {
+            boolean hasPregnantLactating = request.getMembers().stream()
+                .anyMatch(member -> Boolean.TRUE.equals(member.getIsPregnant()) ||
+                                  Boolean.TRUE.equals(member.getIsLactating()));
+
+            RuleResult pregnantLactatingRule = new RuleResult();
+            pregnantLactatingRule.setRuleName("HAS_PREGNANT_LACTATING_WOMEN");
+            pregnantLactatingRule.setExpression("hasPregnantLactating == true");
+            pregnantLactatingRule.setPassed(hasPregnantLactating);
+            pregnantLactatingRule.setEvaluatedValue(hasPregnantLactating);
+            additionalRules.add(pregnantLactatingRule);
+        }
+
+        // Add additional rules to result
+        result.getRuleResults().addAll(additionalRules);
+
+        // Recalculate overall result
+        boolean overallPassed = result.getRuleResults().stream().allMatch(RuleResult::isPassed);
+        result.setPassed(overallPassed);
+    }
+
+    private void enhanceSocialPensionRules(RuleEvaluationResult result, EligibilityRequest request) {
+        // Add Social Pension-specific rule enhancements
+        List<RuleResult> additionalRules = new ArrayList<>();
+
+        // Check for senior citizens
+        if (request.getMembers() != null) {
+            boolean hasSeniorCitizens = request.getMembers().stream()
+                .anyMatch(member -> {
+                    int age = calculateAge(member.getDateOfBirth());
+                    return age >= 60;
+                });
+
+            RuleResult seniorCitizenRule = new RuleResult();
+            seniorCitizenRule.setRuleName("HAS_SENIOR_CITIZENS");
+            seniorCitizenRule.setExpression("hasSeniorCitizens == true");
+            seniorCitizenRule.setPassed(hasSeniorCitizens);
+            seniorCitizenRule.setEvaluatedValue(hasSeniorCitizens);
+            if (!hasSeniorCitizens) {
+                seniorCitizenRule.setFailureMessage("Household must have members aged 60 or above for Social Pension");
+            }
+            additionalRules.add(seniorCitizenRule);
+        }
+
+        result.getRuleResults().addAll(additionalRules);
+
+        // Recalculate overall result
+        boolean overallPassed = result.getRuleResults().stream().allMatch(RuleResult::isPassed);
+        result.setPassed(overallPassed);
+    }
+
+    private void enhanceDSWDAssistanceRules(RuleEvaluationResult result, EligibilityRequest request) {
+        // Add DSWD Assistance-specific rule enhancements
+        List<RuleResult> additionalRules = new ArrayList<>();
+
+        // Check for vulnerability indicators
+        boolean hasVulnerabilities = false;
+        if (request.getHouseholdInfo() != null) {
+            hasVulnerabilities = Boolean.TRUE.equals(request.getHouseholdInfo().getHasPwdMembers()) ||
+                               Boolean.TRUE.equals(request.getHouseholdInfo().getIsSoloParentHousehold()) ||
+                               Boolean.TRUE.equals(request.getHouseholdInfo().getIsIndigenous());
+        }
+
+        RuleResult vulnerabilityRule = new RuleResult();
+        vulnerabilityRule.setRuleName("HAS_VULNERABILITY_INDICATORS");
+        vulnerabilityRule.setExpression("hasVulnerabilities == true");
+        vulnerabilityRule.setPassed(hasVulnerabilities);
+        vulnerabilityRule.setEvaluatedValue(hasVulnerabilities);
+        if (!hasVulnerabilities) {
+            vulnerabilityRule.setFailureMessage("Household should have vulnerability indicators for DSWD assistance");
+        }
+        additionalRules.add(vulnerabilityRule);
+
+        result.getRuleResults().addAll(additionalRules);
+
+        // For DSWD assistance, vulnerability can make conditional eligible
+        if (hasVulnerabilities && !result.isPassed()) {
+            result.setPassed(true);
+            result.setFailureReason("Eligible due to vulnerability indicators");
+        }
+    }
+
+    private int calculateAge(java.time.LocalDate dateOfBirth) {
+        if (dateOfBirth == null) return 0;
+        return java.time.Period.between(dateOfBirth, java.time.LocalDate.now()).getYears();
+    }
 }

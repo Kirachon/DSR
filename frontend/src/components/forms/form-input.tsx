@@ -10,11 +10,13 @@ import { Input, type InputProps } from '@/components/ui';
 import { cn } from '@/utils';
 
 // Form Input props interface
-export interface FormInputProps extends Omit<InputProps, 'name' | 'error'> {
-  name: string;
+export interface FormInputProps extends Omit<InputProps, 'name' | 'onChange'> {
+  name?: string;
   label?: string;
   description?: string;
   required?: boolean;
+  error?: string;
+  onChange?: (value: string | React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 // Form Input component
@@ -42,13 +44,13 @@ export const FormInput: React.FC<FormInputProps> = ({
           {label && (
             <label
               htmlFor={field.name}
-              className="block text-sm font-medium text-gray-700"
+              className='block text-sm font-medium text-gray-700'
             >
               {label}
-              {required && <span className="ml-1 text-error-500">*</span>}
+              {required && <span className='ml-1 text-error-500'>*</span>}
             </label>
           )}
-          
+
           <Input
             {...field}
             {...props}
@@ -56,16 +58,18 @@ export const FormInput: React.FC<FormInputProps> = ({
             error={error}
             aria-invalid={!!error}
             aria-describedby={
-              error ? `${field.name}-error` : 
-              description ? `${field.name}-description` : 
-              undefined
+              error
+                ? `${field.name}-error`
+                : description
+                  ? `${field.name}-description`
+                  : undefined
             }
           />
-          
+
           {description && !error && (
             <p
               id={`${field.name}-description`}
-              className="text-sm text-gray-500"
+              className='text-sm text-gray-500'
             >
               {description}
             </p>

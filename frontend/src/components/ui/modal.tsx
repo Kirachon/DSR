@@ -3,9 +3,9 @@
 // Modal Component
 // Accessible modal dialog with backdrop, animations, and keyboard navigation
 
+import { cva, type VariantProps } from 'class-variance-authority';
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/utils';
 
@@ -62,17 +62,17 @@ export interface ModalProps extends VariantProps<typeof modalVariants> {
 // Close icon component
 const CloseIcon: React.FC = () => (
   <svg
-    className="h-6 w-6"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
+    className='h-6 w-6'
+    fill='none'
+    stroke='currentColor'
+    viewBox='0 0 24 24'
+    xmlns='http://www.w3.org/2000/svg'
   >
     <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      strokeLinecap='round'
+      strokeLinejoin='round'
       strokeWidth={2}
-      d="M6 18L18 6M6 6l12 12"
+      d='M6 18L18 6M6 6l12 12'
     />
   </svg>
 );
@@ -101,7 +101,7 @@ const Modal: React.FC<ModalProps> = ({
 
   // Handle escape key
   useEffect(() => {
-    if (!isOpen || !closeOnEscape) return;
+    if (!isOpen || !closeOnEscape) return undefined;
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -115,7 +115,7 @@ const Modal: React.FC<ModalProps> = ({
 
   // Handle focus management
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) return undefined;
 
     // Store the currently focused element
     previousActiveElement.current = document.activeElement as HTMLElement;
@@ -134,7 +134,9 @@ const Modal: React.FC<ModalProps> = ({
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
       );
       const firstElement = focusableElements[0] as HTMLElement;
-      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+      const lastElement = focusableElements[
+        focusableElements.length - 1
+      ] as HTMLElement;
 
       if (event.shiftKey) {
         if (document.activeElement === firstElement) {
@@ -153,7 +155,7 @@ const Modal: React.FC<ModalProps> = ({
 
     return () => {
       document.removeEventListener('keydown', handleTabKey);
-      
+
       // Restore focus to the previously focused element
       if (finalFocus?.current) {
         finalFocus.current.focus();
@@ -165,7 +167,7 @@ const Modal: React.FC<ModalProps> = ({
 
   // Handle body scroll
   useEffect(() => {
-    if (!preventScroll) return;
+    if (!preventScroll) return undefined;
 
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -197,8 +199,8 @@ const Modal: React.FC<ModalProps> = ({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
-        aria-hidden="true"
+        className='absolute inset-0 bg-black bg-opacity-50 transition-opacity'
+        aria-hidden='true'
       />
 
       {/* Modal */}
@@ -209,29 +211,29 @@ const Modal: React.FC<ModalProps> = ({
           'relative z-10 w-full',
           className
         )}
-        role="dialog"
-        aria-modal="true"
+        role='dialog'
+        aria-modal='true'
         aria-labelledby={title ? 'modal-title' : undefined}
         aria-describedby={description ? 'modal-description' : undefined}
       >
         <div className={cn('p-6', contentClassName)}>
           {/* Header */}
           {(title || showCloseButton) && (
-            <div className="flex items-center justify-between mb-4">
+            <div className='flex items-center justify-between mb-4'>
               {title && (
                 <h2
-                  id="modal-title"
-                  className="text-lg font-semibold text-gray-900"
+                  id='modal-title'
+                  className='text-lg font-semibold text-gray-900'
                 >
                   {title}
                 </h2>
               )}
               {showCloseButton && (
                 <button
-                  type="button"
-                  className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-md p-1"
+                  type='button'
+                  className='text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-md p-1'
                   onClick={onClose}
-                  aria-label="Close modal"
+                  aria-label='Close modal'
                 >
                   <CloseIcon />
                 </button>
@@ -241,7 +243,7 @@ const Modal: React.FC<ModalProps> = ({
 
           {/* Description */}
           {description && (
-            <p id="modal-description" className="text-sm text-gray-500 mb-4">
+            <p id='modal-description' className='text-sm text-gray-500 mb-4'>
               {description}
             </p>
           )}
@@ -264,9 +266,7 @@ export const ModalHeader: React.FC<{
   children: React.ReactNode;
   className?: string;
 }> = ({ children, className }) => (
-  <div className={cn('mb-4', className)}>
-    {children}
-  </div>
+  <div className={cn('mb-4', className)}>{children}</div>
 );
 
 // Modal Body component
@@ -274,9 +274,7 @@ export const ModalBody: React.FC<{
   children: React.ReactNode;
   className?: string;
 }> = ({ children, className }) => (
-  <div className={cn('mb-4', className)}>
-    {children}
-  </div>
+  <div className={cn('mb-4', className)}>{children}</div>
 );
 
 // Modal Footer component
@@ -284,7 +282,12 @@ export const ModalFooter: React.FC<{
   children: React.ReactNode;
   className?: string;
 }> = ({ children, className }) => (
-  <div className={cn('flex justify-end space-x-2 pt-4 border-t border-gray-200', className)}>
+  <div
+    className={cn(
+      'flex justify-end space-x-2 pt-4 border-t border-gray-200',
+      className
+    )}
+  >
     {children}
   </div>
 );

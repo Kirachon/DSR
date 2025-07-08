@@ -41,4 +41,8 @@ export type { FormTextareaProps } from './form-textarea';
 
 // Form Checkbox components
 export { FormCheckbox, FormCheckboxGroup } from './form-checkbox';
-export type { FormCheckboxProps, FormCheckboxGroupProps, CheckboxOption } from './form-checkbox';
+export type {
+  FormCheckboxProps,
+  FormCheckboxGroupProps,
+  CheckboxOption,
+} from './form-checkbox';

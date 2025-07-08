@@ -13,8 +13,7 @@ import ph.gov.dsr.payment.entity.Payment;
 import ph.gov.dsr.payment.service.FSPService;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Test configuration for Payment Service tests
@@ -55,15 +54,15 @@ public class PaymentServiceTestConfiguration {
         }
 
         @Override
-        public String getFspName() {
-            return fspName;
+        public boolean isHealthy() {
+            return healthy;
         }
 
         @Override
-        public List<Payment.PaymentMethod> getSupportedPaymentMethods() {
-            return Arrays.asList(
+        public Set<Payment.PaymentMethod> getSupportedPaymentMethods() {
+            return Set.of(
                 Payment.PaymentMethod.BANK_TRANSFER,
-                Payment.PaymentMethod.CASH,
+                Payment.PaymentMethod.CASH_PICKUP,
                 Payment.PaymentMethod.CHECK
             );
         }
@@ -75,66 +74,67 @@ public class PaymentServiceTestConfiguration {
         }
 
         @Override
-        public boolean isHealthy() {
-            return healthy;
-        }
-
-        @Override
         public FSPPaymentResponse submitPayment(FSPPaymentRequest request, FSPConfiguration config) {
             if (!healthy) {
                 throw new RuntimeException("FSP service is not healthy");
             }
 
             return FSPPaymentResponse.builder()
+                .success(true)
                 .fspReferenceNumber("FSP-" + fspCode + "-" + System.currentTimeMillis())
-                .status("SUCCESS")
-                .message("Payment submitted successfully to " + fspName)
+                .status(FSPPaymentResponse.FSPPaymentStatus.SUBMITTED)
+                .statusMessage("Payment submitted successfully to " + fspName)
                 .transactionId("TXN-" + System.currentTimeMillis())
                 .build();
         }
 
         @Override
-        public FSPPaymentResponse checkPaymentStatus(String fspReferenceNumber, FSPConfiguration config) {
+        public FSPStatusResponse checkPaymentStatus(String fspReferenceNumber, FSPConfiguration config) {
             if (!healthy) {
                 throw new RuntimeException("FSP service is not healthy");
             }
 
-            return FSPPaymentResponse.builder()
+            return FSPStatusResponse.builder()
+                .success(true)
                 .fspReferenceNumber(fspReferenceNumber)
-                .status("COMPLETED")
-                .message("Payment completed successfully")
-                .transactionId("TXN-" + System.currentTimeMillis())
+                .status(FSPPaymentResponse.FSPPaymentStatus.COMPLETED)
+                .statusMessage("Payment completed successfully")
                 .build();
         }
 
         @Override
-        public void performHealthCheck() {
-            // Simulate health check - in real implementation this would ping the FSP
-            try {
-                Thread.sleep(100); // Simulate network call
-                healthy = true;
-            } catch (InterruptedException e) {
-                healthy = false;
-                Thread.currentThread().interrupt();
-            }
+        public FSPPaymentResponse cancelPayment(String fspReferenceNumber, FSPConfiguration config) {
+            return FSPPaymentResponse.builder()
+                .success(true)
+                .fspReferenceNumber(fspReferenceNumber)
+                .status(FSPPaymentResponse.FSPPaymentStatus.CANCELLED)
+                .statusMessage("Payment cancelled successfully")
+                .build();
         }
 
         @Override
-        public BigDecimal getTransactionFee(BigDecimal amount, Payment.PaymentMethod method) {
-            // Mock transaction fee calculation
-            if (method == Payment.PaymentMethod.BANK_TRANSFER) {
-                return amount.multiply(new BigDecimal("0.01")); // 1% fee
-            } else if (method == Payment.PaymentMethod.CASH) {
-                return new BigDecimal("10.00"); // Flat fee for cash
-            } else {
-                return new BigDecimal("5.00"); // Default fee
-            }
+        public boolean validateConfiguration(FSPConfiguration config) {
+            return config != null && fspCode.equals(config.getFspCode());
         }
 
         @Override
-        public boolean canRetry(String fspReferenceNumber) {
-            // Allow retries for mock service
-            return true;
+        public boolean testConnection(FSPConfiguration config) {
+            return healthy;
+        }
+
+        @Override
+        public BigDecimal getMinimumAmount() {
+            return new BigDecimal("1.00");
+        }
+
+        @Override
+        public BigDecimal getMaximumAmount() {
+            return new BigDecimal("100000.00");
+        }
+
+        @Override
+        public void processWebhook(String payload, java.util.Map<String, String> headers) {
+            // Mock webhook processing - in real implementation would parse payload
         }
 
         // Test helper methods

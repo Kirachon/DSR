@@ -1,0 +1,15 @@
+Response headers: {
+  vary: 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers',
+  'x-content-type-options': 'nosniff',
+  'x-xss-protection': '0',
+  'cache-control': 'no-cache, no-store, max-age=0, must-revalidate',
+  pragma: 'no-cache',
+  expires: '0',
+  'x-frame-options': 'DENY',
+  'content-type': 'application/vnd.spring-boot.actuator.v3+json',
+  'transfer-encoding': 'chunked',
+  date: 'Tue, 08 Jul 2025 01:52:01 GMT',
+  connection: 'close'
+}
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff

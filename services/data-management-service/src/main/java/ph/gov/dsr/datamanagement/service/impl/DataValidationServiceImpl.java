@@ -2,8 +2,8 @@ package ph.gov.dsr.datamanagement.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import ph.gov.dsr.datamanagement.dto.HouseholdDataRequest;
 import ph.gov.dsr.datamanagement.dto.ValidationRequest;
 import ph.gov.dsr.datamanagement.dto.ValidationResponse;
 import ph.gov.dsr.datamanagement.service.DataValidationService;
@@ -18,13 +18,12 @@ import java.util.Map;
 
 /**
  * Production implementation of DataValidationService
- * 
+ *
  * @author DSR Development Team
  * @version 3.0.0
  * @since 2024-12-23
  */
 @Service
-@Profile("!no-db")
 @RequiredArgsConstructor
 @Slf4j
 public class DataValidationServiceImpl implements DataValidationService {
@@ -212,7 +211,41 @@ public class DataValidationServiceImpl implements DataValidationService {
         
         return result;
     }
-    
+
+    @Override
+    public boolean validateHouseholdData(HouseholdDataRequest request) {
+        log.info("Validating household data for: {}", request.getHouseholdNumber());
+
+        try {
+            // Create validation request
+            ValidationRequest validationRequest = new ValidationRequest();
+            validationRequest.setDataType("HOUSEHOLD");
+
+            // Convert HouseholdDataRequest to Map for validation
+            Map<String, Object> data = new HashMap<>();
+            data.put("householdNumber", request.getHouseholdNumber());
+            data.put("headOfHouseholdPsn", request.getHeadOfHouseholdPsn());
+            data.put("monthlyIncome", request.getMonthlyIncome());
+            data.put("totalMembers", request.getTotalMembers());
+            data.put("region", request.getRegion());
+            data.put("province", request.getProvince());
+            data.put("municipality", request.getMunicipality());
+            data.put("barangay", request.getBarangay());
+
+            validationRequest.setData(data);
+            validationRequest.setValidateReferences(request.getValidateReferences());
+
+            // Perform validation
+            ValidationResponse response = validateData(validationRequest);
+
+            return response.isValid();
+
+        } catch (Exception e) {
+            log.error("Error validating household data: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
     // Inner classes for validation results
     public static class ValidationRule {
         private String name;

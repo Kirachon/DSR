@@ -8,17 +8,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ph.gov.dsr.datamanagement.dto.DeduplicationRequest;
 import ph.gov.dsr.datamanagement.dto.DeduplicationResponse;
-import ph.gov.dsr.datamanagement.entity.DataIngestionBatch;
 import ph.gov.dsr.datamanagement.repository.DataIngestionBatchRepository;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -58,7 +53,7 @@ class DeduplicationServiceImplTest {
     @Test
     void testFindDuplicates_HouseholdType_Success() {
         // Arrange
-        when(batchRepository.findBySourceSystem(anyString())).thenReturn(Optional.empty());
+        when(batchRepository.findBySourceSystemOrderByCreatedAtDesc(anyString())).thenReturn(java.util.Collections.emptyList());
 
         // Act
         DeduplicationResponse response = deduplicationService.findDuplicates(testRequest);

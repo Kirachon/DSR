@@ -3,8 +3,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
+import { UserRole } from '@/types';
+import type { TokenPayload } from '@/types';
 import { TokenUtils } from '@/utils';
-import type { UserRole, TokenPayload } from '@/types';
 
 // Route configuration
 export interface RouteConfig {
@@ -36,17 +37,19 @@ export const routeConfigs: RouteConfig[] = [
   { path: '/settings' },
 
   // Role-specific routes
-  { path: '/admin', requiredRole: 'SYSTEM_ADMIN' },
-  { path: '/staff', requiredRole: 'LGU_STAFF' },
-  { path: '/dswd', requiredRole: 'DSWD_STAFF' },
-  { path: '/citizen', requiredRole: 'CITIZEN' },
+  { path: '/admin', requiredRole: UserRole.SYSTEM_ADMIN },
+  { path: '/staff', requiredRole: UserRole.LGU_STAFF },
+  { path: '/dswd', requiredRole: UserRole.DSWD_STAFF },
+  { path: '/citizen', requiredRole: UserRole.CITIZEN },
 
   // API routes (require authentication)
   { path: '/api/protected' },
 ];
 
 // Extract token from request
-export const extractTokenFromRequest = (request: NextRequest): string | null => {
+export const extractTokenFromRequest = (
+  request: NextRequest
+): string | null => {
   // Try Authorization header first
   const authHeader = request.headers.get('authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -63,13 +66,15 @@ export const extractTokenFromRequest = (request: NextRequest): string | null => 
 };
 
 // Validate token and extract payload
-export const validateRequestToken = (request: NextRequest): {
+export const validateRequestToken = (
+  request: NextRequest
+): {
   isValid: boolean;
   payload: TokenPayload | null;
   error?: string;
 } => {
   const token = extractTokenFromRequest(request);
-  
+
   if (!token) {
     return {
       isValid: false,
@@ -112,11 +117,16 @@ export const matchesRoute = (pathname: string, routePath: string): boolean => {
 
 // Find route configuration for pathname
 export const findRouteConfig = (pathname: string): RouteConfig | null => {
-  return routeConfigs.find(config => matchesRoute(pathname, config.path)) || null;
+  return (
+    routeConfigs.find(config => matchesRoute(pathname, config.path)) || null
+  );
 };
 
 // Check if user has required role
-export const hasRequiredRole = (userRole: string, requiredRole?: UserRole): boolean => {
+export const hasRequiredRole = (
+  userRole: string,
+  requiredRole?: UserRole
+): boolean => {
   if (!requiredRole) return true;
   return userRole === requiredRole;
 };
@@ -127,7 +137,9 @@ export const hasRequiredPermissions = (
   requiredPermissions?: string[]
 ): boolean => {
   if (!requiredPermissions || requiredPermissions.length === 0) return true;
-  return requiredPermissions.every(permission => userPermissions.includes(permission));
+  return requiredPermissions.every(permission =>
+    userPermissions.includes(permission)
+  );
 };
 
 // Main authentication guard

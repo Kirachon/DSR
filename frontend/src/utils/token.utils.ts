@@ -2,12 +2,14 @@
 // Enhanced token management and validation utilities
 
 import { tokenConfig } from '@/lib/config';
+import { UserRole } from '@/types';
 
 // Token payload interface
 export interface TokenPayload {
   sub: string; // Subject (user ID)
   email: string;
-  role: string;
+  role: UserRole;
+  permissions: string[];
   iat: number; // Issued at
   exp: number; // Expiration time
   jti?: string; // JWT ID
@@ -136,49 +138,53 @@ class CookieTokenStorage implements TokenStorage {
 
   private getCookie(name: string): string | null {
     if (typeof document === 'undefined') return null;
-    
+
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    
+
     if (parts.length === 2) {
       return parts.pop()?.split(';').shift() || null;
     }
-    
+
     return null;
   }
 
-  private setCookie(name: string, value: string, options: {
-    httpOnly?: boolean;
-    secure?: boolean;
-    sameSite?: 'strict' | 'lax' | 'none';
-    maxAge?: number;
-    path?: string;
-  }): void {
+  private setCookie(
+    name: string,
+    value: string,
+    options: {
+      httpOnly?: boolean;
+      secure?: boolean;
+      sameSite?: 'strict' | 'lax' | 'none';
+      maxAge?: number;
+      path?: string;
+    }
+  ): void {
     if (typeof document === 'undefined') return;
 
     let cookieString = `${name}=${value}`;
-    
+
     if (options.maxAge) {
       cookieString += `; Max-Age=${options.maxAge}`;
     }
-    
+
     if (options.path) {
       cookieString += `; Path=${options.path}`;
     } else {
       cookieString += '; Path=/';
     }
-    
+
     if (options.secure) {
       cookieString += '; Secure';
     }
-    
+
     if (options.sameSite) {
       cookieString += `; SameSite=${options.sameSite}`;
     }
 
     // Note: httpOnly cannot be set from client-side JavaScript
     // This would need to be handled server-side
-    
+
     document.cookie = cookieString;
   }
 
@@ -191,7 +197,8 @@ class CookieTokenStorage implements TokenStorage {
 // Token utility functions
 export class TokenUtils {
   private static accessTokenStorage: TokenStorage = new MemoryTokenStorage();
-  private static refreshTokenStorage: TokenStorage = new LocalStorageTokenStorage();
+  private static refreshTokenStorage: TokenStorage =
+    new LocalStorageTokenStorage();
 
   /**
    * Parse JWT token payload
@@ -263,8 +270,8 @@ export class TokenUtils {
 
     const currentTime = Math.floor(Date.now() / 1000);
     const bufferTime = tokenConfig.expirationBuffer / 1000;
-    
-    return payload.exp < (currentTime + bufferTime);
+
+    return payload.exp < currentTime + bufferTime;
   }
 
   /**
@@ -283,14 +290,14 @@ export class TokenUtils {
    */
   static formatExpirationTime(token: string): string {
     const timeUntilExpiration = this.getTimeUntilExpiration(token);
-    
+
     if (timeUntilExpiration <= 0) {
       return 'Expired';
     }
 
     const hours = Math.floor(timeUntilExpiration / 3600);
     const minutes = Math.floor((timeUntilExpiration % 3600) / 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m`;
     } else {

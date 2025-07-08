@@ -2,7 +2,6 @@ package ph.gov.dsr.eligibility.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import ph.gov.dsr.eligibility.dto.EligibilityRequest;
@@ -26,7 +25,6 @@ import java.util.stream.Collectors;
  * @since 2024-12-23
  */
 @Service
-@Primary
 @Profile("!no-db")
 @RequiredArgsConstructor
 @Slf4j
@@ -367,5 +365,12 @@ public class EligibilityAssessmentServiceImpl implements EligibilityAssessmentSe
         }
 
         return recommendations;
+    }
+
+    @Override
+    public void processLifeEvent(String psn, String eventType, Map<String, Object> eventData) {
+        log.info("Processing life event for PSN: {} (in-memory implementation)", psn);
+        // In-memory implementation - just log the event
+        log.debug("Life event processed: type={}, data={}", eventType, eventData);
     }
 }

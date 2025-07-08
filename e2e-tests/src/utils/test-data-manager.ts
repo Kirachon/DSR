@@ -13,7 +13,7 @@ export class TestDataManager {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
     const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@test.dsr.gov.ph`;
-    
+
     return {
       firstName,
       lastName,
@@ -23,7 +23,7 @@ export class TestDataManager {
       role,
       phoneNumber: faker.phone.number('+63##########'),
       birthDate: faker.date.birthdate({ min: 18, max: 80, mode: 'age' }).toISOString().split('T')[0],
-      gender: faker.person.sex(),
+      gender: faker.person.sexType(),
       civilStatus: faker.helpers.arrayElement(['single', 'married', 'widowed', 'separated']),
       psn: this.generatePSN(),
     };
@@ -160,20 +160,21 @@ export class TestDataManager {
 
   /**
    * Generate login credentials for different user types
+   * Uses actual demo credentials from the DSR system
    */
   static getTestCredentials(userType: 'admin' | 'user' | 'lgu_staff' = 'user') {
     const credentials = {
       admin: {
-        email: process.env.TEST_ADMIN_EMAIL || 'admin@test.dsr.gov.ph',
-        password: process.env.TEST_ADMIN_PASSWORD || 'TestAdmin123!',
+        email: process.env.TEST_ADMIN_EMAIL || 'admin@dsr.gov.ph',
+        password: process.env.TEST_ADMIN_PASSWORD || 'admin123',
       },
       user: {
-        email: process.env.TEST_USER_EMAIL || 'user@test.dsr.gov.ph',
-        password: process.env.TEST_USER_PASSWORD || 'TestUser123!',
+        email: process.env.TEST_USER_EMAIL || 'citizen@dsr.gov.ph',
+        password: process.env.TEST_USER_PASSWORD || 'citizen123',
       },
       lgu_staff: {
-        email: process.env.TEST_LGU_STAFF_EMAIL || 'lgu@test.dsr.gov.ph',
-        password: process.env.TEST_LGU_STAFF_PASSWORD || 'TestLGU123!',
+        email: process.env.TEST_LGU_STAFF_EMAIL || 'lgu.staff@dsr.gov.ph',
+        password: process.env.TEST_LGU_STAFF_PASSWORD || 'lgustaff123',
       },
     };
 

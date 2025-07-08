@@ -2,13 +2,16 @@ package ph.gov.dsr.datamanagement.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.*;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import ph.gov.dsr.datamanagement.dto.PhilSysVerificationRequest;
 import ph.gov.dsr.datamanagement.dto.PhilSysVerificationResponse;
 import ph.gov.dsr.datamanagement.service.PhilSysIntegrationService;
@@ -19,17 +22,17 @@ import java.util.regex.Pattern;
 
 /**
  * Production implementation of PhilSysIntegrationService
- * 
+ *
  * @author DSR Development Team
  * @version 3.0.0
  * @since 2024-12-23
  */
 @Service
-@Profile("!no-db")
 @RequiredArgsConstructor
 @Slf4j
 public class PhilSysIntegrationServiceImpl implements PhilSysIntegrationService {
 
+    @Qualifier("philSysRestTemplate")
     private final RestTemplate restTemplate;
 
     @Value("${dsr.philsys.api-url:http://localhost:9000/api/v1}")
@@ -48,6 +51,8 @@ public class PhilSysIntegrationServiceImpl implements PhilSysIntegrationService 
     private static final Pattern PSN_PATTERN = Pattern.compile("\\d{4}-\\d{4}-\\d{4}");
 
     @Override
+    @Retryable(value = {ResourceAccessException.class, HttpServerErrorException.class},
+               maxAttempts = 3, backoff = @Backoff(delay = 1000, multiplier = 2))
     public PhilSysVerificationResponse verifyPSN(PhilSysVerificationRequest request) {
         log.info("Verifying PSN: {} for person: {} {}", 
                 request.getPsn(), request.getFirstName(), request.getLastName());
@@ -143,6 +148,8 @@ public class PhilSysIntegrationServiceImpl implements PhilSysIntegrationService 
     }
 
     @Override
+    @Retryable(value = {ResourceAccessException.class, HttpServerErrorException.class},
+               maxAttempts = 3, backoff = @Backoff(delay = 1000, multiplier = 2))
     public PhilSysVerificationResponse getPersonInfo(String psn) {
         log.info("Getting person info for PSN: {}", psn);
 

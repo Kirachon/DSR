@@ -126,20 +126,20 @@ logging:
 
 # DSR Specific Configuration
 dsr:
+  # PhilSys Integration (Production-ready with mock fallback for local)
+  philsys:
+    api-url: ${PHILSYS_API_URL:https://api.philsys.gov.ph/v1}
+    api-key: ${PHILSYS_API_KEY:local_development_key}
+    timeout: ${PHILSYS_TIMEOUT:30000}
+    mock-enabled: ${MOCK_PHILSYS_ENABLED:true}
+
   registration:
-    # PhilSys Integration (Mock for local)
-    philsys:
-      api-url: ${PHILSYS_API_URL:http://localhost:9000/api/v1}
-      api-key: ${PHILSYS_API_KEY:local_development_key}
-      timeout: ${PHILSYS_TIMEOUT:30000}
-      mock-enabled: ${MOCK_PHILSYS_ENABLED:true}
-    
     # Validation Configuration
     validation:
       strict-mode: false  # Relaxed for local development
       skip-document-validation: ${SKIP_DOCUMENT_VALIDATION:true}
       auto-approve: ${AUTO_APPROVE_REGISTRATIONS:true}
-    
+
     # Processing Configuration
     processing:
       async-enabled: true

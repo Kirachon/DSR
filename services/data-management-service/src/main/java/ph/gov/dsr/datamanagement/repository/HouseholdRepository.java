@@ -197,4 +197,29 @@ public interface HouseholdRepository extends JpaRepository<Household, UUID> {
            "LOWER(h.municipality) LIKE LOWER(CONCAT('%', :searchText, '%')) OR " +
            "LOWER(h.barangay) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<Household> searchHouseholds(@Param("searchText") String searchText, Pageable pageable);
+
+    /**
+     * Find households by region ordered by creation date descending
+     */
+    List<Household> findByRegionOrderByCreatedAtDesc(String region);
+
+    /**
+     * Find households by monthly income range ordered by income ascending
+     */
+    List<Household> findByMonthlyIncomeBetweenOrderByMonthlyIncomeAsc(BigDecimal minIncome, BigDecimal maxIncome);
+
+    /**
+     * Get general household statistics
+     */
+    @Query("SELECT COUNT(h), AVG(h.totalMembers), AVG(h.monthlyIncome), " +
+           "SUM(CASE WHEN (h.isIndigenous = true OR h.isPwdHousehold = true OR " +
+           "h.isSeniorCitizenHousehold = true OR h.isSoloParentHousehold = true) THEN 1 ELSE 0 END) " +
+           "FROM Household h")
+    List<Object[]> getHouseholdStatistics();
+
+    /**
+     * Get household count by region
+     */
+    @Query("SELECT h.region, COUNT(h) FROM Household h WHERE h.region IS NOT NULL GROUP BY h.region ORDER BY h.region")
+    List<Object[]> getHouseholdCountByRegion();
 }

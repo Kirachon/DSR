@@ -29,7 +29,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     /**
      * Find user by email address (case insensitive)
      */
-    @Query("SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email)")
+    @Query(value = "SELECT * FROM dsr_auth.users WHERE LOWER(email) = LOWER(:email)", nativeQuery = true)
     Optional<User> findByEmailIgnoreCase(@Param("email") String email);
 
     /**

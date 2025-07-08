@@ -249,4 +249,43 @@ public interface ServiceDeliveryRecordRepository extends JpaRepository<ServiceDe
      * Check if external transaction ID exists
      */
     boolean existsByExternalTransactionId(String externalTransactionId);
+
+    /**
+     * Find records by beneficiary PSN, service type, and date range
+     */
+    List<ServiceDeliveryRecord> findByBeneficiaryPsnAndServiceTypeAndServiceDateAfter(
+            String beneficiaryPsn, String serviceType, LocalDateTime serviceDate);
+
+    /**
+     * Find retryable deliveries
+     */
+    @Query("SELECT s FROM ServiceDeliveryRecord s WHERE s.deliveryStatus = 'FAILED' " +
+           "AND (s.retryCount IS NULL OR s.retryCount < 3) " +
+           "AND (s.nextRetryDate IS NULL OR s.nextRetryDate <= :now) " +
+           "ORDER BY s.serviceDate ASC")
+    List<ServiceDeliveryRecord> findRetryableDeliveries(@Param("now") LocalDateTime now);
+
+    /**
+     * Find retryable deliveries (overloaded method)
+     */
+    default List<ServiceDeliveryRecord> findRetryableDeliveries() {
+        return findRetryableDeliveries(LocalDateTime.now());
+    }
+
+    /**
+     * Count records by delivery status
+     */
+    long countByDeliveryStatus(ServiceDeliveryRecord.DeliveryStatus status);
+
+    /**
+     * Find recent deliveries within specified date range
+     */
+    @Query("SELECT s FROM ServiceDeliveryRecord s WHERE s.serviceDate >= :fromDate " +
+           "ORDER BY s.serviceDate DESC")
+    List<ServiceDeliveryRecord> findRecentDeliveries(@Param("fromDate") LocalDateTime fromDate);
+
+    /**
+     * Find deliveries by beneficiary PSN after specific date
+     */
+    List<ServiceDeliveryRecord> findByBeneficiaryPsnAndServiceDateAfter(String beneficiaryPsn, LocalDateTime serviceDate);
 }

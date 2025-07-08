@@ -110,8 +110,9 @@ export default defineConfig({
   ],
 
   // Run your local dev server before starting the tests
+  // Frontend is now available - full integration testing enabled
   webServer: process.env.CI ? undefined : {
-    command: 'npm run start:test-server',
+    command: 'echo "Frontend already running on port 3000"',
     port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

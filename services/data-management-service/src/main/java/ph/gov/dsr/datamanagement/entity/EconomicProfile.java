@@ -8,8 +8,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -177,7 +177,7 @@ public class EconomicProfile {
     public void calculatePerCapitaIncome(int householdSize) {
         if (totalHouseholdIncome != null && householdSize > 0) {
             this.perCapitaIncome = totalHouseholdIncome.divide(
-                BigDecimal.valueOf(householdSize), 2, BigDecimal.ROUND_HALF_UP);
+                BigDecimal.valueOf(householdSize), 2, RoundingMode.HALF_UP);
         }
     }
 
@@ -230,7 +230,7 @@ public class EconomicProfile {
         factors++;
 
         if (factors > 0) {
-            this.economicVulnerabilityScore = score.divide(BigDecimal.valueOf(factors), 2, BigDecimal.ROUND_HALF_UP);
+            this.economicVulnerabilityScore = score.divide(BigDecimal.valueOf(factors), 2, RoundingMode.HALF_UP);
         }
     }
 

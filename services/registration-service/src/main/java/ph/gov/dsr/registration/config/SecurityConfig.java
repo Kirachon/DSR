@@ -115,7 +115,8 @@ public class SecurityConfig {
             "Access-Control-Request-Method",
             "Access-Control-Request-Headers",
             "X-Requested-With",
-            "X-CSRF-Token"
+            "X-CSRF-Token",
+            "X-Request-Id"
         ));
 
         // Expose headers that client can access

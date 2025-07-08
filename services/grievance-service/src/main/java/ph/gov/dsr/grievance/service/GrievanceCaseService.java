@@ -259,12 +259,75 @@ public class GrievanceCaseService {
                                                 LocalDateTime startDate,
                                                 LocalDateTime endDate,
                                                 Pageable pageable) {
-        return caseRepository.findByCriteria(status, priority, category, assignedTo, 
+        return caseRepository.findByCriteria(status, priority, category, assignedTo,
                                            startDate, endDate, pageable);
     }
 
+    /**
+     * Get cases assigned to specific staff member
+     */
+    @Transactional(readOnly = true)
+    public Page<GrievanceCase> getCasesAssignedTo(String assignedTo, Pageable pageable) {
+        return caseRepository.findByAssignedToOrderBySubmissionDateDesc(assignedTo, pageable);
+    }
+
+    /**
+     * Update case status
+     */
+    @Transactional
+    public GrievanceCase updateCaseStatus(UUID caseId, GrievanceCase.CaseStatus newStatus,
+                                        String reason, String updatedBy) {
+        log.info("Updating status for case {} to {}", caseId, newStatus);
+
+        Optional<GrievanceCase> caseOpt = caseRepository.findById(caseId);
+        if (caseOpt.isEmpty()) {
+            throw new RuntimeException("Case not found: " + caseId);
+        }
+
+        GrievanceCase grievanceCase = caseOpt.get();
+        GrievanceCase.CaseStatus oldStatus = grievanceCase.getStatus();
+
+        grievanceCase.setStatus(newStatus);
+        grievanceCase.setUpdatedBy(updatedBy);
+
+        // Add status change activity
+        CaseActivity activity = new CaseActivity(grievanceCase, CaseActivity.ActivityType.STATUS_CHANGED,
+                "Status changed from " + oldStatus + " to " + newStatus +
+                (reason != null ? ". Reason: " + reason : ""), updatedBy);
+        activity.setStatusBefore(oldStatus.name());
+        activity.setStatusAfter(newStatus.name());
+        grievanceCase.addActivity(activity);
+
+        return caseRepository.save(grievanceCase);
+    }
+
+    /**
+     * Add comment to case
+     */
+    @Transactional
+    public GrievanceCase addComment(UUID caseId, String comment, String author, Boolean isInternal) {
+        log.info("Adding comment to case {}", caseId);
+
+        Optional<GrievanceCase> caseOpt = caseRepository.findById(caseId);
+        if (caseOpt.isEmpty()) {
+            throw new RuntimeException("Case not found: " + caseId);
+        }
+
+        GrievanceCase grievanceCase = caseOpt.get();
+
+        // Add comment as activity
+        CaseActivity activity = new CaseActivity(grievanceCase, CaseActivity.ActivityType.NOTE_ADDED,
+                comment, author);
+        activity.setIsInternal(isInternal != null ? isInternal : false);
+        grievanceCase.addActivity(activity);
+
+        return caseRepository.save(grievanceCase);
+    }
+
+
+
     // Helper methods
-    
+
     private String generateCaseNumber() {
         return "GRV-" + System.currentTimeMillis();
     }

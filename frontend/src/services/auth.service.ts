@@ -72,7 +72,7 @@ export class AuthService {
   async logout(): Promise<MessageResponse> {
     try {
       const token = tokenManager.getAccessToken();
-      
+
       if (token) {
         // Call logout endpoint to invalidate token on server
         const response = await api.post<MessageResponse>(
@@ -112,15 +112,14 @@ export class AuthService {
   async refreshToken(): Promise<AuthResponse> {
     try {
       const refreshToken = tokenManager.getRefreshToken();
-      
+
       if (!refreshToken) {
         throw new Error('No refresh token available');
       }
 
-      const response = await api.post<AuthResponse>(
-        apiEndpoints.auth.refresh,
-        { refreshToken } as RefreshTokenRequest
-      );
+      const response = await api.post<AuthResponse>(apiEndpoints.auth.refresh, {
+        refreshToken,
+      } as RefreshTokenRequest);
 
       // Update stored tokens
       if (response.accessToken) {
@@ -229,7 +228,9 @@ export class AuthService {
   /**
    * Resend email verification
    */
-  async resendVerification(data: ResendVerificationRequest): Promise<MessageResponse> {
+  async resendVerification(
+    data: ResendVerificationRequest
+  ): Promise<MessageResponse> {
     try {
       return await api.post<MessageResponse>(
         apiEndpoints.auth.resendVerification,

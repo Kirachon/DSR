@@ -109,6 +109,13 @@ public interface EligibilityAssessmentRepository extends JpaRepository<Eligibili
                                                            @Param("endDate") LocalDateTime endDate);
 
     /**
+     * Find active program enrollments for a PSN
+     */
+    @Query("SELECT e FROM EligibilityAssessment e WHERE e.psn = :psn AND e.status IN ('ELIGIBLE', 'CONDITIONAL', 'APPROVED') " +
+           "AND (e.validUntil IS NULL OR e.validUntil > CURRENT_TIMESTAMP)")
+    List<EligibilityAssessment> findActiveProgramsByPsn(@Param("psn") String psn);
+
+    /**
      * Find assessments by assessor
      */
     List<EligibilityAssessment> findByAssessorId(String assessorId);

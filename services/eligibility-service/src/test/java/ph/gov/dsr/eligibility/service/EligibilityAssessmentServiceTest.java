@@ -62,7 +62,6 @@ class EligibilityAssessmentServiceTest {
 
         rulesResult = new EligibilityRulesEngineService.RuleEvaluationResult();
         rulesResult.setPassed(true);
-        rulesResult.setScore(85.0);
     }
 
     @Test

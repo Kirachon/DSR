@@ -40,8 +40,7 @@
     "typescript": "^5.3.0",
     "allure-playwright": "^2.10.0",
     "dotenv": "^16.3.0",
-    "faker": "^6.6.6",
-    "@types/faker": "^6.6.9"
+    "@faker-js/faker": "^8.3.1"
   },
   "dependencies": {
     "axios": "^1.6.0",

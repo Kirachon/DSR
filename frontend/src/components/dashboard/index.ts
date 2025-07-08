@@ -12,3 +12,6 @@ export { DSWDStaffDashboard } from './dswd-staff-dashboard';
 
 // System Admin Dashboard
 export { AdminDashboard } from './admin-dashboard';
+
+// Case Worker Dashboard
+export { CaseWorkerDashboard } from './case-worker-dashboard';

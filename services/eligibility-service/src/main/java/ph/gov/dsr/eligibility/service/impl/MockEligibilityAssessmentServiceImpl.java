@@ -8,6 +8,7 @@ import ph.gov.dsr.eligibility.dto.EligibilityResponse;
 import ph.gov.dsr.eligibility.service.EligibilityAssessmentService;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -247,7 +248,7 @@ public class MockEligibilityAssessmentServiceImpl implements EligibilityAssessme
             assessment.setMonthlyIncome(monthlyIncome);
             
             if (totalMembers != null && totalMembers > 0) {
-                BigDecimal perCapitaIncome = monthlyIncome.divide(new BigDecimal(totalMembers), 2, BigDecimal.ROUND_HALF_UP);
+                BigDecimal perCapitaIncome = monthlyIncome.divide(new BigDecimal(totalMembers), 2, RoundingMode.HALF_UP);
                 assessment.setPerCapitaIncome(perCapitaIncome);
             }
             
@@ -258,7 +259,7 @@ public class MockEligibilityAssessmentServiceImpl implements EligibilityAssessme
             assessment.setPovertyThreshold(threshold);
             
             // Calculate income ratio
-            BigDecimal ratio = monthlyIncome.divide(threshold, 2, BigDecimal.ROUND_HALF_UP);
+            BigDecimal ratio = monthlyIncome.divide(threshold, 2, RoundingMode.HALF_UP);
             assessment.setIncomeRatio(ratio);
             
             // Determine if meets criteria (income below 1.5x poverty line for most programs)
@@ -568,5 +569,12 @@ public class MockEligibilityAssessmentServiceImpl implements EligibilityAssessme
         request.setHouseholdInfo(householdInfo);
 
         return request;
+    }
+
+    @Override
+    public void processLifeEvent(String psn, String eventType, Map<String, Object> eventData) {
+        log.info("Processing life event for PSN: {} (mock implementation)", psn);
+        // Mock implementation - just log the event
+        log.debug("Mock life event processed: type={}, data={}", eventType, eventData);
     }
 }

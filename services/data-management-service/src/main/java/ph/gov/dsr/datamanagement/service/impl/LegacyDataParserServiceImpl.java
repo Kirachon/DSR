@@ -1,7 +1,6 @@
 package ph.gov.dsr.datamanagement.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import ph.gov.dsr.datamanagement.dto.DataIngestionRequest;
 import ph.gov.dsr.datamanagement.service.LegacyDataParserService;
@@ -17,13 +16,12 @@ import java.util.regex.Pattern;
 
 /**
  * Production implementation of LegacyDataParserService
- * 
+ *
  * @author DSR Development Team
  * @version 3.0.0
  * @since 2024-12-23
  */
 @Service
-@Profile("!no-db")
 @Slf4j
 public class LegacyDataParserServiceImpl implements LegacyDataParserService {
 

@@ -10,6 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -239,9 +240,9 @@ public class ProgramEnrollment {
             case "MONTHLY":
                 return benefitAmount;
             case "QUARTERLY":
-                return benefitAmount.divide(BigDecimal.valueOf(3), 2, BigDecimal.ROUND_HALF_UP);
+                return benefitAmount.divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
             case "ANNUALLY":
-                return benefitAmount.divide(BigDecimal.valueOf(12), 2, BigDecimal.ROUND_HALF_UP);
+                return benefitAmount.divide(BigDecimal.valueOf(12), 2, RoundingMode.HALF_UP);
             case "ONE_TIME":
                 return BigDecimal.ZERO;
             default:

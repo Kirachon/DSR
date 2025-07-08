@@ -45,6 +45,7 @@ public class PaymentRequest {
     @NotBlank(message = "Currency is required")
     @Size(min = 3, max = 3, message = "Currency must be 3 characters")
     @Schema(description = "Currency code", example = "PHP")
+    @Builder.Default
     private String currency = "PHP";
 
     @NotNull(message = "Payment method is required")
@@ -75,6 +76,7 @@ public class PaymentRequest {
     @Min(value = 1, message = "Max retry count must be at least 1")
     @Max(value = 10, message = "Max retry count cannot exceed 10")
     @Schema(description = "Maximum retry attempts", example = "3")
+    @Builder.Default
     private Integer maxRetryCount = 3;
 
     @Schema(description = "Additional metadata")

@@ -76,6 +76,15 @@ public class ProgramInfo {
     @Schema(description = "Whether program is currently accepting applications")
     private Boolean acceptingApplications;
 
+    @Schema(description = "Target beneficiary categories")
+    private List<String> targetBeneficiaryCategories;
+
+    @Schema(description = "Date when the program was created")
+    private java.time.LocalDate createdAt;
+
+    @Schema(description = "Date when the program was last updated")
+    private java.time.LocalDate updatedAt;
+
     @Data
     @Schema(description = "Eligibility criteria for a program")
     public static class EligibilityCriteria {
@@ -118,9 +127,11 @@ public class ProgramInfo {
         HEALTH_INSURANCE("Health Insurance Program"),
         EDUCATION_ASSISTANCE("Education Assistance Program"),
         LIVELIHOOD_PROGRAM("Livelihood Development Program"),
+        LIVELIHOOD("Livelihood Support Program"),
         HOUSING_ASSISTANCE("Housing Assistance Program"),
         DISASTER_RELIEF("Disaster Relief Program"),
         SENIOR_CITIZEN_BENEFIT("Senior Citizen Benefit Program"),
+        SOCIAL_PENSION("Social Pension Program"),
         PWD_ASSISTANCE("Person with Disability Assistance"),
         INDIGENOUS_SUPPORT("Indigenous Peoples Support Program"),
         SOLO_PARENT_ASSISTANCE("Solo Parent Assistance Program");

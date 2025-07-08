@@ -1,0 +1,22 @@
+﻿{
+    "TestConfiguration":  {
+                              "Timestamp":  "20250708-101205",
+                              "BaseUrl":  "http://localhost:8080",
+                              "ConcurrentUsers":  20,
+                              "TotalRequests":  200
+                          },
+    "Results":  {
+                    "FailedRequests":  200,
+                    "TotalRequests":  200,
+                    "SuccessfulRequests":  0,
+                    "ErrorRate":  100,
+                    "TestDuration":  73.0829352,
+                    "ProductionReady":  false,
+                    "ResponseTimes":  {
+                                          "Minimum":  4059.4990000000003,
+                                          "Maximum":  4254.5619000000006,
+                                          "P95":  4168.5407000000005,
+                                          "Average":  4101.1262235
+                                      }
+                }
+}

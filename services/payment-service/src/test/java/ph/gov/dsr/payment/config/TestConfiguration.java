@@ -1,6 +1,6 @@
 package ph.gov.dsr.payment.config;
 
-import org.springframework.boot.test.context.TestConfiguration;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
@@ -85,9 +85,10 @@ public class TestConfiguration {
             }
 
             return FSPPaymentResponse.builder()
+                .success(true)
                 .fspReferenceNumber("FSP-" + fspCode + "-" + System.currentTimeMillis())
-                .status("SUCCESS")
-                .message("Payment submitted successfully to " + fspName)
+                .status(FSPPaymentResponse.FSPPaymentStatus.SUBMITTED)
+                .statusMessage("Payment submitted successfully to " + fspName)
                 .transactionId("TXN-" + System.currentTimeMillis())
                 .build();
         }
@@ -106,35 +107,7 @@ public class TestConfiguration {
                 .build();
         }
 
-        @Override
-        public void performHealthCheck() {
-            // Simulate health check - in real implementation this would ping the FSP
-            try {
-                Thread.sleep(100); // Simulate network call
-                healthy = true;
-            } catch (InterruptedException e) {
-                healthy = false;
-                Thread.currentThread().interrupt();
-            }
-        }
 
-        @Override
-        public BigDecimal getTransactionFee(BigDecimal amount, Payment.PaymentMethod method) {
-            // Mock transaction fee calculation
-            if (method == Payment.PaymentMethod.BANK_TRANSFER) {
-                return amount.multiply(new BigDecimal("0.01")); // 1% fee
-            } else if (method == Payment.PaymentMethod.CASH) {
-                return new BigDecimal("10.00"); // Flat fee for cash
-            } else {
-                return new BigDecimal("5.00"); // Default fee
-            }
-        }
-
-        @Override
-        public boolean canRetry(String fspReferenceNumber) {
-            // Allow retries for mock service
-            return true;
-        }
 
         @Override
         public boolean validateConfiguration(FSPConfiguration config) {

@@ -1,0 +1,6 @@
+Login form elements found: {
+  hasLoginForm: false,
+  hasEmailInput: false,
+  hasPasswordInput: false,
+  hasLoginButton: true
+}
