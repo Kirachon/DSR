@@ -10,35 +10,46 @@ import { cn } from '@/utils';
 
 // Button variants using class-variance-authority
 const buttonVariants = cva(
-  // Base styles
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  // Base styles with enhanced accessibility and animations
+  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95',
   {
     variants: {
       variant: {
         primary:
-          'bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-500',
+          'bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-500 shadow-sm hover:shadow-md',
         secondary:
-          'bg-secondary-600 text-white hover:bg-secondary-700 focus-visible:ring-secondary-500',
+          'bg-secondary-600 text-white hover:bg-secondary-700 focus-visible:ring-secondary-500 shadow-sm hover:shadow-md',
         accent:
-          'bg-accent-600 text-white hover:bg-accent-700 focus-visible:ring-accent-500',
+          'bg-accent-600 text-white hover:bg-accent-700 focus-visible:ring-accent-500 shadow-sm hover:shadow-md',
         outline:
-          'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus-visible:ring-primary-500',
-        ghost: 'text-gray-700 hover:bg-gray-100 focus-visible:ring-primary-500',
-        link: 'text-primary-600 underline-offset-4 hover:underline focus-visible:ring-primary-500',
+          'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus-visible:ring-primary-500 shadow-sm hover:shadow-md',
+        ghost: 'text-gray-700 hover:bg-gray-100 focus-visible:ring-primary-500 hover:shadow-sm',
+        link: 'text-primary-600 underline-offset-4 hover:underline focus-visible:ring-primary-500 p-0 h-auto',
         destructive:
-          'bg-error-600 text-white hover:bg-error-700 focus-visible:ring-error-500',
+          'bg-error-600 text-white hover:bg-error-700 focus-visible:ring-error-500 shadow-sm hover:shadow-md',
         success:
-          'bg-success-600 text-white hover:bg-success-700 focus-visible:ring-success-500',
+          'bg-success-600 text-white hover:bg-success-700 focus-visible:ring-success-500 shadow-sm hover:shadow-md',
         warning:
-          'bg-warning-600 text-white hover:bg-warning-700 focus-visible:ring-warning-500',
+          'bg-warning-600 text-white hover:bg-warning-700 focus-visible:ring-warning-500 shadow-sm hover:shadow-md',
+        // DSR-specific variants
+        eligible:
+          'bg-dsr-eligible text-white hover:bg-green-600 focus-visible:ring-green-500 shadow-sm hover:shadow-md',
+        pending:
+          'bg-dsr-pending text-white hover:bg-yellow-600 focus-visible:ring-yellow-500 shadow-sm hover:shadow-md',
+        processing:
+          'bg-dsr-processing text-white hover:bg-blue-600 focus-visible:ring-blue-500 shadow-sm hover:shadow-md animate-pulse-slow',
+        completed:
+          'bg-dsr-completed text-white hover:bg-green-700 focus-visible:ring-green-500 shadow-sm hover:shadow-md',
       },
       size: {
-        xs: 'h-7 px-2 text-xs',
-        sm: 'h-8 px-3 text-sm',
-        md: 'h-10 px-4 text-sm',
-        lg: 'h-11 px-6 text-base',
-        xl: 'h-12 px-8 text-base',
-        icon: 'h-10 w-10',
+        xs: 'h-8 px-2 text-xs min-w-[2rem]',
+        sm: 'h-9 px-3 text-sm min-w-[2.5rem]',
+        md: 'h-11 px-4 text-sm min-w-[3rem]', // 44px minimum touch target
+        lg: 'h-12 px-6 text-base min-w-[3.5rem]',
+        xl: 'h-14 px-8 text-lg min-w-[4rem]',
+        icon: 'h-11 w-11 p-0', // 44px minimum touch target
+        'icon-sm': 'h-9 w-9 p-0',
+        'icon-lg': 'h-12 w-12 p-0',
       },
       fullWidth: {
         true: 'w-full',
