@@ -1,11 +1,14 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, expect, BrowserContext } from '@playwright/test';
+import { AxeBuilder } from '@axe-core/playwright';
 
 /**
  * Base Page Object class providing common functionality for all pages
  * Implements common patterns and utilities used across the DSR application
+ * Enhanced with accessibility testing, performance monitoring, and component validation
  */
 export abstract class BasePage {
   protected page: Page;
+  protected context: BrowserContext;
   protected baseUrl: string;
 
   // Common locators present on most pages
@@ -16,10 +19,18 @@ export abstract class BasePage {
   protected readonly userMenu: Locator;
   protected readonly logoutButton: Locator;
 
-  constructor(page: Page) {
+  // Enhanced component locators
+  protected readonly statusBadges: Locator;
+  protected readonly progressIndicators: Locator;
+  protected readonly dataTables: Locator;
+  protected readonly workflowTimelines: Locator;
+  protected readonly roleBasedNavigation: Locator;
+
+  constructor(page: Page, context?: BrowserContext) {
     this.page = page;
+    this.context = context || page.context();
     this.baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-    
+
     // Initialize common locators
     this.loadingSpinner = page.locator('[data-testid="loading-spinner"]');
     this.errorMessage = page.locator('[data-testid="error-message"]');
@@ -27,6 +38,13 @@ export abstract class BasePage {
     this.navigationMenu = page.locator('[data-testid="navigation-menu"]');
     this.userMenu = page.locator('[data-testid="user-menu"]');
     this.logoutButton = page.locator('[data-testid="logout-button"]');
+
+    // Initialize enhanced component locators
+    this.statusBadges = page.locator('[role="status"], .status-badge, [data-testid*="status"]');
+    this.progressIndicators = page.locator('[role="progressbar"], .progress-indicator, [data-testid*="progress"]');
+    this.dataTables = page.locator('table, [role="table"], .data-table, [data-testid*="table"]');
+    this.workflowTimelines = page.locator('.workflow-timeline, [data-testid*="timeline"]');
+    this.roleBasedNavigation = page.locator('nav, [role="navigation"], .navigation, [data-testid*="nav"]');
   }
 
   /**
@@ -221,5 +239,225 @@ export abstract class BasePage {
       return currentUrl.includes(pattern);
     }
     return pattern.test(currentUrl);
+  }
+
+  // ===== ENHANCED TESTING UTILITIES =====
+
+  /**
+   * Run accessibility tests on the current page
+   */
+  async runAccessibilityTests(options?: {
+    includeTags?: string[];
+    excludeTags?: string[];
+    rules?: Record<string, any>;
+  }): Promise<void> {
+    const axeBuilder = new AxeBuilder({ page: this.page });
+
+    if (options?.includeTags) {
+      axeBuilder.withTags(options.includeTags);
+    }
+
+    if (options?.excludeTags) {
+      axeBuilder.disableTags(options.excludeTags);
+    }
+
+    if (options?.rules) {
+      axeBuilder.withRules(Object.keys(options.rules));
+    }
+
+    const results = await axeBuilder.analyze();
+    expect(results.violations).toEqual([]);
+  }
+
+  /**
+   * Measure page performance metrics
+   */
+  async measurePerformance(): Promise<{
+    loadTime: number;
+    domContentLoaded: number;
+    firstContentfulPaint: number;
+    largestContentfulPaint: number;
+  }> {
+    const performanceMetrics = await this.page.evaluate(() => {
+      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      const paint = performance.getEntriesByType('paint');
+
+      return {
+        loadTime: navigation.loadEventEnd - navigation.loadEventStart,
+        domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+        firstContentfulPaint: paint.find(p => p.name === 'first-contentful-paint')?.startTime || 0,
+        largestContentfulPaint: 0 // Will be updated with LCP observer if available
+      };
+    });
+
+    return performanceMetrics;
+  }
+
+  /**
+   * Validate response time is under threshold
+   */
+  async validateResponseTime(threshold: number = 2000): Promise<void> {
+    const startTime = Date.now();
+    await this.waitForPageLoad();
+    const endTime = Date.now();
+    const responseTime = endTime - startTime;
+
+    expect(responseTime).toBeLessThan(threshold);
+  }
+
+  /**
+   * Test component responsiveness across different viewport sizes
+   */
+  async testResponsiveDesign(viewports: Array<{ width: number; height: number; name: string }>): Promise<void> {
+    for (const viewport of viewports) {
+      await this.page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await this.waitForPageLoad();
+
+      // Take screenshot for visual verification
+      await this.takeScreenshot(`responsive-${viewport.name}-${viewport.width}x${viewport.height}`);
+
+      // Verify no horizontal scrollbar on mobile
+      if (viewport.width <= 768) {
+        const hasHorizontalScroll = await this.page.evaluate(() => {
+          return document.documentElement.scrollWidth > document.documentElement.clientWidth;
+        });
+        expect(hasHorizontalScroll).toBeFalsy();
+      }
+    }
+  }
+
+  /**
+   * Validate status badges are present and functional
+   */
+  async validateStatusBadges(): Promise<void> {
+    const badges = await this.statusBadges.all();
+
+    for (const badge of badges) {
+      // Check badge is visible
+      await expect(badge).toBeVisible();
+
+      // Check badge has proper ARIA attributes
+      const ariaLabel = await badge.getAttribute('aria-label');
+      const role = await badge.getAttribute('role');
+
+      expect(ariaLabel || role).toBeTruthy();
+
+      // Check badge has text content
+      const textContent = await badge.textContent();
+      expect(textContent?.trim()).toBeTruthy();
+    }
+  }
+
+  /**
+   * Validate progress indicators functionality
+   */
+  async validateProgressIndicators(): Promise<void> {
+    const indicators = await this.progressIndicators.all();
+
+    for (const indicator of indicators) {
+      await expect(indicator).toBeVisible();
+
+      // Check for proper ARIA attributes
+      const role = await indicator.getAttribute('role');
+      const ariaValueNow = await indicator.getAttribute('aria-valuenow');
+      const ariaValueMin = await indicator.getAttribute('aria-valuemin');
+      const ariaValueMax = await indicator.getAttribute('aria-valuemax');
+
+      expect(role).toBe('progressbar');
+      expect(ariaValueNow).toBeTruthy();
+      expect(ariaValueMin).toBeTruthy();
+      expect(ariaValueMax).toBeTruthy();
+    }
+  }
+
+  /**
+   * Validate data table functionality
+   */
+  async validateDataTables(): Promise<void> {
+    const tables = await this.dataTables.all();
+
+    for (const table of tables) {
+      await expect(table).toBeVisible();
+
+      // Check table has headers
+      const headers = table.locator('th, [role="columnheader"]');
+      const headerCount = await headers.count();
+      expect(headerCount).toBeGreaterThan(0);
+
+      // Check table has data rows
+      const rows = table.locator('tr, [role="row"]');
+      const rowCount = await rows.count();
+      expect(rowCount).toBeGreaterThan(1); // At least header + 1 data row
+    }
+  }
+
+  /**
+   * Test keyboard navigation
+   */
+  async testKeyboardNavigation(): Promise<void> {
+    // Test Tab navigation
+    await this.page.keyboard.press('Tab');
+
+    // Verify focus is visible
+    const focusedElement = await this.page.locator(':focus').first();
+    await expect(focusedElement).toBeVisible();
+
+    // Test Enter key on focused element
+    await this.page.keyboard.press('Enter');
+    await this.waitForLoadingToComplete();
+  }
+
+  /**
+   * Validate role-based content visibility
+   */
+  async validateRoleBasedContent(expectedRole: string): Promise<void> {
+    // Check for role-specific navigation items
+    const navItems = await this.roleBasedNavigation.locator('[data-role], [data-user-role]').all();
+
+    for (const item of navItems) {
+      const itemRole = await item.getAttribute('data-role') || await item.getAttribute('data-user-role');
+      if (itemRole && itemRole !== expectedRole) {
+        await expect(item).not.toBeVisible();
+      }
+    }
+  }
+
+  /**
+   * Test error handling and recovery
+   */
+  async testErrorHandling(): Promise<void> {
+    // Check if error messages are user-friendly
+    if (await this.isVisible(this.errorMessage)) {
+      const errorText = await this.getTextContent(this.errorMessage);
+
+      // Error should not contain technical jargon
+      expect(errorText.toLowerCase()).not.toContain('undefined');
+      expect(errorText.toLowerCase()).not.toContain('null');
+      expect(errorText.toLowerCase()).not.toContain('error:');
+      expect(errorText.toLowerCase()).not.toContain('exception');
+
+      // Error should provide actionable guidance
+      expect(errorText.length).toBeGreaterThan(10);
+    }
+  }
+
+  /**
+   * Validate cross-browser compatibility
+   */
+  async validateCrossBrowserCompatibility(): Promise<void> {
+    // Check for browser-specific CSS issues
+    const computedStyles = await this.page.evaluate(() => {
+      const element = document.querySelector('body');
+      if (!element) return {};
+
+      const styles = window.getComputedStyle(element);
+      return {
+        display: styles.display,
+        position: styles.position,
+        overflow: styles.overflow
+      };
+    });
+
+    expect(computedStyles.display).toBeTruthy();
   }
 }

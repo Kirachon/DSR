@@ -5,12 +5,16 @@ Comprehensive end-to-end testing suite for the Dynamic Social Registry (DSR) sys
 ## 🎯 Overview
 
 This test suite provides comprehensive coverage of:
+- **Dashboard Layouts**: Citizen and Staff dashboards with role-based content
+- **Enhanced Components**: Progress indicators, data tables, navigation, and workflow timelines
+- **Registration Workflows**: Multi-step forms and application processes
+- **Component Integration**: Cross-component data flow and navigation
 - **Account Management**: Registration, login, logout, password reset, profile management
 - **Module Testing**: All 7 DSR core services and their workflows
 - **Cross-browser Testing**: Chrome, Firefox, Safari, and mobile browsers
 - **Security Testing**: Authentication, authorization, input validation
-- **Performance Testing**: Load times, responsiveness, user experience
-- **Accessibility Testing**: WCAG compliance, screen reader support
+- **Performance Testing**: Load times, responsiveness, user experience (<2 seconds)
+- **Accessibility Testing**: WCAG AA compliance, screen reader support
 
 ## 🏗️ Architecture
 
@@ -27,6 +31,9 @@ e2e-tests/
 │   │   └── auth-helper.ts     # Authentication utilities
 │   └── setup/           # Global setup and teardown
 ├── tests/
+│   ├── dashboards/      # Dashboard layout tests
+│   ├── components/      # Enhanced component tests
+│   ├── workflows/       # Registration workflow tests
 │   ├── account/         # Account functionality tests
 │   ├── modules/         # Module-specific tests
 │   └── integration/     # Cross-module integration tests
@@ -65,6 +72,9 @@ cp .env.example .env
 npm test
 
 # Run specific test suites
+npm run test:dashboards     # Dashboard layout tests
+npm run test:components     # Enhanced component tests
+npm run test:workflows      # Registration workflow tests
 npm run test:account        # Account functionality
 npm run test:modules        # Module testing
 npm run test:integration    # Integration tests
@@ -89,6 +99,26 @@ npm run test:regression
 ```
 
 ## 🧪 Test Categories
+
+### Dashboard Testing
+
+- **Citizen Dashboard**: Personal information, quick actions, application status, benefit cards
+- **Staff Dashboard**: KPI cards, work queues, pending registrations, data management
+- **Role Permissions**: Access control validation, content visibility by role
+- **Responsive Design**: Mobile, tablet, desktop layout validation
+
+### Component Testing
+
+- **Progress Indicators**: Stepped, circular, and linear variants with accessibility validation
+- **Data Tables**: Sorting, filtering, pagination, bulk actions, and responsive behavior
+- **Role-Based Navigation**: Menu visibility, keyboard navigation, active state management
+- **Workflow Timeline**: Status progression, interactive elements, real-time updates
+
+### Workflow Testing
+
+- **Multi-Step Registration**: Form validation, data persistence, step navigation
+- **Application Review**: Status tracking, document upload, approval workflows
+- **Status Updates**: Real-time synchronization, badge consistency across components
 
 ### Account Testing
 

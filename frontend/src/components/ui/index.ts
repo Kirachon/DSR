@@ -83,3 +83,25 @@ export {
   paginationButtonVariants,
 } from './pagination';
 export type { PaginationProps } from './pagination';
+
+// Enhanced DSR Components
+// Status Badge components (enhanced version)
+export { StatusBadge as DSRStatusBadge, statusBadgeVariants, getStatusText, getStatusColor } from './status-badge';
+export type { StatusBadgeProps as DSRStatusBadgeProps } from './status-badge';
+
+// Progress Indicator components
+export { ProgressIndicator, progressIndicatorVariants } from './progress-indicator';
+export type { ProgressIndicatorProps, Step, StepStatus } from './progress-indicator';
+
+// Data Table components
+export { DataTable, dataTableVariants } from './data-table';
+export type { DataTableProps, Column, SortConfig, FilterConfig } from './data-table';
+
+// Role-Based Navigation components
+export { RoleBasedNavigation } from './role-based-navigation';
+export { DSR_NAVIGATION_CONFIG } from './role-based-navigation';
+export type { RoleBasedNavigationProps, NavigationItem, NavigationSection } from './role-based-navigation';
+
+// Workflow Timeline components
+export { WorkflowTimeline, timelineVariants } from './workflow-timeline';
+export type { WorkflowTimelineProps, TimelineEvent } from './workflow-timeline';
