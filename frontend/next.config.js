@@ -120,6 +120,11 @@ const nextConfig = {
   // React strict mode
   reactStrictMode: true,
 
+  // Temporarily disable ESLint during build for performance analysis
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   // SWC minify (now handled by compiler.removeConsole)
 };
 

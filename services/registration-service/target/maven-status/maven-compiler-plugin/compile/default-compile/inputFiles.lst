@@ -62,6 +62,7 @@ D:\GitProjects\DSR\services\registration-service\src\main\java\ph\gov\dsr\regist
 D:\GitProjects\DSR\services\registration-service\src\main\java\ph\gov\dsr\registration\service\impl\AuditServiceImpl.java
 D:\GitProjects\DSR\services\registration-service\src\main\java\ph\gov\dsr\registration\service\impl\AuthServiceImpl.java
 D:\GitProjects\DSR\services\registration-service\src\main\java\ph\gov\dsr\registration\service\impl\MockAuthServiceImpl.java
+D:\GitProjects\DSR\services\registration-service\src\main\java\ph\gov\dsr\registration\service\impl\MockRegistrationServiceImpl.java
 D:\GitProjects\DSR\services\registration-service\src\main\java\ph\gov\dsr\registration\service\impl\RegistrationServiceImpl.java
 D:\GitProjects\DSR\services\registration-service\src\main\java\ph\gov\dsr\registration\service\impl\ValidationServiceImpl.java
 D:\GitProjects\DSR\services\registration-service\src\main\java\ph\gov\dsr\registration\service\RegistrationService.java

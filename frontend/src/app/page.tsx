@@ -1,56 +1,51 @@
 'use client';
 
-// DSR Landing Page
-// Main landing page that redirects users based on authentication status
-
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
-
-import { Button, Loading } from '@/components/ui';
-import { useAuth } from '@/contexts';
+import React, { useEffect, useState } from 'react';
 
 export default function Home() {
-  const { isAuthenticated, isLoading, isInitialized } = useAuth();
   const router = useRouter();
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Redirect authenticated users to dashboard
   useEffect(() => {
-    if (isInitialized && isAuthenticated) {
-      router.push('/dashboard');
-    }
-  }, [isInitialized, isAuthenticated, router]);
+    setIsLoaded(true);
+  }, []);
 
-  // Show loading while checking authentication
-  if (!isInitialized || isLoading) {
-    return (
-      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
-        <Loading text='Loading DSR Portal...' />
-      </div>
-    );
-  }
-
-  // Show landing page for unauthenticated users
   return (
-    <div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100'>
+    <div className="min-h-screen gradient-bg overflow-hidden">
+      {/* Floating Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-3/4 w-48 h-48 bg-pink-400/10 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
+      </div>
+
       {/* Header */}
-      <header className='bg-white shadow-sm'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex justify-between items-center py-6'>
-            <div className='flex items-center'>
-              <div className='h-10 w-10 bg-primary-600 rounded-lg flex items-center justify-center mr-3'>
-                <span className='text-white font-bold text-lg'>DSR</span>
+      <header className="glass-strong sticky top-0 z-50 border-b border-white/20">
+        <div className="container">
+          <div className="flex justify-between items-center py-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-14 h-14 rounded-2xl gradient-hero flex items-center justify-center shadow-lg animate-float">
+                <span className="font-bold text-2xl text-white">DSR</span>
               </div>
-              <h1 className='text-2xl font-bold text-gray-900'>
-                Digital Social Registry
-              </h1>
+              <div>
+                <span className="text-2xl font-bold text-gradient">Digital Social Registry</span>
+                <p className="text-sm text-gray-600 font-medium">Republic of the Philippines</p>
+              </div>
             </div>
-            <div className='flex space-x-4'>
-              <Link href='/auth/login'>
-                <Button variant='outline'>Sign In</Button>
+            <div className="flex items-center space-x-4">
+              <Link href="/login" className="btn btn-secondary">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Sign In
               </Link>
-              <Link href='/auth/register'>
-                <Button>Get Started</Button>
+              <Link href="/register" className="btn btn-primary btn-lg">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                Get Started
               </Link>
             </div>
           </div>
@@ -58,184 +53,218 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16'>
-        <div className='text-center'>
-          <h2 className='text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl'>
-            Welcome to the
-            <span className='block text-primary-600'>
-              Digital Social Registry
-            </span>
-          </h2>
-          <p className='mt-6 max-w-2xl mx-auto text-xl text-gray-600'>
-            A comprehensive platform for managing social protection programs,
-            citizen registration, eligibility assessment, and benefit distribution
-            across the Philippines.
-          </p>
-          <div className='mt-10 flex justify-center space-x-6'>
-            <Link href='/auth/register'>
-              <Button size='lg' className='px-8 py-3'>
+      <main className="relative z-10">
+        <div className="container py-20">
+          <div className={`max-w-6xl mx-auto text-center ${isLoaded ? 'animate-fade-in' : 'opacity-0'}`}>
+            {/* Philippine Flag Accent */}
+            <div className="flex justify-center mb-8">
+              <div className="flex space-x-2">
+                <div className="w-4 h-4 rounded-full bg-blue-600 animate-pulse"></div>
+                <div className="w-4 h-4 rounded-full bg-red-600 animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                <div className="w-4 h-4 rounded-full bg-yellow-500 animate-pulse" style={{animationDelay: '1s'}}></div>
+              </div>
+            </div>
+
+            <h1 className="text-6xl md:text-8xl font-bold mb-8 text-gradient leading-tight">
+              Digital Social
+              <span className="block text-gradient-static">Registry</span>
+            </h1>
+            
+            <p className="text-2xl md:text-3xl text-gray-700 mb-12 leading-relaxed max-w-4xl mx-auto font-light">
+              Empowering <span className="font-semibold text-gradient-static">Filipino families</span> through 
+              innovative digital solutions that ensure equitable access to 
+              <span className="font-semibold text-gradient-static"> social protection programs</span> nationwide.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+              <Link href="/register" className="btn btn-primary btn-lg">
+                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                </svg>
                 Register as Citizen
-              </Button>
-            </Link>
-            <Link href='/auth/login'>
-              <Button variant='outline' size='lg' className='px-8 py-3'>
-                Staff Login
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Features Grid */}
-        <div className='mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
-          <div className='bg-white rounded-lg shadow-md p-6'>
-            <div className='h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4'>
-              <svg
-                className='h-6 w-6 text-blue-600'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-                />
-              </svg>
+              </Link>
+              <Link href="/login" className="btn btn-secondary btn-lg">
+                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6" />
+                </svg>
+                Staff Portal
+              </Link>
             </div>
-            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
-              Citizen Registration
-            </h3>
-            <p className='text-gray-600'>
-              Streamlined registration process for citizens to access social
-              protection programs and benefits.
-            </p>
-          </div>
 
-          <div className='bg-white rounded-lg shadow-md p-6'>
-            <div className='h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center mb-4'>
-              <svg
-                className='h-6 w-6 text-green-600'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
-                />
-              </svg>
+            {/* Stats Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+              <div className="card-elevated p-8 text-center">
+                <div className="text-5xl font-bold text-gradient mb-3">1M+</div>
+                <div className="text-gray-600 text-lg font-medium">Registered Citizens</div>
+                <div className="text-sm text-green-600 font-semibold mt-2">↗ +15% this month</div>
+              </div>
+              <div className="card-elevated p-8 text-center">
+                <div className="text-5xl font-bold text-gradient mb-3">₱50B+</div>
+                <div className="text-gray-600 text-lg font-medium">Benefits Distributed</div>
+                <div className="text-sm text-green-600 font-semibold mt-2">↗ +8% this quarter</div>
+              </div>
+              <div className="card-elevated p-8 text-center">
+                <div className="text-5xl font-bold text-gradient mb-3">17</div>
+                <div className="text-gray-600 text-lg font-medium">Regions Covered</div>
+                <div className="text-sm text-blue-600 font-semibold mt-2">100% Coverage</div>
+              </div>
             </div>
-            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
-              Eligibility Assessment
-            </h3>
-            <p className='text-gray-600'>
-              Automated assessment of citizen eligibility for various social
-              protection programs and benefits.
-            </p>
           </div>
-
-          <div className='bg-white rounded-lg shadow-md p-6'>
-            <div className='h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4'>
-              <svg
-                className='h-6 w-6 text-purple-600'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1'
-                />
-              </svg>
-            </div>
-            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
-              Payment Processing
-            </h3>
-            <p className='text-gray-600'>
-              Secure and efficient payment processing for social benefits and
-              program disbursements.
-            </p>
-          </div>
-        </div>
-
-        {/* Call to Action */}
-        <div className='mt-20 bg-white rounded-lg shadow-lg p-8 text-center'>
-          <h3 className='text-2xl font-bold text-gray-900 mb-4'>
-            Ready to get started?
-          </h3>
-          <p className='text-gray-600 mb-6'>
-            Join thousands of citizens already benefiting from our social
-            protection programs.
-          </p>
-          <Link href='/auth/register'>
-            <Button size='lg' className='px-8 py-3'>
-              Create Your Account
-            </Button>
-          </Link>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className='bg-gray-800 text-white py-12'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
-            <div>
-              <div className='flex items-center mb-4'>
-                <div className='h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center mr-2'>
-                  <span className='text-white font-bold'>DSR</span>
-                </div>
-                <span className='text-lg font-semibold'>
-                  Digital Social Registry
-                </span>
+      {/* Features Section */}
+      <section className="py-24 relative">
+        <div className="container">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl font-bold mb-6 text-gradient-static">
+              Comprehensive Social Protection Services
+            </h2>
+            <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+              Our integrated platform streamlines access to government benefits and ensures
+              efficient delivery of social protection programs across the Philippines.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="card-elevated p-10 text-center group hover:scale-105 transition-all duration-500">
+              <div className="w-20 h-20 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
               </div>
-              <p className='text-gray-400'>
-                Empowering social protection through digital innovation.
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">Citizen Registration</h3>
+              <p className="text-gray-600 leading-relaxed text-lg">
+                Streamlined digital registration process that connects Filipino families
+                to essential social protection programs and government benefits.
               </p>
             </div>
-            <div>
-              <h4 className='text-lg font-semibold mb-4'>Quick Links</h4>
-              <ul className='space-y-2 text-gray-400'>
-                <li>
-                  <Link href='/about' className='hover:text-white'>
-                    About DSR
-                  </Link>
-                </li>
-                <li>
-                  <Link href='/contact' className='hover:text-white'>
-                    Contact Us
-                  </Link>
-                </li>
-                <li>
-                  <Link href='/privacy' className='hover:text-white'>
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href='/terms' className='hover:text-white'>
-                    Terms of Service
-                  </Link>
-                </li>
-              </ul>
+
+            <div className="card-elevated p-10 text-center group hover:scale-105 transition-all duration-500">
+              <div className="w-20 h-20 gradient-secondary rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">Eligibility Assessment</h3>
+              <p className="text-gray-600 leading-relaxed text-lg">
+                AI-powered assessment system that automatically determines citizen
+                eligibility for various social protection programs and benefits.
+              </p>
             </div>
-            <div>
-              <h4 className='text-lg font-semibold mb-4'>Contact</h4>
-              <div className='text-gray-400 space-y-2'>
-                <p>Department of Social Welfare and Development</p>
-                <p>Republic of the Philippines</p>
-                <p>Email: support@dsr.gov.ph</p>
-                <p>Phone: +63 (2) 8931-8101</p>
+
+            <div className="card-elevated p-10 text-center group hover:scale-105 transition-all duration-500">
+              <div className="w-20 h-20 gradient-accent rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">Secure Payments</h3>
+              <p className="text-gray-600 leading-relaxed text-lg">
+                Bank-grade security for processing social benefit payments and
+                program disbursements directly to Filipino families nationwide.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 gradient-hero relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="container relative z-10">
+          <div className="max-w-4xl mx-auto text-center text-white">
+            <h3 className="text-5xl font-bold mb-8">
+              Ready to Transform Lives?
+            </h3>
+            <p className="text-xl mb-12 leading-relaxed opacity-90">
+              Join over 1 million Filipino families already benefiting from our
+              comprehensive social protection programs. Start your journey today.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
+              <Link href="/register" className="btn btn-accent btn-lg">
+                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Start Registration
+              </Link>
+              <Link href="/dashboard" className="btn btn-secondary btn-lg">
+                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                View Dashboard
+              </Link>
+            </div>
+
+            {/* Trust Indicators */}
+            <div className="flex flex-wrap justify-center items-center gap-8 text-white/80">
+              <div className="flex items-center gap-3">
+                <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span className="font-medium">Government Verified</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+                <span className="font-medium">Bank-Grade Security</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <svg className="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="font-medium">24/7 Support</span>
               </div>
             </div>
           </div>
-          <div className='border-t border-gray-700 mt-8 pt-8 text-center text-gray-400'>
-            <p>
-              © 2024 Digital Social Registry. All rights reserved. Government of
-              the Philippines.
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-20 bg-gray-900 text-white relative">
+        <div className="container">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div className="md:col-span-2">
+              <div className="flex items-center mb-8">
+                <div className="w-16 h-16 rounded-2xl gradient-hero flex items-center justify-center mr-6">
+                  <span className="font-bold text-2xl text-white">DSR</span>
+                </div>
+                <div>
+                  <h4 className="text-2xl font-bold">Digital Social Registry</h4>
+                  <p className="text-blue-300 text-sm font-medium">Republic of the Philippines</p>
+                </div>
+              </div>
+              <p className="text-gray-300 mb-8 max-w-md text-lg leading-relaxed">
+                Empowering Filipino families through innovative digital solutions
+                that ensure equitable access to social protection programs nationwide.
+              </p>
+            </div>
+
+            <div>
+              <h5 className="text-xl font-semibold mb-6">Quick Links</h5>
+              <ul className="space-y-4">
+                <li><Link href="/about" className="text-gray-300 hover:text-white transition-colors text-lg">About DSR</Link></li>
+                <li><Link href="/programs" className="text-gray-300 hover:text-white transition-colors text-lg">Programs</Link></li>
+                <li><Link href="/help" className="text-gray-300 hover:text-white transition-colors text-lg">Help Center</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h5 className="text-xl font-semibold mb-6">Contact Info</h5>
+              <div className="space-y-4 text-gray-300">
+                <p className="text-lg font-medium">DSWD Central Office</p>
+                <p className="text-lg">Batasan Pambansa Complex</p>
+                <p className="text-lg">support@dsr.gov.ph</p>
+                <p className="text-lg">+63 (2) 8931-8101</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-700 mt-16 pt-8 text-center">
+            <p className="text-gray-400 text-lg">
+              © 2024 Digital Social Registry. All rights reserved. Government of the Philippines.
             </p>
           </div>
         </div>

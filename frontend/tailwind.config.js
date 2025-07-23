@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const tokenConfig = require('./tailwind.config.tokens.js');
+
 module.exports = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -7,19 +9,22 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // Merge design tokens with existing configuration
+      ...tokenConfig.theme.extend,
       colors: {
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-          950: '#172554',
+          // Authoritative government navy - flat design appropriate
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#1e293b', // Main primary - authoritative dark slate
+          600: '#0f172a',
+          700: '#020617', // Very dark for maximum authority
+          800: '#000000',
+          900: '#000000',
+          950: '#000000',
         },
         secondary: {
           50: '#f8fafc',
@@ -35,43 +40,46 @@ module.exports = {
           950: '#020617',
         },
         success: {
+          // Government-appropriate muted green - flat design
           50: '#f0fdf4',
           100: '#dcfce7',
           200: '#bbf7d0',
           300: '#86efac',
           400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-          950: '#052e16',
+          500: '#166534', // Authoritative dark green
+          600: '#14532d',
+          700: '#052e16',
+          800: '#022c22',
+          900: '#021c14',
+          950: '#000000',
         },
         warning: {
+          // Government-appropriate amber - authoritative tone
           50: '#fffbeb',
           100: '#fef3c7',
           200: '#fde68a',
           300: '#fcd34d',
           400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
-          950: '#451a03',
+          500: '#b45309', // Darker, more serious warning color
+          600: '#92400e',
+          700: '#78350f',
+          800: '#451a03',
+          900: '#1c0a00',
+          950: '#000000',
         },
         error: {
+          // Government-appropriate red - serious and authoritative
           50: '#fef2f2',
           100: '#fee2e2',
           200: '#fecaca',
           300: '#fca5a5',
           400: '#f87171',
-          500: '#ef4444',
-          600: '#dc2626',
-          700: '#b91c1c',
-          800: '#991b1b',
-          900: '#7f1d1d',
-          950: '#450a0a',
+          500: '#b91c1c', // Darker, more serious error color
+          600: '#991b1b',
+          700: '#7f1d1d',
+          800: '#450a0a',
+          900: '#1c0000',
+          950: '#000000',
         },
         info: {
           50: '#f0f9ff',
@@ -97,14 +105,23 @@ module.exports = {
         128: '32rem',
       },
       borderRadius: {
-        '4xl': '2rem',
+        // Government flat design - minimal rounding for professional appearance
+        'none': '0px',
+        'xs': '1px',
+        'sm': '2px',
+        'md': '2px', // Maximum rounding for government interfaces
+        'lg': '2px',
+        'xl': '2px',
+        // All larger radius values set to 2px max for flat government design
       },
       boxShadow: {
-        soft: '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        medium:
-          '0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-        large:
-          '0 10px 40px -10px rgba(0, 0, 0, 0.15), 0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+        // Flat government design - minimal shadows only for essential depth
+        'none': '0 0 #0000',
+        'flat-sm': '0 1px 1px rgba(0, 0, 0, 0.03)', // Barely visible
+        'flat-md': '0 1px 2px rgba(0, 0, 0, 0.05)', // Subtle depth only
+        'flat-lg': '0 2px 3px rgba(0, 0, 0, 0.07)', // Maximum shadow for government
+        // Remove all embossed/raised effects - flat design only
+        'government': '0 1px 2px rgba(0, 0, 0, 0.05)', // Standard government shadow
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

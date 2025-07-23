@@ -10,20 +10,21 @@ import { cn } from '@/utils';
 
 // Input variants
 const inputVariants = cva(
-  // Base styles
-  'flex w-full rounded-md border bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+  // Base styles - enhanced with modern design patterns
+  'flex w-full rounded-lg border bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 shadow-sm hover:shadow-md focus:shadow-md',
   {
     variants: {
       variant: {
-        default: 'border-gray-300 focus-visible:ring-primary-500',
-        error: 'border-error-500 focus-visible:ring-error-500',
-        success: 'border-success-500 focus-visible:ring-success-500',
-        warning: 'border-warning-500 focus-visible:ring-warning-500',
+        default: 'border-gray-300 focus-visible:ring-primary-500 hover:border-gray-400',
+        error: 'border-red-500 focus-visible:ring-red-500 bg-red-50 hover:border-red-600',
+        success: 'border-green-500 focus-visible:ring-green-500 bg-green-50 hover:border-green-600',
+        warning: 'border-amber-500 focus-visible:ring-amber-500 bg-amber-50 hover:border-amber-600',
       },
       size: {
-        sm: 'h-8 px-2 text-xs',
-        md: 'h-10 px-3 text-sm',
-        lg: 'h-12 px-4 text-base',
+        sm: 'h-9 px-3 text-sm',
+        md: 'h-11 px-4 text-sm',
+        lg: 'h-13 px-5 text-base',
+        xl: 'h-15 px-6 text-lg',
       },
     },
     defaultVariants: {

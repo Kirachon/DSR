@@ -10,35 +10,36 @@ import { cn } from '@/utils';
 
 // Badge variants using class-variance-authority
 export const badgeVariants = cva(
-  'inline-flex items-center justify-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center justify-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 shadow-sm',
   {
     variants: {
       variant: {
         default:
-          'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
+          'border-transparent bg-primary-500 text-white hover:bg-primary-600 hover:shadow-md',
         secondary:
-          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
+          'border-transparent bg-gray-100 text-gray-800 hover:bg-gray-200 hover:shadow-md',
         destructive:
-          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-        outline: 'text-foreground',
+          'border-transparent bg-red-500 text-white hover:bg-red-600 hover:shadow-md',
+        outline: 'text-gray-700 border-gray-300 bg-white hover:bg-gray-50 hover:shadow-md',
         success:
-          'border-transparent bg-green-100 text-green-800 hover:bg-green-200',
+          'border-transparent bg-green-100 text-green-800 hover:bg-green-200 hover:shadow-md',
         warning:
-          'border-transparent bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
+          'border-transparent bg-amber-100 text-amber-800 hover:bg-amber-200 hover:shadow-md',
         error:
-          'border-transparent bg-red-100 text-red-800 hover:bg-red-200',
+          'border-transparent bg-red-100 text-red-800 hover:bg-red-200 hover:shadow-md',
         info:
-          'border-transparent bg-blue-100 text-blue-800 hover:bg-blue-200',
+          'border-transparent bg-blue-100 text-blue-800 hover:bg-blue-200 hover:shadow-md',
         neutral:
-          'border-transparent bg-gray-100 text-gray-800 hover:bg-gray-200',
+          'border-transparent bg-gray-100 text-gray-800 hover:bg-gray-200 hover:shadow-md',
         primary:
-          'border-transparent bg-primary-100 text-primary-800 hover:bg-primary-200',
+          'border-transparent bg-primary-100 text-primary-800 hover:bg-primary-200 hover:shadow-md',
       },
       size: {
         default: 'px-2.5 py-0.5 text-xs',
         sm: 'px-2 py-0.5 text-xs',
         lg: 'px-3 py-1 text-sm',
         xl: 'px-4 py-1.5 text-base',
+        '2xl': 'px-5 py-2 text-lg',
       },
       rounded: {
         default: 'rounded-full',

@@ -73,6 +73,24 @@ const customJestConfig = {
       statements: 80,
     },
     // Specific thresholds for critical components
+    'src/components/ui/**/*.{js,jsx,ts,tsx}': {
+      branches: 90,
+      functions: 90,
+      lines: 90,
+      statements: 90,
+    },
+    'src/contexts/**/*.{js,jsx,ts,tsx}': {
+      branches: 85,
+      functions: 85,
+      lines: 85,
+      statements: 85,
+    },
+    'src/hooks/**/*.{js,jsx,ts,tsx}': {
+      branches: 85,
+      functions: 85,
+      lines: 85,
+      statements: 85,
+    },
     'src/components/registration/**/*.{js,jsx,ts,tsx}': {
       branches: 85,
       functions: 85,

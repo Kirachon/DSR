@@ -1,0 +1,271 @@
+{
+  "config": {
+    "configFile": "D:\\GitProjects\\DSR\\frontend\\playwright.headed.config.ts",
+    "rootDir": "D:/GitProjects/DSR/frontend/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "D:/GitProjects/DSR/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-headed",
+        "name": "chromium-headed",
+        "testDir": "D:/GitProjects/DSR/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/dsr-authentication-workflow.spec.ts",
+          "**/basic-functionality.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "D:/GitProjects/DSR/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "firefox-headed",
+        "name": "firefox-headed",
+        "testDir": "D:/GitProjects/DSR/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/dsr-authentication-workflow.spec.ts",
+          "**/basic-functionality.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "D:/GitProjects/DSR/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "webkit-headed",
+        "name": "webkit-headed",
+        "testDir": "D:/GitProjects/DSR/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/dsr-authentication-workflow.spec.ts",
+          "**/basic-functionality.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "D:/GitProjects/DSR/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "D:/GitProjects/DSR/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/dsr-authentication-workflow.spec.ts",
+          "**/basic-functionality.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "D:/GitProjects/DSR/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "D:/GitProjects/DSR/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/dsr-authentication-workflow.spec.ts",
+          "**/basic-functionality.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "D:/GitProjects/DSR/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "Microsoft Edge",
+        "name": "Microsoft Edge",
+        "testDir": "D:/GitProjects/DSR/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/dsr-authentication-workflow.spec.ts",
+          "**/basic-functionality.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "D:/GitProjects/DSR/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "Google Chrome",
+        "name": "Google Chrome",
+        "testDir": "D:/GitProjects/DSR/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/dsr-authentication-workflow.spec.ts",
+          "**/basic-functionality.spec.ts"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "dsr-authentication-workflow.spec.ts",
+      "file": "dsr-authentication-workflow.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "DSR Authentication Workflow - End-to-End Testing",
+          "file": "dsr-authentication-workflow.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Complete Login Workflow",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium-headed",
+                  "projectName": "chromium-headed",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 32746,
+                      "error": {
+                        "message": "TimeoutError: page.waitForLoadState: Timeout 30000ms exceeded.",
+                        "stack": "TimeoutError: page.waitForLoadState: Timeout 30000ms exceeded.\n    at D:\\GitProjects\\DSR\\frontend\\e2e\\dsr-authentication-workflow.spec.ts:18:16",
+                        "location": {
+                          "file": "D:\\GitProjects\\DSR\\frontend\\e2e\\dsr-authentication-workflow.spec.ts",
+                          "column": 16,
+                          "line": 18
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 16 |\u001b[39m     \u001b[90m// Navigate to homepage before each test\u001b[39m\n \u001b[90m 17 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(baseURL)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 18 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForLoadState(\u001b[32m'networkidle'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 19 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 20 |\u001b[39m\n \u001b[90m 21 |\u001b[39m   test(\u001b[32m'Complete Registration Workflow'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\GitProjects\\DSR\\frontend\\e2e\\dsr-authentication-workflow.spec.ts",
+                            "column": 16,
+                            "line": 18
+                          },
+                          "message": "TimeoutError: page.waitForLoadState: Timeout 30000ms exceeded.\n\n\u001b[0m \u001b[90m 16 |\u001b[39m     \u001b[90m// Navigate to homepage before each test\u001b[39m\n \u001b[90m 17 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(baseURL)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 18 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForLoadState(\u001b[32m'networkidle'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 19 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 20 |\u001b[39m\n \u001b[90m 21 |\u001b[39m   test(\u001b[32m'Complete Registration Workflow'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at D:\\GitProjects\\DSR\\frontend\\e2e\\dsr-authentication-workflow.spec.ts:18:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-17T03:53:39.915Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\GitProjects\\DSR\\frontend\\test-results\\dsr-authentication-workflo-bc986-ing-Complete-Login-Workflow-chromium-headed\\test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\GitProjects\\DSR\\frontend\\test-results\\dsr-authentication-workflo-bc986-ing-Complete-Login-Workflow-chromium-headed\\video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "D:\\GitProjects\\DSR\\frontend\\test-results\\dsr-authentication-workflo-bc986-ing-Complete-Login-Workflow-chromium-headed\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "D:\\GitProjects\\DSR\\frontend\\e2e\\dsr-authentication-workflow.spec.ts",
+                        "column": 16,
+                        "line": 18
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "62459122c8a147644d20-74c1ba98326d2c66e894",
+              "file": "dsr-authentication-workflow.spec.ts",
+              "line": 76,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-07-17T03:53:39.204Z",
+    "duration": 34784.583,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

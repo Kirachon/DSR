@@ -10,24 +10,25 @@ import { cn } from '@/utils';
 
 // Alert variants
 const alertVariants = cva(
-  // Base styles
-  'relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground',
+  // Base styles - enhanced with modern design patterns
+  'relative w-full rounded-lg border p-4 transition-all duration-200 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground shadow-sm',
   {
     variants: {
       variant: {
-        default: 'bg-white border-gray-200 text-gray-900',
+        default: 'bg-white border-gray-200 text-gray-900 hover:shadow-md',
         success:
-          'bg-success-50 border-success-200 text-success-800 [&>svg]:text-success-600',
+          'bg-green-50 border-green-200 text-green-800 [&>svg]:text-green-600 hover:bg-green-100 hover:shadow-md',
         warning:
-          'bg-warning-50 border-warning-200 text-warning-800 [&>svg]:text-warning-600',
+          'bg-amber-50 border-amber-200 text-amber-800 [&>svg]:text-amber-600 hover:bg-amber-100 hover:shadow-md',
         error:
-          'bg-error-50 border-error-200 text-error-800 [&>svg]:text-error-600',
-        info: 'bg-primary-50 border-primary-200 text-primary-800 [&>svg]:text-primary-600',
+          'bg-red-50 border-red-200 text-red-800 [&>svg]:text-red-600 hover:bg-red-100 hover:shadow-md',
+        info: 'bg-blue-50 border-blue-200 text-blue-800 [&>svg]:text-blue-600 hover:bg-blue-100 hover:shadow-md',
       },
       size: {
         sm: 'p-3 text-sm',
         md: 'p-4 text-sm',
         lg: 'p-6 text-base',
+        xl: 'p-8 text-lg',
       },
     },
     defaultVariants: {

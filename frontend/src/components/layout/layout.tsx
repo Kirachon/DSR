@@ -45,13 +45,22 @@ export const Layout: React.FC<LayoutProps> = ({
   const [isMobile, setIsMobile] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  // Handle responsive behavior
+  // Handle responsive behavior with enhanced breakpoints
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
+      const tablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+      const desktop = window.innerWidth >= 1024;
+
       setIsMobile(mobile);
+
+      // Enhanced responsive logic
       if (mobile && showSidebar) {
         setSidebarCollapsed(true);
+      } else if (tablet && showSidebar) {
+        setSidebarCollapsed(true); // Collapse on tablet for better space utilization
+      } else if (desktop && showSidebar) {
+        setSidebarCollapsed(false); // Expand on desktop
       }
     };
 
@@ -73,13 +82,14 @@ export const Layout: React.FC<LayoutProps> = ({
       marginTop = 64; // Header height (h-16 = 64px)
     }
 
+    // Sidebar is disabled, so no left margin needed
     if (showSidebar && sidebarFixed && isAuthenticated && !isMobile) {
       marginLeft = actualSidebarCollapsed ? 64 : 256; // Sidebar width
     }
 
     return {
       marginTop: `${marginTop}px`,
-      marginLeft: `${marginLeft}px`,
+      marginLeft: showSidebar ? `${marginLeft}px` : '0px',
       marginBottom: showFooter ? '0' : '0',
     };
   };
@@ -119,9 +129,9 @@ export const Layout: React.FC<LayoutProps> = ({
           fullHeight && 'min-h-screen',
           contentPadding && 'p-4 sm:p-6 lg:p-8'
         )}
-        style={sidebarFixed || headerFixed ? contentMargins : undefined}
+        style={headerFixed ? { marginTop: contentMargins.marginTop } : undefined}
       >
-        <div className={cn('mx-auto', contentPadding && 'max-w-7xl')}>
+        <div className={cn('mx-auto', contentPadding && 'max-w-6xl px-4 sm:px-6 lg:px-8')}>
           {children}
         </div>
       </main>
@@ -130,18 +140,7 @@ export const Layout: React.FC<LayoutProps> = ({
       {showFooter && (
         <Footer
           variant={footerVariant}
-          className={cn(
-            sidebarFixed &&
-              showSidebar &&
-              isAuthenticated &&
-              !isMobile &&
-              'transition-all duration-300 ease-in-out'
-          )}
-          style={
-            sidebarFixed && showSidebar && isAuthenticated && !isMobile
-              ? { marginLeft: contentMargins.marginLeft }
-              : undefined
-          }
+          className="w-full"
         />
       )}
 
@@ -169,11 +168,11 @@ export const DashboardLayout: React.FC<{
   <Layout
     className={className}
     showHeader={true}
-    showSidebar={true}
+    showSidebar={false}
     showFooter={false}
     headerFixed={true}
-    sidebarFixed={true}
-    contentPadding={true}
+    sidebarFixed={false}
+    contentPadding={false}
     fullHeight={true}
   >
     {children}

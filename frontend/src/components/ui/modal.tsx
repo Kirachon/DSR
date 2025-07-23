@@ -11,23 +11,23 @@ import { cn } from '@/utils';
 
 // Modal variants
 const modalVariants = cva(
-  // Base styles
-  'relative bg-white rounded-lg shadow-xl transform transition-all',
+  // Base styles - enhanced with modern design patterns
+  'relative bg-white rounded-xl shadow-2xl transform transition-all duration-300 ease-out border border-gray-200',
   {
     variants: {
       size: {
-        xs: 'max-w-xs',
-        sm: 'max-w-sm',
-        md: 'max-w-md',
-        lg: 'max-w-lg',
-        xl: 'max-w-xl',
-        '2xl': 'max-w-2xl',
-        '3xl': 'max-w-3xl',
-        '4xl': 'max-w-4xl',
-        '5xl': 'max-w-5xl',
-        '6xl': 'max-w-6xl',
-        '7xl': 'max-w-7xl',
-        full: 'max-w-full',
+        xs: 'max-w-xs w-full mx-4',
+        sm: 'max-w-sm w-full mx-4',
+        md: 'max-w-md w-full mx-4',
+        lg: 'max-w-lg w-full mx-4',
+        xl: 'max-w-xl w-full mx-4',
+        '2xl': 'max-w-2xl w-full mx-4',
+        '3xl': 'max-w-3xl w-full mx-4',
+        '4xl': 'max-w-4xl w-full mx-4',
+        '5xl': 'max-w-5xl w-full mx-4',
+        '6xl': 'max-w-6xl w-full mx-4',
+        '7xl': 'max-w-7xl w-full mx-4',
+        full: 'max-w-full w-full mx-4',
       },
       centered: {
         true: 'mx-auto my-auto',

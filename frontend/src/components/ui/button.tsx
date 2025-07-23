@@ -7,39 +7,40 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import React, { forwardRef } from 'react';
 
 import { cn } from '@/utils';
+import { useTheme } from '@/contexts/theme-context';
 
 // Button variants using class-variance-authority
 const buttonVariants = cva(
-  // Base styles with enhanced accessibility and animations
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95',
+  // Base styles - flat government design with sharp corners and authority
+  'inline-flex items-center justify-center rounded-sm text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 border',
   {
     variants: {
       variant: {
         primary:
-          'bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-500 shadow-sm hover:shadow-md',
+          'bg-primary-500 border-primary-600 text-white hover:bg-primary-600 focus-visible:ring-primary-500 shadow-flat-sm',
         secondary:
-          'bg-secondary-600 text-white hover:bg-secondary-700 focus-visible:ring-secondary-500 shadow-sm hover:shadow-md',
+          'bg-gray-100 border-gray-300 text-gray-900 hover:bg-gray-200 focus-visible:ring-gray-500 shadow-flat-sm',
         accent:
-          'bg-accent-600 text-white hover:bg-accent-700 focus-visible:ring-accent-500 shadow-sm hover:shadow-md',
+          'bg-accent-500 border-accent-600 text-white hover:bg-accent-600 focus-visible:ring-accent-500 shadow-flat-sm',
         outline:
-          'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus-visible:ring-primary-500 shadow-sm hover:shadow-md',
-        ghost: 'text-gray-700 hover:bg-gray-100 focus-visible:ring-primary-500 hover:shadow-sm',
-        link: 'text-primary-600 underline-offset-4 hover:underline focus-visible:ring-primary-500 p-0 h-auto',
+          'border-gray-400 bg-white text-gray-800 hover:bg-gray-100 hover:border-gray-500 focus-visible:ring-primary-500 shadow-flat-sm',
+        ghost: 'border-transparent text-gray-800 hover:bg-gray-100 focus-visible:ring-primary-500',
+        link: 'border-transparent text-primary-500 underline-offset-4 hover:underline focus-visible:ring-primary-500 p-0 h-auto',
         destructive:
-          'bg-error-600 text-white hover:bg-error-700 focus-visible:ring-error-500 shadow-sm hover:shadow-md',
+          'bg-error-500 border-error-600 text-white hover:bg-error-600 focus-visible:ring-error-500 shadow-flat-sm',
         success:
-          'bg-success-600 text-white hover:bg-success-700 focus-visible:ring-success-500 shadow-sm hover:shadow-md',
+          'bg-success-500 border-success-600 text-white hover:bg-success-600 focus-visible:ring-success-500 shadow-flat-sm',
         warning:
-          'bg-warning-600 text-white hover:bg-warning-700 focus-visible:ring-warning-500 shadow-sm hover:shadow-md',
-        // DSR-specific variants
+          'bg-warning-500 border-warning-600 text-white hover:bg-warning-600 focus-visible:ring-warning-500 shadow-flat-sm',
+        // DSR-specific variants - flat government design
         eligible:
-          'bg-dsr-eligible text-white hover:bg-green-600 focus-visible:ring-green-500 shadow-sm hover:shadow-md',
+          'bg-success-500 border-success-600 text-white hover:bg-success-600 focus-visible:ring-success-500 shadow-flat-sm',
         pending:
-          'bg-dsr-pending text-white hover:bg-yellow-600 focus-visible:ring-yellow-500 shadow-sm hover:shadow-md',
+          'bg-warning-500 border-warning-600 text-white hover:bg-warning-600 focus-visible:ring-warning-500 shadow-flat-sm',
         processing:
-          'bg-dsr-processing text-white hover:bg-blue-600 focus-visible:ring-blue-500 shadow-sm hover:shadow-md animate-pulse-slow',
+          'bg-primary-500 border-primary-600 text-white hover:bg-primary-600 focus-visible:ring-primary-500 shadow-flat-sm',
         completed:
-          'bg-dsr-completed text-white hover:bg-green-700 focus-visible:ring-green-500 shadow-sm hover:shadow-md',
+          'bg-success-600 border-success-700 text-white hover:bg-success-700 focus-visible:ring-success-500 shadow-flat-sm',
       },
       size: {
         xs: 'h-8 px-2 text-xs min-w-[2rem]',

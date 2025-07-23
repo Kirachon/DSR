@@ -5,6 +5,22 @@
 
 import { cva, type VariantProps } from 'class-variance-authority';
 import React, { forwardRef } from 'react';
+import {
+  FileText,
+  Send,
+  Eye,
+  CheckCircle,
+  X,
+  Clock,
+  Settings,
+  PartyPopper,
+  Banknote,
+  CreditCard,
+  Plus,
+  User,
+  RotateCcw,
+  Folder
+} from 'lucide-react';
 
 import { cn } from '@/utils';
 
@@ -77,26 +93,26 @@ export interface StatusBadgeProps
   pulse?: boolean;
 }
 
-// Status icons mapping
+// Professional status icons mapping using Lucide React
 const statusIcons = {
-  draft: '📝',
-  submitted: '📤',
-  review: '👀',
-  approved: '✅',
-  rejected: '❌',
-  eligible: '✅',
-  pending: '⏳',
-  processing: '⚙️',
-  completed: '🎉',
-  'payment-pending': '💰',
-  'payment-processing': '💳',
-  'payment-completed': '✅',
-  'payment-failed': '❌',
-  'case-new': '🆕',
-  'case-assigned': '👤',
-  'case-in-progress': '🔄',
-  'case-resolved': '✅',
-  'case-closed': '📁',
+  draft: <FileText className="h-4 w-4" />,
+  submitted: <Send className="h-4 w-4" />,
+  review: <Eye className="h-4 w-4" />,
+  approved: <CheckCircle className="h-4 w-4" />,
+  rejected: <X className="h-4 w-4" />,
+  eligible: <CheckCircle className="h-4 w-4" />,
+  pending: <Clock className="h-4 w-4" />,
+  processing: <Settings className="h-4 w-4" />,
+  completed: <PartyPopper className="h-4 w-4" />,
+  'payment-pending': <Banknote className="h-4 w-4" />,
+  'payment-processing': <CreditCard className="h-4 w-4" />,
+  'payment-completed': <CheckCircle className="h-4 w-4" />,
+  'payment-failed': <X className="h-4 w-4" />,
+  'case-new': <Plus className="h-4 w-4" />,
+  'case-assigned': <User className="h-4 w-4" />,
+  'case-in-progress': <RotateCcw className="h-4 w-4" />,
+  'case-resolved': <CheckCircle className="h-4 w-4" />,
+  'case-closed': <Folder className="h-4 w-4" />,
 };
 
 // Status badge component

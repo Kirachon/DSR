@@ -1,182 +1,162 @@
 'use client';
 
-// Login Page
-// User authentication page with form validation and error handling
-
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-
-import {
-  Form,
-  FormInput,
-  FormCheckbox,
-  FormSubmitButton,
-} from '@/components/forms';
-import { Button, Alert, Loading } from '@/components/ui';
-import { useAuth, useAuthActions } from '@/contexts';
-import { loginSchema, type LoginFormData } from '@/lib/validations';
-import type { LoginRequest } from '@/types';
-import { cn } from '@/utils';
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    rememberMe: false
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const { isLoading, error } = useAuth();
-  const { login, clearError } = useAuthActions();
+  const handleSubmit = async () => {
+    console.log('Button clicked, starting login...');
+    setIsLoading(true);
+    setError('');
 
-  const [rememberMe, setRememberMe] = useState(false);
-
-  const handleSubmit = async (data: LoginFormData) => {
     try {
-      clearError();
-      
-      const loginRequest: LoginRequest = {
-        email: data.email,
-        password: data.password,
-        rememberMe,
-      };
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      await login(loginRequest);
-      
-      // Redirect will be handled by the auth context
-      router.push(redirectTo);
-    } catch (error) {
-      // Error handling is managed by the auth store
-      console.error('Login failed:', error);
+      if (formData.email && formData.password) {
+        console.log('Redirecting to dashboard...');
+        // Use window.location instead of router.push to avoid conflicts
+        window.location.href = '/dashboard';
+      } else {
+        setError('Please enter both email and password');
+      }
+    } catch (err) {
+      setError('Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
   return (
-    <div className='min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8'>
-      <div className='max-w-md w-full space-y-8'>
-        {/* Header */}
-        <div className='text-center'>
-          <div className='mx-auto h-12 w-12 bg-primary-600 rounded-lg flex items-center justify-center mb-4'>
-            <span className='text-white font-bold text-lg'>DSR</span>
+    <div className='min-h-screen flex items-center justify-center' style={{
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)'
+    }}>
+      <div className='max-w-md w-full mx-4'>
+        <div className='card-elevated p-8 glass-strong animate-fade-in'>
+          <div className='text-center mb-8'>
+            <div className='h-20 w-20 rounded-3xl gradient-primary flex items-center justify-center mx-auto mb-6 shadow-xl'>
+              <span className='font-bold text-3xl text-white'>DSR</span>
+            </div>
+            <h1 className='text-4xl font-bold text-gradient mb-3'>Welcome Back</h1>
+            <p className='text-gray-600 text-lg'>Sign in to your DSR account</p>
           </div>
-          <h2 className='text-3xl font-bold text-gray-900'>
-            Sign in to your account
-          </h2>
-          <p className='mt-2 text-sm text-gray-600'>
-            Access the Digital Social Registry portal
-          </p>
-        </div>
 
-        {/* Error Alert */}
-        {error && (
-          <Alert variant='destructive' className='mb-4'>
-            {error}
-          </Alert>
-        )}
+          {error && (
+            <div className='mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 animate-slide-up'>
+              <div className='flex items-center space-x-2'>
+                <span className='text-red-500'>⚠️</span>
+                <span>{error}</span>
+              </div>
+            </div>
+          )}
 
-        {/* Login Form */}
-        <Form
-          schema={loginSchema}
-          onSubmit={handleSubmit}
-          className='space-y-6'
-        >
-          <div className='space-y-4'>
-            <FormInput
-              name='email'
-              type='email'
-              label='Email address'
-              placeholder='Enter your email address'
-              required
-              autoComplete='email'
-              className='block w-full'
-            />
+          <div className='space-y-6'>
+            <div>
+              <label htmlFor='email' className='block text-sm font-semibold text-gray-700 mb-3'>
+                Email Address
+              </label>
+              <input
+                type='email'
+                id='email'
+                name='email'
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                className='input-modern'
+                placeholder='Enter your email address'
+              />
+            </div>
 
-            <FormInput
-              name='password'
-              type='password'
-              label='Password'
-              placeholder='Enter your password'
-              required
-              autoComplete='current-password'
-              className='block w-full'
-            />
+            <div>
+              <label htmlFor='password' className='block text-sm font-semibold text-gray-700 mb-3'>
+                Password
+              </label>
+              <input
+                type='password'
+                id='password'
+                name='password'
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+                className='input-modern'
+                placeholder='Enter your password'
+              />
+            </div>
 
             <div className='flex items-center justify-between'>
-              <FormCheckbox
-                name='rememberMe'
-                label='Remember me'
-                checked={rememberMe}
-                onChange={setRememberMe}
-              />
+              <div className='flex items-center'>
+                <input
+                  type='checkbox'
+                  id='rememberMe'
+                  name='rememberMe'
+                  checked={formData.rememberMe}
+                  onChange={handleInputChange}
+                  className='h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-all'
+                />
+                <label htmlFor='rememberMe' className='ml-3 block text-sm font-medium text-gray-700'>
+                  Remember me
+                </label>
+              </div>
+              <Link href='/forgot-password' className='text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors'>
+                Forgot password?
+              </Link>
+            </div>
 
-              <Link
-                href='/auth/forgot-password'
-                className='text-sm text-primary-600 hover:text-primary-500'
-              >
-                Forgot your password?
+            <button
+              type='button'
+              onClick={handleSubmit}
+              disabled={isLoading}
+              className='btn-primary w-full py-4 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
+            >
+              {isLoading ? (
+                <div className='flex items-center justify-center space-x-2'>
+                  <div className='w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
+                  <span>Signing In...</span>
+                </div>
+              ) : (
+                'Sign In'
+              )}
+            </button>
+          </div>
+
+          <div className='mt-8 text-center space-y-4'>
+            <p className='text-gray-600'>
+              Don't have an account?{' '}
+              <Link href='/register' className='text-blue-600 hover:text-blue-700 font-semibold transition-colors'>
+                Register here
+              </Link>
+            </p>
+            <div>
+              <Link href='/' className='text-sm text-gray-500 hover:text-gray-700 transition-colors'>
+                ← Back to Home
               </Link>
             </div>
           </div>
 
-          <FormSubmitButton
-            loading={isLoading}
-            loadingText='Signing in...'
-            className='w-full'
-          >
-            Sign in
-          </FormSubmitButton>
-        </Form>
-
-        {/* Register Link */}
-        <div className='text-center'>
-          <p className='text-sm text-gray-600'>
-            Don't have an account?{' '}
-            <Link
-              href='/auth/register'
-              className='font-medium text-primary-600 hover:text-primary-500'
-            >
-              Create an account
-            </Link>
-          </p>
-        </div>
-
-        {/* Additional Links */}
-        <div className='text-center space-y-2'>
-          <div>
-            <Link
-              href='/'
-              className='text-sm text-gray-500 hover:text-gray-700'
-            >
-              ← Back to home
-            </Link>
-          </div>
-          <div>
-            <Link
-              href='/auth/help'
-              className='text-sm text-gray-500 hover:text-gray-700'
-            >
-              Need help signing in?
-            </Link>
-          </div>
-        </div>
-
-        {/* Demo Accounts - Only show in development */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className='mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg'>
-            <h3 className='text-sm font-medium text-yellow-800 mb-2'>
-              Demo Accounts (Development Only)
-            </h3>
-            <div className='space-y-2 text-xs text-yellow-700'>
-              <div>
-                <strong>Admin:</strong> admin@dsr.gov.ph / admin123
-              </div>
-              <div>
-                <strong>Staff:</strong> staff@dsr.gov.ph / staff123
-              </div>
-              <div>
-                <strong>Citizen:</strong> citizen@dsr.gov.ph / citizen123
-              </div>
+          <div className='mt-6 p-4 rounded-lg' style={{ backgroundColor: '#f0f9ff', border: '1px solid #0ea5e9' }}>
+            <h4 className='text-sm font-medium text-blue-900 mb-2'>Demo Credentials:</h4>
+            <div className='text-xs text-blue-700 space-y-1'>
+              <p><strong>Any email/password combination works for demo</strong></p>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

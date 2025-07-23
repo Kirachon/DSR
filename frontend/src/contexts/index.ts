@@ -18,3 +18,12 @@ export {
   useIsLoading,
   useAuthError,
 } from './auth-context';
+
+// Theme Context
+export {
+  ThemeProvider,
+  useTheme,
+  useCurrentTheme,
+  useThemeClasses,
+  ThemeAware,
+} from './theme-context';

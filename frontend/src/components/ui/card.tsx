@@ -10,21 +10,21 @@ import { cn } from '@/utils';
 
 // Card variants
 const cardVariants = cva(
-  // Base styles
-  'rounded-lg border bg-white text-gray-950 shadow-sm',
+  // Base styles - flat government design with sharp corners
+  'rounded-sm border bg-white text-gray-950 shadow-flat-sm',
   {
     variants: {
       variant: {
-        default: 'border-gray-200',
-        outlined: 'border-gray-300',
-        elevated: 'border-gray-200 shadow-md',
+        default: 'border-gray-300', // Stronger border for government authority
+        outlined: 'border-gray-400', // More defined borders
+        elevated: 'border-gray-300 shadow-flat-md', // Minimal elevation only
         ghost: 'border-transparent shadow-none',
-        primary: 'border-primary-200 bg-primary-50',
-        secondary: 'border-secondary-200 bg-secondary-50',
-        accent: 'border-accent-200 bg-accent-50',
-        success: 'border-success-200 bg-success-50',
-        warning: 'border-warning-200 bg-warning-50',
-        error: 'border-error-200 bg-error-50',
+        primary: 'border-primary-500 bg-primary-50', // Stronger borders for authority
+        secondary: 'border-secondary-500 bg-secondary-50',
+        accent: 'border-accent-500 bg-accent-50',
+        success: 'border-success-500 bg-success-50',
+        warning: 'border-warning-500 bg-warning-50',
+        error: 'border-error-500 bg-error-50',
       },
       size: {
         sm: 'p-4',
@@ -32,7 +32,7 @@ const cardVariants = cva(
         lg: 'p-8',
       },
       interactive: {
-        true: 'cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+        true: 'cursor-pointer transition-colors duration-150 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1',
         false: '',
       },
     },

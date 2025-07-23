@@ -1,331 +1,226 @@
 'use client';
 
-// Reports Page
-// Interface for generating and viewing system reports
+import Link from 'next/link';
+import React, { useState } from 'react';
+import {
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  Download,
+  Calendar,
+  ArrowLeft,
+  FileText,
+  Users,
+  Banknote,
+  Activity
+} from 'lucide-react';
 
-import React, { useState, useEffect } from 'react';
-
-import { ReportFilters } from '@/components/reports/report-filters';
-import { ReportList } from '@/components/reports/report-list';
-import { ReportGenerationModal } from '@/components/reports/report-generation-modal';
-import { ReportViewer } from '@/components/reports/report-viewer';
-// Removed FormInput, FormSelect imports to avoid useFormContext issues
-import { Card, Button, Alert, Badge } from '@/components/ui';
-import { useAuth } from '@/contexts';
-import { analyticsApi } from '@/lib/api';
-import type { Report, ReportTemplate, ReportFilters as ReportFiltersType } from '@/types';
-
-// Report categories
-const REPORT_CATEGORIES = [
-  { value: '', label: 'All Categories' },
-  { value: 'REGISTRATION', label: 'Registration Reports' },
-  { value: 'ELIGIBILITY', label: 'Eligibility Reports' },
-  { value: 'PAYMENT', label: 'Payment Reports' },
-  { value: 'GRIEVANCE', label: 'Grievance Reports' },
-  { value: 'ANALYTICS', label: 'Analytics Reports' },
-  { value: 'SYSTEM', label: 'System Reports' },
-];
-
-// Report statuses
-const REPORT_STATUSES = [
-  { value: '', label: 'All Statuses' },
-  { value: 'PENDING', label: 'Pending' },
-  { value: 'GENERATING', label: 'Generating' },
-  { value: 'COMPLETED', label: 'Completed' },
-  { value: 'FAILED', label: 'Failed' },
-];
-
-// Reports page component
 export default function ReportsPage() {
-  const { user } = useAuth();
+  const [selectedPeriod, setSelectedPeriod] = useState('monthly');
 
-  // State management
-  const [reports, setReports] = useState<Report[]>([]);
-  const [reportTemplates, setReportTemplates] = useState<ReportTemplate[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<ReportFiltersType>({});
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null);
-  const [isGenerationModalOpen, setIsGenerationModalOpen] = useState(false);
-  const [isViewerOpen, setIsViewerOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'reports' | 'templates'>('reports');
-
-  // Load data
-  useEffect(() => {
-    loadReports();
-    loadReportTemplates();
-  }, [filters]);
-
-  // Load reports from API
-  const loadReports = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await analyticsApi.getReports({
-        ...filters,
-        search: searchQuery,
-        page: 0,
-        size: 50,
-      });
-
-      setReports(response.content || []);
-    } catch (err) {
-      console.error('Failed to load reports:', err);
-      setError('Analytics service is currently unavailable. Please try again later.');
-
-      // Set empty array when Analytics service is unavailable
-      setReports([]);
-    } finally {
-      setLoading(false);
+  const reportTypes = [
+    {
+      title: 'Benefit Summary',
+      description: 'Overview of received benefits and payments',
+      icon: <Banknote className="h-6 w-6" />,
+      color: 'green',
+      data: '₱18,000 total received',
+      href: '/reports/benefits'
+    },
+    {
+      title: 'Application Status',
+      description: 'Status of all submitted applications',
+      icon: <FileText className="h-6 w-6" />,
+      color: 'blue',
+      data: '3 active applications',
+      href: '/reports/applications'
+    },
+    {
+      title: 'Household Overview',
+      description: 'Household member information and status',
+      icon: <Users className="h-6 w-6" />,
+      color: 'purple',
+      data: '5 household members',
+      href: '/reports/household'
+    },
+    {
+      title: 'Activity Report',
+      description: 'Detailed activity and transaction history',
+      icon: <Activity className="h-6 w-6" />,
+      color: 'orange',
+      data: '24 activities this month',
+      href: '/reports/activity'
     }
-  };
+  ];
 
-  // Load report templates
-  const loadReportTemplates = async () => {
-    try {
-      const templates = await analyticsApi.getReportTemplates();
-      setReportTemplates(templates);
-    } catch (err) {
-      console.error('Failed to load report templates:', err);
-      
-      // Fallback to mock data
-      setReportTemplates([
-        {
-          id: 'TPL001',
-          name: 'Registration Summary',
-          description: 'Summary of citizen registrations by period',
-          category: 'REGISTRATION',
-          parameters: [
-            { name: 'dateRange', type: 'DATE_RANGE', required: true, label: 'Date Range' },
-            { name: 'region', type: 'SELECT', required: false, label: 'Region', options: ['Metro Manila', 'Cebu', 'Davao'] },
-          ],
-        },
-        {
-          id: 'TPL002',
-          name: 'Payment Analysis',
-          description: 'Analysis of payment disbursements and trends',
-          category: 'PAYMENT',
-          parameters: [
-            { name: 'dateRange', type: 'DATE_RANGE', required: true, label: 'Date Range' },
-            { name: 'paymentType', type: 'SELECT', required: false, label: 'Payment Type', options: ['CASH', 'DIGITAL', 'ALL'] },
-          ],
-        },
-        {
-          id: 'TPL003',
-          name: 'Eligibility Assessment',
-          description: 'Eligibility assessment results and statistics',
-          category: 'ELIGIBILITY',
-          parameters: [
-            { name: 'dateRange', type: 'DATE_RANGE', required: true, label: 'Date Range' },
-            { name: 'program', type: 'SELECT', required: false, label: 'Program', options: ['4Ps', 'DSWD-SLP', 'ALL'] },
-          ],
-        },
-      ] as ReportTemplate[]);
+  const quickStats = [
+    {
+      label: 'Total Benefits Received',
+      value: '₱18,000',
+      change: '+12%',
+      trend: 'up'
+    },
+    {
+      label: 'Active Applications',
+      value: '3',
+      change: '+1',
+      trend: 'up'
+    },
+    {
+      label: 'Completed Verifications',
+      value: '8',
+      change: '+2',
+      trend: 'up'
+    },
+    {
+      label: 'Program Enrollments',
+      value: '2',
+      change: '0',
+      trend: 'neutral'
     }
-  };
-
-  // Handle search
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    setTimeout(() => loadReports(), 300);
-  };
-
-  // Handle filter changes
-  const handleFilterChange = (newFilters: ReportFiltersType) => {
-    setFilters(newFilters);
-  };
-
-  // Handle report generation
-  const handleReportGeneration = async (templateId: string, parameters: any) => {
-    try {
-      const newReport = await analyticsApi.generateReport(templateId, parameters);
-      setReports(prev => [newReport, ...prev]);
-      setIsGenerationModalOpen(false);
-      setSelectedTemplate(null);
-    } catch (err) {
-      console.error('Failed to generate report:', err);
-      setError('Failed to generate report. Please try again.');
-    }
-  };
-
-  // Handle report view
-  const handleReportView = (report: Report) => {
-    setSelectedReport(report);
-    setIsViewerOpen(true);
-  };
-
-  // Handle report download
-  const handleReportDownload = (report: Report) => {
-    if (report.fileUrl) {
-      window.open(report.fileUrl, '_blank');
-    }
-  };
+  ];
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
-          <p className="text-gray-600 mt-1">
-            Generate and manage system reports and analytics
-          </p>
-        </div>
-
-        <div className="flex space-x-3">
-          <Button variant="outline" onClick={() => loadReports()}>
-            Refresh
-          </Button>
-          <Button onClick={() => setIsGenerationModalOpen(true)}>
-            Generate New Report
-          </Button>
-        </div>
-      </div>
-
-      {/* Error Alert */}
-      {error && (
-        <Alert variant="error" title="Error">
-          {error}
-        </Alert>
-      )}
-
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('reports')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'reports'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Generated Reports
-          </button>
-          <button
-            onClick={() => setActiveTab('templates')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'templates'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Report Templates
-          </button>
-        </nav>
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'reports' && (
-        <>
-          {/* Search and Filters */}
-          <Card className="p-6">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Search Reports
-                </label>
-                <input
-                  type="text"
-                  placeholder="Search by report name or description..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-professional-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="text-2xl font-bold text-primary-700">DSR</div>
               </div>
-              <div className="lg:w-48">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category
-                </label>
-                <select
-                  value={filters.category || ''}
-                  onChange={(e) => handleFilterChange({ ...filters, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                >
-                  {REPORT_CATEGORIES.map(option => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="lg:w-48">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status
-                </label>
-                <select
-                  value={filters.status || ''}
-                  onChange={(e) => handleFilterChange({ ...filters, status: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                >
-                  {REPORT_STATUSES.map(option => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
+              <div className="ml-4">
+                <h1 className="text-2xl font-semibold text-gray-900">Reports & Analytics</h1>
+                <p className="text-sm text-gray-500">View detailed reports and analytics</p>
               </div>
             </div>
-          </Card>
+            <div className="flex items-center space-x-4">
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 rounded-sm"
+              >
+                <option value="weekly">This Week</option>
+                <option value="monthly">This Month</option>
+                <option value="quarterly">This Quarter</option>
+                <option value="yearly">This Year</option>
+              </select>
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Link>
+            </div>
+          </div>
+        </div>
+      </header>
 
-          {/* Reports List */}
-          <Card className="p-6">
-            <ReportList
-              reports={reports}
-              loading={loading}
-              onReportView={handleReportView}
-              onReportDownload={handleReportDownload}
-              onRefresh={loadReports}
-            />
-          </Card>
-        </>
-      )}
-
-      {activeTab === 'templates' && (
-        <Card className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {reportTemplates.map(template => (
-              <Card key={template.id} className="p-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-3">
-                  <Badge variant="secondary">{template.category}</Badge>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {quickStats.map((stat, index) => (
+            <div key={index} className="bg-white rounded-md shadow-professional-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">{stat.label}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">{template.name}</h3>
-                <p className="text-sm text-gray-600 mb-4">{template.description}</p>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setSelectedTemplate(template);
-                    setIsGenerationModalOpen(true);
-                  }}
-                  className="w-full"
-                >
-                  Generate Report
-                </Button>
-              </Card>
+                <div className={`flex items-center text-sm font-medium ${
+                  stat.trend === 'up' ? 'text-green-600' :
+                  stat.trend === 'down' ? 'text-red-600' :
+                  'text-gray-500'
+                }`}>
+                  {stat.trend === 'up' && <TrendingUp className="h-4 w-4 mr-1" />}
+                  {stat.change}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Report Types */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Available Reports</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {reportTypes.map((report, index) => (
+              <Link key={index} href={report.href} className="group">
+                <div className="bg-white rounded-md shadow-professional-sm border border-gray-200 p-6 hover:shadow-professional-md transition-all duration-200 group-hover:border-primary-300">
+                  <div className={`inline-flex p-3 rounded-md mb-4 ${
+                    report.color === 'green' ? 'bg-green-100 text-green-600' :
+                    report.color === 'blue' ? 'bg-blue-100 text-blue-600' :
+                    report.color === 'purple' ? 'bg-purple-100 text-purple-600' :
+                    'bg-orange-100 text-orange-600'
+                  }`}>
+                    {report.icon}
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-600">
+                    {report.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-3">
+                    {report.description}
+                  </p>
+                  <p className="text-sm font-medium text-primary-600">
+                    {report.data}
+                  </p>
+                </div>
+              </Link>
             ))}
           </div>
-        </Card>
-      )}
+        </div>
 
-      {/* Report Generation Modal */}
-      <ReportGenerationModal
-        isOpen={isGenerationModalOpen}
-        template={selectedTemplate}
-        onClose={() => {
-          setIsGenerationModalOpen(false);
-          setSelectedTemplate(null);
-        }}
-        onGenerate={handleReportGeneration}
-      />
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Benefits Chart */}
+          <div className="bg-white rounded-md shadow-professional-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Monthly Benefits</h3>
+              <BarChart3 className="h-5 w-5 text-gray-400" />
+            </div>
+            <div className="h-64 flex items-center justify-center bg-gray-50 rounded-md">
+              <div className="text-center">
+                <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">Chart visualization would appear here</p>
+                <p className="text-sm text-gray-400">Integration with charting library needed</p>
+              </div>
+            </div>
+          </div>
 
-      {/* Report Viewer Modal */}
-      <ReportViewer
-        isOpen={isViewerOpen}
-        report={selectedReport}
-        onClose={() => {
-          setIsViewerOpen(false);
-          setSelectedReport(null);
-        }}
-      />
+          {/* Application Status Chart */}
+          <div className="bg-white rounded-md shadow-professional-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Application Status</h3>
+              <PieChart className="h-5 w-5 text-gray-400" />
+            </div>
+            <div className="h-64 flex items-center justify-center bg-gray-50 rounded-md">
+              <div className="text-center">
+                <PieChart className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">Chart visualization would appear here</p>
+                <p className="text-sm text-gray-400">Integration with charting library needed</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Reports */}
+        <div className="bg-white rounded-md shadow-professional-sm border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">Recent Reports</h3>
+          </div>
+          <div className="p-12 text-center">
+            <div className="text-gray-400 mb-4">
+              <FileText className="h-12 w-12 mx-auto" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No reports generated yet</h3>
+            <p className="text-gray-500">
+              Generate your first report using the available report types above.
+            </p>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
