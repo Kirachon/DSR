@@ -580,6 +580,27 @@ log/
 .classpath
 .factorypath
 
+# Build Artifacts and Generated Files
+META-INF/
+MANIFEST.MF
+*.jar.original
+*.war.original
+
+# Test Results and Reports (should not be versioned)
+test-results/
+test-output/
+*-test-results/
+*-reports/
+junit-reports/
+surefire-reports/
+failsafe-reports/
+
+# Planning and Analysis Documents (temporary)
+implementation-plan/
+analysis-reports/
+planning-docs/
+*-plan/
+
 # OS Generated Files
 .DS_Store
 .DS_Store?
