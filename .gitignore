@@ -445,12 +445,20 @@ lerna-debug.log*
 .next/
 out/
 
-# Environment variables
+# Environment variables and sensitive configuration
 .env
+.env.*
+!.env.example
+!.env.template
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.staging
+.env.production
+config.local.*
+secrets.json
+credentials.*
 
 # IDE
 .idea/
@@ -475,8 +483,26 @@ Thumbs.db
 *.key
 *.crt
 *.csr
+*.pfx
+*.der
 secrets/
 certificates/
+private-keys/
+ssl-certs/
+
+# API Keys and Tokens
+*api-key*
+*secret-key*
+*access-token*
+*refresh-token*
+jwt-secret*
+oauth-secret*
+
+# Database and Service Credentials
+database-credentials*
+db-password*
+connection-string*
+service-account*
 
 # Performance Testing Results
 testing/performance/results/
