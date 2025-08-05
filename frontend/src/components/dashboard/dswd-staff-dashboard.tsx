@@ -5,10 +5,66 @@
 // Provides program oversight, policy implementation tracking, and administrative tools
 
 import Link from 'next/link';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Card, Button, Alert } from '@/components/ui';
 import type { User } from '@/types';
+
+// Executive Summary Component
+const ExecutiveSummary: React.FC = () => {
+  const [metrics, setMetrics] = useState({
+    totalBeneficiaries: 0,
+    activePrograms: 0,
+    regionalCoverage: 0,
+    monthlyDisbursement: 0,
+    pendingApplications: 0,
+    completionRate: 0,
+  });
+
+  useEffect(() => {
+    // Simulate loading executive metrics
+    setMetrics({
+      totalBeneficiaries: 2847392,
+      activePrograms: 15,
+      regionalCoverage: 85.7,
+      monthlyDisbursement: 1250000000,
+      pendingApplications: 12847,
+      completionRate: 94.2,
+    });
+  }, []);
+
+  return (
+    <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-6 rounded-lg mb-6">
+      <h2 className="text-xl font-bold mb-4">Executive Summary</h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="text-center">
+          <div className="text-2xl font-bold">{metrics.totalBeneficiaries.toLocaleString()}</div>
+          <div className="text-sm text-primary-100">Total Beneficiaries</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold">{metrics.activePrograms}</div>
+          <div className="text-sm text-primary-100">Active Programs</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold">{metrics.regionalCoverage}%</div>
+          <div className="text-sm text-primary-100">Regional Coverage</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold">₱{(metrics.monthlyDisbursement / 1000000000).toFixed(1)}B</div>
+          <div className="text-sm text-primary-100">Monthly Disbursement</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold">{metrics.pendingApplications.toLocaleString()}</div>
+          <div className="text-sm text-primary-100">Pending Applications</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold">{metrics.completionRate}%</div>
+          <div className="text-sm text-primary-100">Completion Rate</div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Dashboard props interface
 interface DSWDStaffDashboardProps {
@@ -270,6 +326,9 @@ export const DSWDStaffDashboard: React.FC<DSWDStaffDashboardProps> = ({
 }) => {
   return (
     <div className='space-y-6'>
+      {/* Executive Summary */}
+      <ExecutiveSummary />
+
       {/* Program Overview Metrics */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
         {metrics.map((metric, index) => (

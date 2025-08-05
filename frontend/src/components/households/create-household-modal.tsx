@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 
-import { FormInput, FormSelect } from '@/components/forms';
+import { FormInput, FormSelect, FormTextarea } from '@/components/forms';
 import { Modal, Button, Alert } from '@/components/ui';
 import type { User } from '@/types';
 
@@ -429,12 +429,11 @@ export const CreateHouseholdModal: React.FC<CreateHouseholdModalProps> = ({
             />
           </div>
           <div className="mt-4">
-            <FormInput
+            <FormTextarea
               label="Notes"
               value={formData.notes}
               onChange={(e) => handleChange('notes', e.target.value)}
               disabled={isSubmitting}
-              multiline
               rows={3}
             />
           </div>

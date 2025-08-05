@@ -48,6 +48,9 @@ export interface InputProps
   showPasswordToggle?: boolean;
   containerClassName?: string;
   labelClassName?: string;
+  showCharacterCount?: boolean;
+  realTimeValidation?: boolean;
+  validationDelay?: number;
   errorClassName?: string;
   helperClassName?: string;
 }

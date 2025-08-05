@@ -42,10 +42,7 @@ export default defineConfig({
     
     /* Headed mode - browser will be visible */
     headless: false,
-    
-    /* Slow down operations for better visibility */
-    slowMo: 500, // 500ms delay between actions
-    
+
     /* Browser viewport */
     viewport: { width: 1280, height: 720 },
     
@@ -63,11 +60,11 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium-headed',
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
         headless: false,
-        slowMo: 500,
         launchOptions: {
+          slowMo: 500,
           args: [
             '--start-maximized',
             '--disable-web-security',
@@ -79,11 +76,11 @@ export default defineConfig({
 
     {
       name: 'firefox-headed',
-      use: { 
+      use: {
         ...devices['Desktop Firefox'],
         headless: false,
-        slowMo: 500,
         launchOptions: {
+          slowMo: 500,
           firefoxUserPrefs: {
             'security.tls.insecure_fallback_hosts': 'localhost'
           }
@@ -93,48 +90,58 @@ export default defineConfig({
 
     {
       name: 'webkit-headed',
-      use: { 
+      use: {
         ...devices['Desktop Safari'],
         headless: false,
-        slowMo: 500,
+        launchOptions: {
+          slowMo: 500,
+        }
       },
     },
 
     /* Test against mobile viewports. */
     {
       name: 'Mobile Chrome',
-      use: { 
+      use: {
         ...devices['Pixel 5'],
         headless: false,
-        slowMo: 750, // Slower for mobile testing
+        launchOptions: {
+          slowMo: 750, // Slower for mobile testing
+        }
       },
     },
     {
       name: 'Mobile Safari',
-      use: { 
+      use: {
         ...devices['iPhone 12'],
         headless: false,
-        slowMo: 750,
+        launchOptions: {
+          slowMo: 750,
+        }
       },
     },
 
     /* Test against branded browsers. */
     {
       name: 'Microsoft Edge',
-      use: { 
-        ...devices['Desktop Edge'], 
+      use: {
+        ...devices['Desktop Edge'],
         channel: 'msedge',
         headless: false,
-        slowMo: 500,
+        launchOptions: {
+          slowMo: 500,
+        }
       },
     },
     {
       name: 'Google Chrome',
-      use: { 
-        ...devices['Desktop Chrome'], 
+      use: {
+        ...devices['Desktop Chrome'],
         channel: 'chrome',
         headless: false,
-        slowMo: 500,
+        launchOptions: {
+          slowMo: 500,
+        }
       },
     },
   ],

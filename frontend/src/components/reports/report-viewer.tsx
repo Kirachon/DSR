@@ -30,7 +30,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
       isOpen={isOpen} 
       onClose={onClose} 
       title={`Report: ${report.name}`}
-      size="large"
+      size="4xl"
     >
       <div className="space-y-6">
         {/* Report Information */}

@@ -4,10 +4,74 @@
 // Dashboard interface for Local Government Unit staff to manage citizens and applications
 
 import Link from 'next/link';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Card, Button, Alert } from '@/components/ui';
 import type { User } from '@/types';
+
+// Task Queue Filter Component
+const TaskQueueFilter: React.FC<{
+  onFilterChange: (filters: any) => void;
+}> = ({ onFilterChange }) => {
+  const [filters, setFilters] = useState({
+    priority: 'all',
+    status: 'all',
+    dueDate: 'all',
+  });
+
+  const handleFilterChange = (key: string, value: string) => {
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
+  };
+
+  return (
+    <div className="bg-gray-50 p-4 rounded-lg mb-6">
+      <h3 className="text-sm font-medium text-gray-700 mb-3">Filter Tasks</h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Priority</label>
+          <select
+            value={filters.priority}
+            onChange={(e) => handleFilterChange('priority', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="all">All Priorities</option>
+            <option value="high">High Priority</option>
+            <option value="medium">Medium Priority</option>
+            <option value="low">Low Priority</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+          <select
+            value={filters.status}
+            onChange={(e) => handleFilterChange('status', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Due Date</label>
+          <select
+            value={filters.dueDate}
+            onChange={(e) => handleFilterChange('dueDate', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="all">All Dates</option>
+            <option value="overdue">Overdue</option>
+            <option value="today">Due Today</option>
+            <option value="week">Due This Week</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Dashboard props interface
 interface LGUStaffDashboardProps {
@@ -162,8 +226,26 @@ const tasks: Task[] = [
 export const LGUStaffDashboard: React.FC<LGUStaffDashboardProps> = ({
   user,
 }) => {
+  const [filteredTasks, setFilteredTasks] = useState(tasks);
+
+  const handleFilterChange = (filters: any) => {
+    let filtered = [...tasks];
+
+    if (filters.priority !== 'all') {
+      filtered = filtered.filter(task => task.priority === filters.priority);
+    }
+    if (filters.status !== 'all') {
+      filtered = filtered.filter(task => task.status === filters.status);
+    }
+
+    setFilteredTasks(filtered);
+  };
+
   return (
     <div className='space-y-6'>
+      {/* Task Queue Filter */}
+      <TaskQueueFilter onFilterChange={handleFilterChange} />
+
       {/* Metrics Overview */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
         {metrics.map((metric, index) => (

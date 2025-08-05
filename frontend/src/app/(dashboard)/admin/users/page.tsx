@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from 'react';
 
-import { UserFilters } from '@/components/admin/user-filters';
 import { UserList } from '@/components/admin/user-list';
 import { CreateUserModal } from '@/components/admin/create-user-modal';
 import { EditUserModal } from '@/components/admin/edit-user-modal';

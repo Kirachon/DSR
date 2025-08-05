@@ -148,6 +148,119 @@ export interface ResponseInterceptor {
   onRejected?: (error: any) => any;
 }
 
+// System Metrics Types
+export interface SystemMetrics {
+  totalUsers: number;
+  activeUsers: number;
+  totalApplications: number;
+  pendingApplications: number;
+  approvedApplications: number;
+  rejectedApplications: number;
+  totalPayments: number;
+  totalPaymentAmount: number;
+  systemUptime: number;
+  responseTime: number;
+  errorRate: number;
+  memoryUsage: number;
+  cpuUsage: number;
+  diskUsage: number;
+}
+
+// System Activity Types
+export interface SystemActivity {
+  id: string;
+  timestamp: string;
+  type: 'login' | 'logout' | 'application' | 'payment' | 'system' | 'error';
+  userId?: string;
+  userName?: string;
+  action: string;
+  description: string;
+  ipAddress?: string;
+  userAgent?: string;
+  status: 'success' | 'failure' | 'warning' | 'info';
+  metadata?: Record<string, any>;
+}
+
+// System Settings Types
+export interface SystemSettings {
+  id: string;
+  category: string;
+  key: string;
+  value: string;
+  type: 'string' | 'number' | 'boolean' | 'json';
+  description: string;
+  isEditable: boolean;
+  isPublic: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// User Filters Types
+export interface UserFilters {
+  role?: string;
+  status?: string;
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+// User Activity Types
+export interface UserActivity {
+  id: string;
+  timestamp: string;
+  type: 'login' | 'logout' | 'action' | 'system' | 'error';
+  userId: string;
+  userName?: string;
+  action: string;
+  description: string;
+  ipAddress?: string;
+  userAgent?: string;
+  status: 'success' | 'failure' | 'warning' | 'info';
+  metadata?: Record<string, any>;
+}
+
+// User Profile Types
+export interface UserProfile {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber?: string;
+  role: string;
+  status: string;
+  avatar?: string;
+  preferences?: Record<string, any>;
+  lastLoginAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Report Types
+export interface Report {
+  id: string;
+  title: string;
+  description?: string;
+  type: 'analytics' | 'financial' | 'operational' | 'compliance';
+  format: 'PDF' | 'EXCEL' | 'CSV' | 'JSON';
+  status: 'draft' | 'generating' | 'completed' | 'failed';
+  createdBy: string;
+  createdAt: string;
+  completedAt?: string;
+  downloadUrl?: string;
+  parameters?: Record<string, any>;
+}
+
+// Report Generation Request Types
+export interface ReportGenerationRequest {
+  templateId: string;
+  title: string;
+  description?: string;
+  format: 'PDF' | 'EXCEL' | 'CSV' | 'JSON';
+  parameters: Record<string, any>;
+  scheduleType?: 'immediate' | 'scheduled';
+  scheduledAt?: string;
+}
+
 // API Client Configuration
 export interface ApiClientConfig {
   baseURL: string;

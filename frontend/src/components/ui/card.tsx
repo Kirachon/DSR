@@ -32,14 +32,23 @@ const cardVariants = cva(
         lg: 'p-8',
       },
       interactive: {
-        true: 'cursor-pointer transition-colors duration-150 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1',
+        true: 'cursor-pointer transition-all duration-200 hover:bg-gray-50 hover:shadow-flat-md hover:border-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 transform hover:-translate-y-0.5',
         false: '',
+      },
+      status: {
+        none: '',
+        success: 'border-l-4 border-l-success-500',
+        warning: 'border-l-4 border-l-warning-500',
+        error: 'border-l-4 border-l-error-500',
+        info: 'border-l-4 border-l-primary-500',
+        processing: 'border-l-4 border-l-secondary-500',
       },
     },
     defaultVariants: {
       variant: 'default',
       size: 'md',
       interactive: false,
+      status: 'none',
     },
   }
 );
@@ -49,6 +58,8 @@ export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof cardVariants> {
   asChild?: boolean;
+  loading?: boolean;
+  statusIcon?: React.ReactNode;
 }
 
 // Card Header props

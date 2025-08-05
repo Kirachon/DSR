@@ -29,7 +29,7 @@ export default function SystemSettingsPage() {
   const { user } = useAuth();
 
   // State management
-  const [settings, setSettings] = useState<SystemSettings | null>(null);
+  const [settings, setSettings] = useState<SystemSettings[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,98 +48,80 @@ export default function SystemSettingsPage() {
       setLoading(true);
       setError(null);
 
-      const response = await registrationApi.getSystemSettings();
-      setSettings(response);
+      // Mock system settings for development
+      const mockSettings: SystemSettings[] = [
+        {
+          id: '1',
+          category: 'General',
+          key: 'system.name',
+          value: 'DSR System',
+          type: 'string',
+          description: 'System display name',
+          isEditable: true,
+          isPublic: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: '2',
+          category: 'Security',
+          key: 'auth.session.timeout',
+          value: '3600',
+          type: 'number',
+          description: 'Session timeout in seconds',
+          isEditable: true,
+          isPublic: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: '3',
+          category: 'Features',
+          key: 'features.registration.enabled',
+          value: 'true',
+          type: 'boolean',
+          description: 'Enable registration feature',
+          isEditable: true,
+          isPublic: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ];
+      setSettings(mockSettings);
     } catch (err) {
       console.error('Failed to load settings:', err);
       setError('Failed to load settings. Please try again.');
-      
-      // Fallback to mock data for development
-      setSettings({
-        general: {
-          systemName: 'Dynamic Social Registry',
-          systemDescription: 'Philippine Government Social Registry System',
-          defaultLanguage: 'en',
-          timezone: 'Asia/Manila',
-          maintenanceMode: false,
-          registrationEnabled: true,
-          maxFileUploadSize: 10, // MB
-        },
-        authentication: {
-          sessionTimeout: 30, // minutes
-          passwordMinLength: 8,
-          passwordRequireSpecialChars: true,
-          passwordRequireNumbers: true,
-          passwordRequireUppercase: true,
-          maxLoginAttempts: 5,
-          lockoutDuration: 15, // minutes
-          twoFactorEnabled: false,
-          ssoEnabled: false,
-        },
-        notifications: {
-          emailNotificationsEnabled: true,
-          smsNotificationsEnabled: true,
-          pushNotificationsEnabled: false,
-          emailFromAddress: 'noreply@dsr.gov.ph',
-          emailFromName: 'DSR System',
-          smsProvider: 'GLOBE',
-          notificationRetryAttempts: 3,
-        },
-        security: {
-          encryptionEnabled: true,
-          auditLoggingEnabled: true,
-          ipWhitelistEnabled: false,
-          allowedIpRanges: [],
-          securityHeadersEnabled: true,
-          corsEnabled: true,
-          allowedOrigins: ['https://dsr.gov.ph'],
-        },
-        integrations: {
-          philsysEnabled: true,
-          philsysApiUrl: 'https://api.philsys.gov.ph',
-          philsysTimeout: 30, // seconds
-          bankingIntegrationEnabled: true,
-          paymentGatewayProvider: 'GCASH',
-          externalApiTimeout: 30, // seconds
-        },
-        maintenance: {
-          backupEnabled: true,
-          backupFrequency: 'DAILY',
-          backupRetentionDays: 30,
-          logRetentionDays: 90,
-          performanceMonitoringEnabled: true,
-          healthCheckInterval: 5, // minutes
-        },
-      } as SystemSettings);
+
+      // Fallback to empty array
+      setSettings([]);
     } finally {
       setLoading(false);
     }
   };
 
   // Handle setting change
-  const handleSettingChange = (category: string, key: string, value: any) => {
-    if (!settings) return;
-
-    setSettings(prev => ({
-      ...prev!,
-      [category]: {
-        ...prev![category as keyof SystemSettings],
-        [key]: value,
-      },
-    }));
+  const handleSettingChange = (settingId: string, value: any) => {
+    setSettings(prev =>
+      prev.map(setting =>
+        setting.id === settingId
+          ? { ...setting, value: value.toString() }
+          : setting
+      )
+    );
     setHasChanges(true);
     setSuccess(null);
   };
 
   // Handle save settings
   const handleSaveSettings = async () => {
-    if (!settings) return;
+    if (settings.length === 0) return;
 
     try {
       setSaving(true);
       setError(null);
 
-      await registrationApi.updateSystemSettings(settings);
+      // Mock save operation for development
+      await new Promise(resolve => setTimeout(resolve, 1000));
       setSuccess('Settings saved successfully');
       setHasChanges(false);
     } catch (err) {
@@ -158,7 +140,8 @@ export default function SystemSettingsPage() {
 
     try {
       setSaving(true);
-      await registrationApi.resetSystemSettings();
+      // Mock reset operation for development
+      await new Promise(resolve => setTimeout(resolve, 1000));
       await loadSettings();
       setSuccess('Settings reset to default values');
       setHasChanges(false);
@@ -253,13 +236,55 @@ export default function SystemSettingsPage() {
         {/* Settings Content */}
         <div className="flex-1">
           <Card className="p-6">
-            {settings && (
-              <SettingsSection
-                category={activeCategory}
-                settings={settings[activeCategory]}
-                onChange={(key, value) => handleSettingChange(activeCategory, key, value)}
-              />
-            )}
+            <SettingsSection
+              title={`${activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)} Settings`}
+              description={`Configure ${activeCategory} settings for the DSR system`}
+            >
+              <div className="space-y-4">
+                {settings
+                  .filter(setting => setting.category.toLowerCase() === activeCategory)
+                  .map(setting => (
+                    <div key={setting.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          {setting.key}
+                        </label>
+                        <p className="text-xs text-gray-500">{setting.description}</p>
+                      </div>
+                      <div className="ml-4">
+                        {setting.type === 'boolean' ? (
+                          <input
+                            type="checkbox"
+                            checked={setting.value === 'true'}
+                            onChange={(e) => handleSettingChange(setting.id, e.target.checked)}
+                            disabled={!setting.isEditable}
+                            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                          />
+                        ) : setting.type === 'number' ? (
+                          <input
+                            type="number"
+                            value={setting.value}
+                            onChange={(e) => handleSettingChange(setting.id, e.target.value)}
+                            disabled={!setting.isEditable}
+                            className="w-24 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-primary-500 focus:border-primary-500"
+                          />
+                        ) : (
+                          <input
+                            type="text"
+                            value={setting.value}
+                            onChange={(e) => handleSettingChange(setting.id, e.target.value)}
+                            disabled={!setting.isEditable}
+                            className="w-48 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-primary-500 focus:border-primary-500"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                {settings.filter(setting => setting.category.toLowerCase() === activeCategory).length === 0 && (
+                  <p className="text-gray-500 text-center py-8">No settings available for this category.</p>
+                )}
+              </div>
+            </SettingsSection>
           </Card>
         </div>
       </div>

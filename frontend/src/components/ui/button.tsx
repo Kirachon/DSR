@@ -71,6 +71,7 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
+  success?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 }
@@ -109,6 +110,34 @@ const LoadingSpinner: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({
   );
 };
 
+// Success checkmark component
+const SuccessCheckmark: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({
+  size = 'md',
+}) => {
+  const sizeClasses = {
+    sm: 'h-3 w-3',
+    md: 'h-4 w-4',
+    lg: 'h-5 w-5',
+  };
+
+  return (
+    <svg
+      className={cn('animate-bounce-gentle', sizeClasses[size])}
+      xmlns='http://www.w3.org/2000/svg'
+      fill='none'
+      viewBox='0 0 24 24'
+      stroke='currentColor'
+    >
+      <path
+        strokeLinecap='round'
+        strokeLinejoin='round'
+        strokeWidth={2}
+        d='M5 13l4 4L19 7'
+      />
+    </svg>
+  );
+};
+
 // Button component
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -119,6 +148,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       fullWidth,
       asChild = false,
       loading = false,
+      success = false,
       leftIcon,
       rightIcon,
       children,
@@ -128,25 +158,21 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const isDisabled = disabled || loading;
+    const iconSize = size === 'xs' || size === 'sm' ? 'sm' : size === 'lg' || size === 'xl' ? 'lg' : 'md';
 
     const buttonContent = (
       <>
-        {loading && (
-          <LoadingSpinner
-            size={
-              size === 'xs' || size === 'sm'
-                ? 'sm'
-                : size === 'lg' || size === 'xl'
-                  ? 'lg'
-                  : 'md'
-            }
-          />
-        )}
-        {!loading && leftIcon && (
+        {loading && <LoadingSpinner size={iconSize} />}
+        {success && !loading && <SuccessCheckmark size={iconSize} />}
+        {!loading && !success && leftIcon && (
           <span className='mr-2 flex-shrink-0'>{leftIcon}</span>
         )}
-        {children && <span className={cn(loading && 'ml-2')}>{children}</span>}
-        {!loading && rightIcon && (
+        {children && (
+          <span className={cn((loading || success) && 'ml-2')}>
+            {success ? 'Success!' : children}
+          </span>
+        )}
+        {!loading && !success && rightIcon && (
           <span className='ml-2 flex-shrink-0'>{rightIcon}</span>
         )}
       </>

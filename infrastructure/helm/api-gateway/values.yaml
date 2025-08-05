@@ -87,15 +87,19 @@ config:
     server:
       url: "http://dsr-eureka-server:8761/eureka/"
       username: "admin"
-      password: "admin123"
-  
+      # Password should be provided via external secret management
+      passwordSecretName: "dsr-secrets"
+      passwordSecretKey: "eureka-password"
+
   redis:
     host: "dsr-redis-master"
     port: 6379
     password: ""
-  
+
   jwt:
-    secret: "dsr_gateway_jwt_secret_key_2024"
+    # JWT secret should be provided via external secret management
+    secretName: "dsr-secrets"
+    secretKey: "jwt-secret"
     expiration: 86400000
 
 # External Dependencies

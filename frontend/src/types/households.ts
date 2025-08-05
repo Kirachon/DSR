@@ -5,7 +5,6 @@ import type { BaseEntity, Address, HouseholdMember } from './';
 
 // Household data interface
 export interface HouseholdData extends BaseEntity {
-  id: string;
   psn: string; // PhilSys Number
   householdNumber?: string;
   headOfHouseholdPsn: string;

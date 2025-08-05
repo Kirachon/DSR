@@ -137,6 +137,28 @@ interface DashboardData {
   error: string | null;
 }
 
+// Hero section component
+const HeroSection: React.FC<{ user: UserType }> = ({ user }) => (
+  <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white p-6 rounded-lg mb-6">
+    <div className="flex items-center justify-between">
+      <div>
+        <h1 className="text-2xl font-bold mb-2">
+          Welcome back, {user.firstName}!
+        </h1>
+        <p className="text-primary-100">
+          Your account is {user.status.toLowerCase()} and ready to use
+        </p>
+      </div>
+      <div className="text-right">
+        <div className="text-sm text-primary-100">Last login</div>
+        <div className="font-semibold">
+          {new Date(user.lastLoginAt || Date.now()).toLocaleDateString()}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 // Citizen Dashboard component
 export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ user }) => {
   const [dashboardData, setDashboardData] = useState<DashboardData>({
@@ -219,6 +241,9 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ user }) => {
 
   return (
     <div className='space-y-6'>
+      {/* Hero Section */}
+      <HeroSection user={user} />
+
       {/* Email Verification Alert */}
       {!user.emailVerified && (
         <Alert variant='warning' title='Email Verification Required'>
@@ -271,13 +296,13 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({ user }) => {
 
       {/* Quick Actions */}
       <Card className='p-6'>
-        <h2 className='text-lg font-semibold text-gray-900 mb-4'>
+        <h2 className='text-lg font-semibold text-gray-900 mb-6'>
           Quick Actions
         </h2>
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
           {quickActions.map((action, index) => (
             <Link key={index} href={action.href}>
-              <div className='p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:shadow-md transition-all duration-200 cursor-pointer'>
+              <div className='group p-6 border border-gray-200 rounded-lg hover:border-primary-300 hover:shadow-lg transition-all duration-200 cursor-pointer transform hover:-translate-y-1 min-h-[120px] flex flex-col justify-center items-center text-center touch-manipulation'>
                 <div
                   className={`inline-flex p-2 rounded-lg mb-3 ${
                     action.variant === 'primary'

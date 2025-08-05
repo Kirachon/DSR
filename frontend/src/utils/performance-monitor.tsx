@@ -3,6 +3,8 @@
  * Tools for monitoring and optimizing component performance
  */
 
+import React from 'react';
+
 // Performance metrics interface
 export interface PerformanceMetrics {
   componentName: string;
@@ -353,5 +355,4 @@ export function analyzeBundleSize(): void {
   }, 1000);
 }
 
-// Export React import for hooks
-import React from 'react';
+// React is imported at the top of the file

@@ -39,7 +39,17 @@ export default function AdministrationPage() {
 
       // Load system health
       const healthStatus = await checkAllServicesHealth();
-      setServiceHealth(healthStatus);
+      // Transform array format to Record<string, boolean> format
+      const healthRecord: Record<string, boolean> = {
+        registration: healthStatus.find(s => s.port === 8080)?.healthy || false,
+        dataManagement: healthStatus.find(s => s.port === 8081)?.healthy || false,
+        eligibility: healthStatus.find(s => s.port === 8082)?.healthy || false,
+        interoperability: healthStatus.find(s => s.port === 8083)?.healthy || false,
+        payment: healthStatus.find(s => s.port === 8084)?.healthy || false,
+        grievance: healthStatus.find(s => s.port === 8085)?.healthy || false,
+        analytics: healthStatus.find(s => s.port === 8086)?.healthy || false,
+      };
+      setServiceHealth(healthRecord);
 
       // Load system metrics
       try {
@@ -51,13 +61,19 @@ export default function AdministrationPage() {
         setSystemMetrics({
           totalUsers: 15420,
           activeUsers: 8750,
-          totalHouseholds: 12340,
+          totalApplications: 12340,
+          pendingApplications: 847,
+          approvedApplications: 10893,
+          rejectedApplications: 600,
           totalPayments: 45600,
+          totalPaymentAmount: 2847392000,
           systemUptime: 99.8,
-          averageResponseTime: 1.2,
+          responseTime: 1.2,
           errorRate: 0.03,
-          storageUsage: 67.5,
-        } as SystemMetrics);
+          memoryUsage: 67.5,
+          cpuUsage: 23.4,
+          diskUsage: 45.2,
+        });
       }
 
       // Load recent activities
@@ -70,29 +86,37 @@ export default function AdministrationPage() {
         setRecentActivities([
           {
             id: '1',
-            type: 'USER_LOGIN',
+            type: 'login',
+            action: 'User Login',
             description: 'User admin@dsr.gov.ph logged in',
             timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
             userId: 'admin@dsr.gov.ph',
-            severity: 'INFO',
+            userName: 'Admin User',
+            status: 'success',
+            ipAddress: '192.168.1.100',
           },
           {
             id: '2',
-            type: 'SYSTEM_UPDATE',
+            type: 'system',
+            action: 'System Update',
             description: 'System configuration updated',
             timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
             userId: 'system',
-            severity: 'INFO',
+            userName: 'System',
+            status: 'success',
           },
           {
             id: '3',
-            type: 'SECURITY_ALERT',
+            type: 'error',
+            action: 'Security Alert',
             description: 'Multiple failed login attempts detected',
             timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
             userId: 'security-system',
-            severity: 'WARNING',
+            userName: 'Security System',
+            status: 'warning',
+            ipAddress: '192.168.1.200',
           },
-        ] as SystemActivity[]);
+        ]);
       }
     } catch (err) {
       console.error('Failed to load administration data:', err);

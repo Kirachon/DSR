@@ -483,7 +483,30 @@ testing/performance/results/
 *.jmx.log
 k6-results/
 
-# Documentation Reports
+# Documentation Reports and Temporary Files
 *_REPORT.md
 *_AUDIT_REPORT.md
 *_PERFORMANCE_*.md
+*_PLAN.md
+*_ANALYSIS.md
+*_STRATEGY.md
+*_RECOMMENDATIONS.md
+*_ROADMAP*.md
+*_PACKAGE.md
+CLAUDE.md
+
+# Test Results and Reports
+test-results/
+playwright-report/
+coverage/
+*.lcov
+junit.xml
+test-output/
+
+# Development Artifacts and Temporary Directories
+.claude/
+team-formation/
+tracking/
+temp/
+tmp/
+.temp/
