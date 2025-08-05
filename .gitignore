@@ -510,3 +510,53 @@ tracking/
 temp/
 tmp/
 .temp/
+
+# Additional Build and Development Artifacts
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# Log Files
+*.log
+logs/
+log/
+
+# IDE Generated Files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Temporary and Cache Files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.cache/
+
+# Error and Debug Files
+error.md
+errrors.md
+debug.log
+*.stackdump
