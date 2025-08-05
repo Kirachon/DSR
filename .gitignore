@@ -537,6 +537,23 @@ temp/
 tmp/
 .temp/
 
+# Development and Test Files
+test_*.json
+test-*.json
+test-*.js
+*test*.sql
+create_*.sh
+update_*.sql
+production-env.properties
+*-env.properties
+
+# Outdated Documentation
+*_ANALYSIS_*.md
+*_EVALUATION_*.md
+*_SETUP_GUIDE*.md
+*_USAGE_EXAMPLES*.md
+*_INTEGRATION_EXAMPLE*.md
+
 # Additional Build and Development Artifacts
 *.class
 *.jar
