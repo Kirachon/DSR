@@ -1,0 +1,223 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dsr-system
+  labels:
+    name: dsr-system
+    app.kubernetes.io/name: dsr
+    app.kubernetes.io/version: "3.0.0"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsr-eureka-server
+  namespace: dsr-system
+  labels:
+    app: dsr-eureka-server
+    version: "3.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dsr-eureka-server
+  template:
+    metadata:
+      labels:
+        app: dsr-eureka-server
+    spec:
+      containers:
+      - name: eureka-server
+        image: dsr/eureka-server:3.0.0
+        ports:
+        - containerPort: 8761
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "kubernetes"
+        - name: EUREKA_USERNAME
+          value: "admin"
+        - name: EUREKA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dsr-secrets
+              key: eureka-password
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8761
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8761
+          initialDelaySeconds: 30
+          periodSeconds: 10
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dsr-eureka-server
+  namespace: dsr-system
+  labels:
+    app: dsr-eureka-server
+spec:
+  selector:
+    app: dsr-eureka-server
+  ports:
+  - port: 8761
+    targetPort: 8761
+    name: http
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsr-api-gateway
+  namespace: dsr-system
+  labels:
+    app: dsr-api-gateway
+    version: "3.0.0"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dsr-api-gateway
+  template:
+    metadata:
+      labels:
+        app: dsr-api-gateway
+    spec:
+      containers:
+      - name: api-gateway
+        image: dsr/api-gateway:3.0.0
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "kubernetes"
+        - name: EUREKA_SERVER_URL
+          value: "http://dsr-eureka-server:8761/eureka/"
+        - name: REDIS_HOST
+          value: "dsr-redis-master"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: dsr-secrets
+              key: jwt-secret
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dsr-api-gateway
+  namespace: dsr-system
+  labels:
+    app: dsr-api-gateway
+spec:
+  selector:
+    app: dsr-api-gateway
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  type: ClusterIP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: dsr-api-gateway-hpa
+  namespace: dsr-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dsr-api-gateway
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dsr-api-gateway-ingress
+  namespace: dsr-system
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "1000"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - api.dsr.gov.ph
+    secretName: dsr-api-gateway-tls
+  rules:
+  - host: api.dsr.gov.ph
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: dsr-api-gateway
+            port:
+              number: 8080
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dsr-secrets
+  namespace: dsr-system
+type: Opaque
+data:
+  eureka-password: YWRtaW4xMjM=  # admin123 base64 encoded
+  jwt-secret: ZHNyX2dhdGV3YXlfand0X3NlY3JldF9rZXlfMjAyNA==  # dsr_gateway_jwt_secret_key_2024 base64 encoded

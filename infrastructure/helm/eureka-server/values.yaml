@@ -1,0 +1,107 @@
+replicaCount: 2
+
+image:
+  repository: dsr/eureka-server
+  pullPolicy: IfNotPresent
+  tag: "3.0.0"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8761
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: eureka.dsr.gov.ph
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: eureka-server-tls
+      hosts:
+        - eureka.dsr.gov.ph
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - dsr-eureka-server
+        topologyKey: kubernetes.io/hostname
+
+# High Availability Configuration
+ha:
+  enabled: true
+  nodes:
+    - name: node1
+      hostname: eureka-node1
+      port: 8761
+    - name: node2
+      hostname: eureka-node2
+      port: 8762
+
+# Application Configuration
+config:
+  security:
+    username: "admin"
+    password: "admin123"
+  
+  server:
+    enableSelfPreservation: true
+    evictionIntervalTimerInMs: 60000
+    renewalPercentThreshold: 0.85
+
+# Monitoring
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    path: /actuator/prometheus

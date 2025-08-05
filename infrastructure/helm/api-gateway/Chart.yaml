@@ -1,0 +1,26 @@
+apiVersion: v2
+name: dsr-api-gateway
+description: DSR API Gateway Helm Chart
+type: application
+version: 3.0.0
+appVersion: "3.0.0"
+
+keywords:
+  - api-gateway
+  - microservices
+  - spring-cloud
+  - dsr
+
+maintainers:
+  - name: DSR Development Team
+    email: dev@dsr.gov.ph
+
+dependencies:
+  - name: postgresql
+    version: "12.1.9"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: redis
+    version: "17.4.3"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled

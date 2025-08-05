@@ -5,6 +5,7 @@ package ph.gov.dsr.registration.entity;
  */
 public enum RegistrationStatus {
     DRAFT("Draft"),
+    SUBMITTED("Submitted"),
     PENDING_VERIFICATION("Pending Verification"),
     PENDING_APPROVAL("Pending Approval"),
     APPROVED("Approved"),
@@ -27,7 +28,7 @@ public enum RegistrationStatus {
     }
 
     public boolean isPending() {
-        return this == PENDING_VERIFICATION || this == PENDING_APPROVAL;
+        return this == SUBMITTED || this == PENDING_VERIFICATION || this == PENDING_APPROVAL;
     }
 
     public boolean isFinal() {

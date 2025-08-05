@@ -151,12 +151,24 @@ dsr:
     livereload:
       enabled: ${SPRING_DEVTOOLS_LIVERELOAD_ENABLED:true}
 
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://admin:admin123@localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
 # Management and Monitoring
 management:
   endpoints:
     web:
       exposure:
-        include: ${MANAGEMENT_ENDPOINTS_WEB_EXPOSURE:health,info,metrics,prometheus,env,configprops}
+        include: ${MANAGEMENT_ENDPOINTS_WEB_EXPOSURE:health,info,metrics,prometheus,env,configprops,eureka}
   endpoint:
     health:
       show-details: ${MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS:always}

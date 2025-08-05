@@ -1,0 +1,101 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: dsr-eureka-server
+  
+  # Security Configuration
+  security:
+    user:
+      name: ${EUREKA_USERNAME:admin}
+      password: ${EUREKA_PASSWORD:admin123}
+      roles: ADMIN
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:localhost}
+    prefer-ip-address: false
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    
+  client:
+    # Don't register itself as a client
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+    
+  server:
+    # High Availability Configuration
+    enable-self-preservation: true
+    eviction-interval-timer-in-ms: 60000
+    renewal-percent-threshold: 0.85
+    
+    # Response cache settings
+    response-cache-update-interval-ms: 30000
+    response-cache-auto-expiration-in-seconds: 180
+    
+    # Peer node sync
+    peer-eureka-nodes-update-interval-ms: 600000
+    peer-eureka-status-refresh-time-interval-ms: 30000
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,eureka
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
+    ph.gov.dsr.eureka: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/eureka-server.log
+
+---
+# Production Profile for High Availability
+spring:
+  config:
+    activate:
+      on-profile: ha-node1
+
+server:
+  port: 8761
+
+eureka:
+  instance:
+    hostname: eureka-node1
+  client:
+    service-url:
+      defaultZone: http://admin:admin123@eureka-node2:8762/eureka/
+
+---
+# Production Profile for High Availability Node 2
+spring:
+  config:
+    activate:
+      on-profile: ha-node2
+
+server:
+  port: 8762
+
+eureka:
+  instance:
+    hostname: eureka-node2
+  client:
+    service-url:
+      defaultZone: http://admin:admin123@eureka-node1:8761/eureka/
