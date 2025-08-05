@@ -466,3 +466,24 @@ out/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Security - Never commit secrets or certificates
+*.p12
+*.jks
+*.keystore
+*.pem
+*.key
+*.crt
+*.csr
+secrets/
+certificates/
+
+# Performance Testing Results
+testing/performance/results/
+*.jmx.log
+k6-results/
+
+# Documentation Reports
+*_REPORT.md
+*_AUDIT_REPORT.md
+*_PERFORMANCE_*.md

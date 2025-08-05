@@ -211,13 +211,8 @@ spec:
             port:
               number: 8080
 
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: dsr-secrets
-  namespace: dsr-system
-type: Opaque
-data:
-  eureka-password: YWRtaW4xMjM=  # admin123 base64 encoded
-  jwt-secret: ZHNyX2dhdGV3YXlfand0X3NlY3JldF9rZXlfMjAyNA==  # dsr_gateway_jwt_secret_key_2024 base64 encoded
+# NOTE: Secrets should be created separately using kubectl or external secret management
+# kubectl create secret generic dsr-secrets \
+#   --from-literal=eureka-password=<SECURE_PASSWORD> \
+#   --from-literal=jwt-secret=<SECURE_JWT_SECRET> \
+#   --namespace=dsr-system

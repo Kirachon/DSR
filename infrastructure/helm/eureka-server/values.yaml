@@ -91,7 +91,9 @@ ha:
 config:
   security:
     username: "admin"
-    password: "admin123"
+    # Password should be provided via external secret management
+    passwordSecretName: "dsr-secrets"
+    passwordSecretKey: "eureka-password"
   
   server:
     enableSelfPreservation: true
