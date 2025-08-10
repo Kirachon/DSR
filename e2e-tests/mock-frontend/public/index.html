@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSR - Dynamic Social Registry</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="navbar" data-testid="navigation-menu">
+            <div class="nav-brand">
+                <h1>DSR - Dynamic Social Registry</h1>
+            </div>
+            <div class="nav-links">
+                <a href="/login" data-testid="nav-login">Login</a>
+                <a href="/register" data-testid="nav-register">Register</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="hero-section">
+                <h2>Welcome to the Dynamic Social Registry</h2>
+                <p>A unified platform for social protection programs in the Philippines</p>
+                
+                <div class="action-buttons">
+                    <a href="/login" class="btn btn-primary" data-testid="login-button">Login</a>
+                    <a href="/register" class="btn btn-secondary" data-testid="register-button">Register</a>
+                </div>
+            </div>
+
+            <div class="features-section">
+                <h3>Key Features</h3>
+                <div class="features-grid">
+                    <div class="feature-card" data-testid="feature-registration">
+                        <h4>Household Registration</h4>
+                        <p>Register your household for social protection programs</p>
+                    </div>
+                    <div class="feature-card" data-testid="feature-eligibility">
+                        <h4>Eligibility Assessment</h4>
+                        <p>Check your eligibility for various government programs</p>
+                    </div>
+                    <div class="feature-card" data-testid="feature-payments">
+                        <h4>Payment Tracking</h4>
+                        <p>Track your benefit payments and disbursements</p>
+                    </div>
+                    <div class="feature-card" data-testid="feature-grievances">
+                        <h4>Grievance Management</h4>
+                        <p>Submit and track complaints or feedback</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2024 Department of Social Welfare and Development. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="loading-spinner hidden" data-testid="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Success Message -->
+    <div id="success-message" class="message success-message hidden" data-testid="success-message">
+        <span class="message-text"></span>
+        <button class="message-close" onclick="hideMessage('success-message')">&times;</button>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-message" class="message error-message hidden" data-testid="error-message">
+        <span class="message-text"></span>
+        <button class="message-close" onclick="hideMessage('error-message')">&times;</button>
+    </div>
+
+    <script src="common.js"></script>
+</body>
+</html>

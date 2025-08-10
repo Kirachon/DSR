@@ -1,0 +1,46 @@
+{
+  "name": "dsr-design-tokens",
+  "version": "1.0.0",
+  "description": "Design tokens for DSR (Department of Social Welfare and Development) frontend redesign",
+  "main": "build-tokens.js",
+  "scripts": {
+    "build": "node build-tokens.js",
+    "build:tokens": "node tailwind-config-generator.js",
+    "watch": "nodemon --watch dsr-design-tokens.json --exec 'npm run build'",
+    "validate": "node validate-tokens.js",
+    "docs": "node generate-docs.js"
+  },
+  "keywords": [
+    "design-tokens",
+    "tailwind-css",
+    "figma",
+    "tokens-studio",
+    "philippine-government",
+    "accessibility",
+    "wcag"
+  ],
+  "author": "DSR Development Team",
+  "license": "MIT",
+  "dependencies": {
+    "@tokens-studio/sd-transforms": "^1.2.0",
+    "style-dictionary": "^4.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0",
+    "chalk": "^4.1.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kirachon/DSR.git",
+    "directory": "design-tokens"
+  },
+  "files": [
+    "dsr-design-tokens.json",
+    "tailwind-config-generator.js",
+    "build-tokens.js",
+    "component-specifications.md"
+  ]
+}

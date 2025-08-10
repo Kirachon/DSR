@@ -404,3 +404,223 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Java specific
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Next.js
+.next/
+out/
+
+# Environment variables and sensitive configuration
+.env
+.env.*
+!.env.example
+!.env.template
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging
+.env.production
+config.local.*
+secrets.json
+credentials.*
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Security - Never commit secrets or certificates
+*.p12
+*.jks
+*.keystore
+*.pem
+*.key
+*.crt
+*.csr
+*.pfx
+*.der
+secrets/
+certificates/
+private-keys/
+ssl-certs/
+
+# API Keys and Tokens
+*api-key*
+*secret-key*
+*access-token*
+*refresh-token*
+jwt-secret*
+oauth-secret*
+
+# Database and Service Credentials
+database-credentials*
+db-password*
+connection-string*
+service-account*
+
+# Performance Testing Results
+testing/performance/results/
+*.jmx.log
+k6-results/
+
+# Documentation Reports and Temporary Files
+*_REPORT.md
+*_AUDIT_REPORT.md
+*_PERFORMANCE_*.md
+*_PLAN.md
+*_ANALYSIS.md
+*_STRATEGY.md
+*_RECOMMENDATIONS.md
+*_ROADMAP*.md
+*_PACKAGE.md
+CLAUDE.md
+
+# Test Results and Reports
+test-results/
+playwright-report/
+coverage/
+*.lcov
+junit.xml
+test-output/
+
+# Development Artifacts and Temporary Directories
+.claude/
+team-formation/
+tracking/
+temp/
+tmp/
+.temp/
+
+# Development and Test Files
+test_*.json
+test-*.json
+test-*.js
+*test*.sql
+create_*.sh
+update_*.sql
+production-env.properties
+*-env.properties
+
+# Outdated Documentation
+*_ANALYSIS_*.md
+*_EVALUATION_*.md
+*_SETUP_GUIDE*.md
+*_USAGE_EXAMPLES*.md
+*_INTEGRATION_EXAMPLE*.md
+
+# Additional Build and Development Artifacts
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# Log Files
+*.log
+logs/
+log/
+
+# IDE Generated Files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+
+# Build Artifacts and Generated Files
+META-INF/
+MANIFEST.MF
+*.jar.original
+*.war.original
+
+# Test Results and Reports (should not be versioned)
+test-results/
+test-output/
+*-test-results/
+*-reports/
+junit-reports/
+surefire-reports/
+failsafe-reports/
+
+# Planning and Analysis Documents (temporary)
+implementation-plan/
+analysis-reports/
+planning-docs/
+*-plan/
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Temporary and Cache Files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.cache/
+
+# Error and Debug Files
+error.md
+errrors.md
+debug.log
+*.stackdump

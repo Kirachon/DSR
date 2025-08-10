@@ -1,0 +1,730 @@
+<testsuites id="" name="" tests="72" failures="6" skipped="0" errors="0" time="14.604658">
+<testsuite name="auth-backend.spec.ts" timestamp="2025-07-08T01:51:52.797Z" hostname="chromium" tests="12" failures="1" skipped="0" time="2.186" errors="0">
+<testcase name="Backend Authentication API › Authentication Endpoints › should respond to health check" classname="auth-backend.spec.ts" time="0.117">
+<failure message="auth-backend.spec.ts:15:9 should respond to health check" type="FAILURE">
+<![CDATA[  [chromium] › auth-backend.spec.ts:15:9 › Backend Authentication API › Authentication Endpoints › should respond to health check 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 503
+
+      15 |     test('should respond to health check', async ({ request }) => {
+      16 |       const response = await request.get(`${API_BASE_URL}/actuator/health`);
+    > 17 |       expect(response.status()).toBe(200);
+         |                                 ^
+      18 |       
+      19 |       const health = await response.json();
+      20 |       expect(health.status).toBe('UP');
+        at D:\GitProjects\DSR\e2e-tests\tests\auth-backend.spec.ts:17:33
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-chromium\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should handle login request with demo credentials" classname="auth-backend.spec.ts" time="0.093">
+<system-out>
+<![CDATA[Login response status: [33m403[39m
+Login response body: 
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should handle citizen login request" classname="auth-backend.spec.ts" time="0.08">
+<system-out>
+<![CDATA[Citizen login response status: [33m403[39m
+Citizen login response body: 
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should reject invalid credentials" classname="auth-backend.spec.ts" time="0.054">
+<system-out>
+<![CDATA[Invalid login response status: [33m403[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Registration Endpoints › should respond to registration endpoint" classname="auth-backend.spec.ts" time="0.205">
+<system-out>
+<![CDATA[Registration response status: [33m403[39m
+Registration response body: 
+]]>
+</system-out>
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+]]>
+</system-err>
+</testcase>
+<testcase name="Backend Authentication API › API Documentation › should serve Swagger UI" classname="auth-backend.spec.ts" time="0.082">
+<system-out>
+<![CDATA[Swagger UI response status: [33m200[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › API Documentation › should serve API docs" classname="auth-backend.spec.ts" time="1.432">
+<system-out>
+<![CDATA[API docs response status: [33m200[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Service Information › should provide service info" classname="auth-backend.spec.ts" time="0.034">
+<system-out>
+<![CDATA[Service info response status: [33m200[39m
+Service info: {}
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Security Headers › should include security headers" classname="auth-backend.spec.ts" time="0.075">
+<system-out>
+<![CDATA[Response headers: {
+  vary: [32m'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'[39m,
+  [32m'x-content-type-options'[39m: [32m'nosniff'[39m,
+  [32m'x-xss-protection'[39m: [32m'0'[39m,
+  [32m'cache-control'[39m: [32m'no-cache, no-store, max-age=0, must-revalidate'[39m,
+  pragma: [32m'no-cache'[39m,
+  expires: [32m'0'[39m,
+  [32m'x-frame-options'[39m: [32m'DENY'[39m,
+  [32m'content-type'[39m: [32m'application/vnd.spring-boot.actuator.v3+json'[39m,
+  [32m'transfer-encoding'[39m: [32m'chunked'[39m,
+  date: [32m'Tue, 08 Jul 2025 01:52:01 GMT'[39m,
+  connection: [32m'close'[39m
+}
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+]]>
+</system-out>
+</testcase>
+<testcase name="Test Data Generation › should generate valid test credentials" classname="auth-backend.spec.ts" time="0.003">
+</testcase>
+<testcase name="Test Data Generation › should generate valid user data" classname="auth-backend.spec.ts" time="0.004">
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+]]>
+</system-err>
+</testcase>
+<testcase name="Test Data Generation › should generate valid household data" classname="auth-backend.spec.ts" time="0.007">
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.location.streetName is deprecated since v8.0 and will be removed in v9.0. Please use faker.location.street instead.
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="auth-backend.spec.ts" timestamp="2025-07-08T01:51:52.797Z" hostname="firefox" tests="12" failures="1" skipped="0" time="2.134" errors="0">
+<testcase name="Backend Authentication API › Authentication Endpoints › should respond to health check" classname="auth-backend.spec.ts" time="0.132">
+<failure message="auth-backend.spec.ts:15:9 should respond to health check" type="FAILURE">
+<![CDATA[  [firefox] › auth-backend.spec.ts:15:9 › Backend Authentication API › Authentication Endpoints › should respond to health check 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 503
+
+      15 |     test('should respond to health check', async ({ request }) => {
+      16 |       const response = await request.get(`${API_BASE_URL}/actuator/health`);
+    > 17 |       expect(response.status()).toBe(200);
+         |                                 ^
+      18 |       
+      19 |       const health = await response.json();
+      20 |       expect(health.status).toBe('UP');
+        at D:\GitProjects\DSR\e2e-tests\tests\auth-backend.spec.ts:17:33
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-firefox\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-firefox\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-firefox\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should handle login request with demo credentials" classname="auth-backend.spec.ts" time="0.119">
+<system-out>
+<![CDATA[Login response status: [33m403[39m
+Login response body: 
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should handle citizen login request" classname="auth-backend.spec.ts" time="0.061">
+<system-out>
+<![CDATA[Citizen login response status: [33m403[39m
+Citizen login response body: 
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should reject invalid credentials" classname="auth-backend.spec.ts" time="0.207">
+<system-out>
+<![CDATA[Invalid login response status: [33m403[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Registration Endpoints › should respond to registration endpoint" classname="auth-backend.spec.ts" time="0.134">
+<system-out>
+<![CDATA[Registration response status: [33m403[39m
+Registration response body: 
+]]>
+</system-out>
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+]]>
+</system-err>
+</testcase>
+<testcase name="Backend Authentication API › API Documentation › should serve Swagger UI" classname="auth-backend.spec.ts" time="0.024">
+<system-out>
+<![CDATA[Swagger UI response status: [33m200[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › API Documentation › should serve API docs" classname="auth-backend.spec.ts" time="1.335">
+<system-out>
+<![CDATA[API docs response status: [33m200[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Service Information › should provide service info" classname="auth-backend.spec.ts" time="0.033">
+<system-out>
+<![CDATA[Service info response status: [33m200[39m
+Service info: {}
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Security Headers › should include security headers" classname="auth-backend.spec.ts" time="0.075">
+<system-out>
+<![CDATA[Response headers: {
+  vary: [32m'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'[39m,
+  [32m'x-content-type-options'[39m: [32m'nosniff'[39m,
+  [32m'x-xss-protection'[39m: [32m'0'[39m,
+  [32m'cache-control'[39m: [32m'no-cache, no-store, max-age=0, must-revalidate'[39m,
+  pragma: [32m'no-cache'[39m,
+  expires: [32m'0'[39m,
+  [32m'x-frame-options'[39m: [32m'DENY'[39m,
+  [32m'content-type'[39m: [32m'application/vnd.spring-boot.actuator.v3+json'[39m,
+  [32m'transfer-encoding'[39m: [32m'chunked'[39m,
+  date: [32m'Tue, 08 Jul 2025 01:52:01 GMT'[39m,
+  connection: [32m'close'[39m
+}
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+]]>
+</system-out>
+</testcase>
+<testcase name="Test Data Generation › should generate valid test credentials" classname="auth-backend.spec.ts" time="0.003">
+</testcase>
+<testcase name="Test Data Generation › should generate valid user data" classname="auth-backend.spec.ts" time="0.004">
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+]]>
+</system-err>
+</testcase>
+<testcase name="Test Data Generation › should generate valid household data" classname="auth-backend.spec.ts" time="0.007">
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.location.streetName is deprecated since v8.0 and will be removed in v9.0. Please use faker.location.street instead.
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="auth-backend.spec.ts" timestamp="2025-07-08T01:51:52.797Z" hostname="webkit" tests="12" failures="1" skipped="0" time="2.099" errors="0">
+<testcase name="Backend Authentication API › Authentication Endpoints › should respond to health check" classname="auth-backend.spec.ts" time="0.135">
+<failure message="auth-backend.spec.ts:15:9 should respond to health check" type="FAILURE">
+<![CDATA[  [webkit] › auth-backend.spec.ts:15:9 › Backend Authentication API › Authentication Endpoints › should respond to health check 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 503
+
+      15 |     test('should respond to health check', async ({ request }) => {
+      16 |       const response = await request.get(`${API_BASE_URL}/actuator/health`);
+    > 17 |       expect(response.status()).toBe(200);
+         |                                 ^
+      18 |       
+      19 |       const health = await response.json();
+      20 |       expect(health.status).toBe('UP');
+        at D:\GitProjects\DSR\e2e-tests\tests\auth-backend.spec.ts:17:33
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-webkit\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-webkit\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should handle login request with demo credentials" classname="auth-backend.spec.ts" time="0.108">
+<system-out>
+<![CDATA[Login response status: [33m403[39m
+Login response body: 
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should handle citizen login request" classname="auth-backend.spec.ts" time="0.093">
+<system-out>
+<![CDATA[Citizen login response status: [33m403[39m
+Citizen login response body: 
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should reject invalid credentials" classname="auth-backend.spec.ts" time="0.133">
+<system-out>
+<![CDATA[Invalid login response status: [33m403[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Registration Endpoints › should respond to registration endpoint" classname="auth-backend.spec.ts" time="0.133">
+<system-out>
+<![CDATA[Registration response status: [33m403[39m
+Registration response body: 
+]]>
+</system-out>
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+]]>
+</system-err>
+</testcase>
+<testcase name="Backend Authentication API › API Documentation › should serve Swagger UI" classname="auth-backend.spec.ts" time="0.019">
+<system-out>
+<![CDATA[Swagger UI response status: [33m200[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › API Documentation › should serve API docs" classname="auth-backend.spec.ts" time="1.341">
+<system-out>
+<![CDATA[API docs response status: [33m200[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Service Information › should provide service info" classname="auth-backend.spec.ts" time="0.036">
+<system-out>
+<![CDATA[Service info response status: [33m200[39m
+Service info: {}
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Security Headers › should include security headers" classname="auth-backend.spec.ts" time="0.082">
+<system-out>
+<![CDATA[Response headers: {
+  vary: [32m'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'[39m,
+  [32m'x-content-type-options'[39m: [32m'nosniff'[39m,
+  [32m'x-xss-protection'[39m: [32m'0'[39m,
+  [32m'cache-control'[39m: [32m'no-cache, no-store, max-age=0, must-revalidate'[39m,
+  pragma: [32m'no-cache'[39m,
+  expires: [32m'0'[39m,
+  [32m'x-frame-options'[39m: [32m'DENY'[39m,
+  [32m'content-type'[39m: [32m'application/vnd.spring-boot.actuator.v3+json'[39m,
+  [32m'transfer-encoding'[39m: [32m'chunked'[39m,
+  date: [32m'Tue, 08 Jul 2025 01:52:01 GMT'[39m,
+  connection: [32m'close'[39m
+}
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+]]>
+</system-out>
+</testcase>
+<testcase name="Test Data Generation › should generate valid test credentials" classname="auth-backend.spec.ts" time="0.009">
+</testcase>
+<testcase name="Test Data Generation › should generate valid user data" classname="auth-backend.spec.ts" time="0.006">
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+]]>
+</system-err>
+</testcase>
+<testcase name="Test Data Generation › should generate valid household data" classname="auth-backend.spec.ts" time="0.004">
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.location.streetName is deprecated since v8.0 and will be removed in v9.0. Please use faker.location.street instead.
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="auth-backend.spec.ts" timestamp="2025-07-08T01:51:52.797Z" hostname="mobile-chrome" tests="12" failures="1" skipped="0" time="2.164" errors="0">
+<testcase name="Backend Authentication API › Authentication Endpoints › should respond to health check" classname="auth-backend.spec.ts" time="0.131">
+<failure message="auth-backend.spec.ts:15:9 should respond to health check" type="FAILURE">
+<![CDATA[  [mobile-chrome] › auth-backend.spec.ts:15:9 › Backend Authentication API › Authentication Endpoints › should respond to health check 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 503
+
+      15 |     test('should respond to health check', async ({ request }) => {
+      16 |       const response = await request.get(`${API_BASE_URL}/actuator/health`);
+    > 17 |       expect(response.status()).toBe(200);
+         |                                 ^
+      18 |       
+      19 |       const health = await response.json();
+      20 |       expect(health.status).toBe('UP');
+        at D:\GitProjects\DSR\e2e-tests\tests\auth-backend.spec.ts:17:33
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-mobile-chrome\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-mobile-chrome\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-mobile-chrome\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should handle login request with demo credentials" classname="auth-backend.spec.ts" time="0.08">
+<system-out>
+<![CDATA[Login response status: [33m403[39m
+Login response body: 
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should handle citizen login request" classname="auth-backend.spec.ts" time="0.06">
+<system-out>
+<![CDATA[Citizen login response status: [33m403[39m
+Citizen login response body: 
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should reject invalid credentials" classname="auth-backend.spec.ts" time="0.076">
+<system-out>
+<![CDATA[Invalid login response status: [33m403[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Registration Endpoints › should respond to registration endpoint" classname="auth-backend.spec.ts" time="0.179">
+<system-out>
+<![CDATA[Registration response status: [33m403[39m
+Registration response body: 
+]]>
+</system-out>
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+]]>
+</system-err>
+</testcase>
+<testcase name="Backend Authentication API › API Documentation › should serve Swagger UI" classname="auth-backend.spec.ts" time="0.079">
+<system-out>
+<![CDATA[Swagger UI response status: [33m200[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › API Documentation › should serve API docs" classname="auth-backend.spec.ts" time="1.427">
+<system-out>
+<![CDATA[API docs response status: [33m200[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Service Information › should provide service info" classname="auth-backend.spec.ts" time="0.034">
+<system-out>
+<![CDATA[Service info response status: [33m200[39m
+Service info: {}
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Security Headers › should include security headers" classname="auth-backend.spec.ts" time="0.079">
+<system-out>
+<![CDATA[Response headers: {
+  vary: [32m'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'[39m,
+  [32m'x-content-type-options'[39m: [32m'nosniff'[39m,
+  [32m'x-xss-protection'[39m: [32m'0'[39m,
+  [32m'cache-control'[39m: [32m'no-cache, no-store, max-age=0, must-revalidate'[39m,
+  pragma: [32m'no-cache'[39m,
+  expires: [32m'0'[39m,
+  [32m'x-frame-options'[39m: [32m'DENY'[39m,
+  [32m'content-type'[39m: [32m'application/vnd.spring-boot.actuator.v3+json'[39m,
+  [32m'transfer-encoding'[39m: [32m'chunked'[39m,
+  date: [32m'Tue, 08 Jul 2025 01:52:01 GMT'[39m,
+  connection: [32m'close'[39m
+}
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+]]>
+</system-out>
+</testcase>
+<testcase name="Test Data Generation › should generate valid test credentials" classname="auth-backend.spec.ts" time="0.01">
+</testcase>
+<testcase name="Test Data Generation › should generate valid user data" classname="auth-backend.spec.ts" time="0.005">
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+]]>
+</system-err>
+</testcase>
+<testcase name="Test Data Generation › should generate valid household data" classname="auth-backend.spec.ts" time="0.004">
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.location.streetName is deprecated since v8.0 and will be removed in v9.0. Please use faker.location.street instead.
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="auth-backend.spec.ts" timestamp="2025-07-08T01:51:52.797Z" hostname="mobile-safari" tests="12" failures="1" skipped="0" time="2.219" errors="0">
+<testcase name="Backend Authentication API › Authentication Endpoints › should respond to health check" classname="auth-backend.spec.ts" time="0.146">
+<failure message="auth-backend.spec.ts:15:9 should respond to health check" type="FAILURE">
+<![CDATA[  [mobile-safari] › auth-backend.spec.ts:15:9 › Backend Authentication API › Authentication Endpoints › should respond to health check 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 503
+
+      15 |     test('should respond to health check', async ({ request }) => {
+      16 |       const response = await request.get(`${API_BASE_URL}/actuator/health`);
+    > 17 |       expect(response.status()).toBe(200);
+         |                                 ^
+      18 |       
+      19 |       const health = await response.json();
+      20 |       expect(health.status).toBe('UP');
+        at D:\GitProjects\DSR\e2e-tests\tests\auth-backend.spec.ts:17:33
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-mobile-safari\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-mobile-safari\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-mobile-safari\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should handle login request with demo credentials" classname="auth-backend.spec.ts" time="0.073">
+<system-out>
+<![CDATA[Login response status: [33m403[39m
+Login response body: 
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should handle citizen login request" classname="auth-backend.spec.ts" time="0.051">
+<system-out>
+<![CDATA[Citizen login response status: [33m403[39m
+Citizen login response body: 
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should reject invalid credentials" classname="auth-backend.spec.ts" time="0.056">
+<system-out>
+<![CDATA[Invalid login response status: [33m403[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Registration Endpoints › should respond to registration endpoint" classname="auth-backend.spec.ts" time="0.252">
+<system-out>
+<![CDATA[Registration response status: [33m403[39m
+Registration response body: 
+]]>
+</system-out>
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+]]>
+</system-err>
+</testcase>
+<testcase name="Backend Authentication API › API Documentation › should serve Swagger UI" classname="auth-backend.spec.ts" time="0.082">
+<system-out>
+<![CDATA[Swagger UI response status: [33m200[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › API Documentation › should serve API docs" classname="auth-backend.spec.ts" time="1.428">
+<system-out>
+<![CDATA[API docs response status: [33m200[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Service Information › should provide service info" classname="auth-backend.spec.ts" time="0.035">
+<system-out>
+<![CDATA[Service info response status: [33m200[39m
+Service info: {}
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Security Headers › should include security headers" classname="auth-backend.spec.ts" time="0.076">
+<system-out>
+<![CDATA[Response headers: {
+  vary: [32m'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'[39m,
+  [32m'x-content-type-options'[39m: [32m'nosniff'[39m,
+  [32m'x-xss-protection'[39m: [32m'0'[39m,
+  [32m'cache-control'[39m: [32m'no-cache, no-store, max-age=0, must-revalidate'[39m,
+  pragma: [32m'no-cache'[39m,
+  expires: [32m'0'[39m,
+  [32m'x-frame-options'[39m: [32m'DENY'[39m,
+  [32m'content-type'[39m: [32m'application/vnd.spring-boot.actuator.v3+json'[39m,
+  [32m'transfer-encoding'[39m: [32m'chunked'[39m,
+  date: [32m'Tue, 08 Jul 2025 01:52:01 GMT'[39m,
+  connection: [32m'close'[39m
+}
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+]]>
+</system-out>
+</testcase>
+<testcase name="Test Data Generation › should generate valid test credentials" classname="auth-backend.spec.ts" time="0.003">
+</testcase>
+<testcase name="Test Data Generation › should generate valid user data" classname="auth-backend.spec.ts" time="0.012">
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+]]>
+</system-err>
+</testcase>
+<testcase name="Test Data Generation › should generate valid household data" classname="auth-backend.spec.ts" time="0.005">
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.location.streetName is deprecated since v8.0 and will be removed in v9.0. Please use faker.location.street instead.
+]]>
+</system-err>
+</testcase>
+</testsuite>
+<testsuite name="auth-backend.spec.ts" timestamp="2025-07-08T01:51:52.797Z" hostname="tablet" tests="12" failures="1" skipped="0" time="2.209" errors="0">
+<testcase name="Backend Authentication API › Authentication Endpoints › should respond to health check" classname="auth-backend.spec.ts" time="0.102">
+<failure message="auth-backend.spec.ts:15:9 should respond to health check" type="FAILURE">
+<![CDATA[  [tablet] › auth-backend.spec.ts:15:9 › Backend Authentication API › Authentication Endpoints › should respond to health check 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 503
+
+      15 |     test('should respond to health check', async ({ request }) => {
+      16 |       const response = await request.get(`${API_BASE_URL}/actuator/health`);
+    > 17 |       expect(response.status()).toBe(200);
+         |                                 ^
+      18 |       
+      19 |       const health = await response.json();
+      20 |       expect(health.status).toBe('UP');
+        at D:\GitProjects\DSR\e2e-tests\tests\auth-backend.spec.ts:17:33
+
+    attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-tablet\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-tablet\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|artifacts\auth-backend-Backend-Authe-fdbf3-uld-respond-to-health-check-tablet\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should handle login request with demo credentials" classname="auth-backend.spec.ts" time="0.064">
+<system-out>
+<![CDATA[Login response status: [33m403[39m
+Login response body: 
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should handle citizen login request" classname="auth-backend.spec.ts" time="0.046">
+<system-out>
+<![CDATA[Citizen login response status: [33m403[39m
+Citizen login response body: 
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Authentication Endpoints › should reject invalid credentials" classname="auth-backend.spec.ts" time="0.051">
+<system-out>
+<![CDATA[Invalid login response status: [33m403[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Registration Endpoints › should respond to registration endpoint" classname="auth-backend.spec.ts" time="0.335">
+<system-out>
+<![CDATA[Registration response status: [33m403[39m
+Registration response body: 
+]]>
+</system-out>
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+]]>
+</system-err>
+</testcase>
+<testcase name="Backend Authentication API › API Documentation › should serve Swagger UI" classname="auth-backend.spec.ts" time="0.133">
+<system-out>
+<![CDATA[Swagger UI response status: [33m200[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › API Documentation › should serve API docs" classname="auth-backend.spec.ts" time="1.35">
+<system-out>
+<![CDATA[API docs response status: [33m200[39m
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Service Information › should provide service info" classname="auth-backend.spec.ts" time="0.032">
+<system-out>
+<![CDATA[Service info response status: [33m200[39m
+Service info: {}
+]]>
+</system-out>
+</testcase>
+<testcase name="Backend Authentication API › Security Headers › should include security headers" classname="auth-backend.spec.ts" time="0.083">
+<system-out>
+<![CDATA[Response headers: {
+  vary: [32m'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'[39m,
+  [32m'x-content-type-options'[39m: [32m'nosniff'[39m,
+  [32m'x-xss-protection'[39m: [32m'0'[39m,
+  [32m'cache-control'[39m: [32m'no-cache, no-store, max-age=0, must-revalidate'[39m,
+  pragma: [32m'no-cache'[39m,
+  expires: [32m'0'[39m,
+  [32m'x-frame-options'[39m: [32m'DENY'[39m,
+  [32m'content-type'[39m: [32m'application/vnd.spring-boot.actuator.v3+json'[39m,
+  [32m'transfer-encoding'[39m: [32m'chunked'[39m,
+  date: [32m'Tue, 08 Jul 2025 01:52:01 GMT'[39m,
+  connection: [32m'close'[39m
+}
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+]]>
+</system-out>
+</testcase>
+<testcase name="Test Data Generation › should generate valid test credentials" classname="auth-backend.spec.ts" time="0.004">
+</testcase>
+<testcase name="Test Data Generation › should generate valid user data" classname="auth-backend.spec.ts" time="0.004">
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+]]>
+</system-err>
+</testcase>
+<testcase name="Test Data Generation › should generate valid household data" classname="auth-backend.spec.ts" time="0.005">
+<system-err>
+<![CDATA[[@faker-js/faker]: faker.phone.number(format) is deprecated since v8.1 and will be removed in v9.0. Please use faker.phone.number(), faker.string.numeric() or faker.helpers.fromRegExp() instead.
+[@faker-js/faker]: faker.location.streetName is deprecated since v8.0 and will be removed in v9.0. Please use faker.location.street instead.
+]]>
+</system-err>
+</testcase>
+</testsuite>
+</testsuites>

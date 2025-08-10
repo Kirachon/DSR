@@ -1,0 +1,316 @@
+# DSR Production Monitoring Stack
+# Comprehensive monitoring configuration with Prometheus, Grafana, and Alertmanager
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dsr-monitoring
+  labels:
+    name: dsr-monitoring
+---
+# Prometheus Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: dsr-monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    
+    rule_files:
+      - "/etc/prometheus/rules/*.yml"
+    
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+              - alertmanager:9093
+    
+    scrape_configs:
+      # DSR Services
+      - job_name: 'dsr-registration-service'
+        static_configs:
+          - targets: ['dsr-registration-service.dsr-production:8080']
+        metrics_path: '/actuator/prometheus'
+        scrape_interval: 30s
+      
+      - job_name: 'dsr-data-management-service'
+        static_configs:
+          - targets: ['dsr-data-management-service.dsr-production:8081']
+        metrics_path: '/actuator/prometheus'
+        scrape_interval: 30s
+      
+      - job_name: 'dsr-eligibility-service'
+        static_configs:
+          - targets: ['dsr-eligibility-service.dsr-production:8082']
+        metrics_path: '/actuator/prometheus'
+        scrape_interval: 30s
+      
+      - job_name: 'dsr-payment-service'
+        static_configs:
+          - targets: ['dsr-payment-service.dsr-production:8083']
+        metrics_path: '/actuator/prometheus'
+        scrape_interval: 30s
+      
+      - job_name: 'dsr-interoperability-service'
+        static_configs:
+          - targets: ['dsr-interoperability-service.dsr-production:8084']
+        metrics_path: '/actuator/prometheus'
+        scrape_interval: 30s
+      
+      - job_name: 'dsr-grievance-service'
+        static_configs:
+          - targets: ['dsr-grievance-service.dsr-production:8085']
+        metrics_path: '/actuator/prometheus'
+        scrape_interval: 30s
+      
+      - job_name: 'dsr-analytics-service'
+        static_configs:
+          - targets: ['dsr-analytics-service.dsr-production:8086']
+        metrics_path: '/actuator/prometheus'
+        scrape_interval: 30s
+      
+      # Infrastructure
+      - job_name: 'postgresql'
+        static_configs:
+          - targets: ['postgresql-exporter.dsr-production:9187']
+      
+      - job_name: 'redis'
+        static_configs:
+          - targets: ['redis-exporter.dsr-production:9121']
+      
+      - job_name: 'kafka'
+        static_configs:
+          - targets: ['kafka-exporter.dsr-production:9308']
+      
+      # Kubernetes
+      - job_name: 'kubernetes-apiservers'
+        kubernetes_sd_configs:
+        - role: endpoints
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+          action: keep
+          regex: default;kubernetes;https
+      
+      - job_name: 'kubernetes-nodes'
+        kubernetes_sd_configs:
+        - role: node
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+        - action: labelmap
+          regex: __meta_kubernetes_node_label_(.+)
+        - target_label: __address__
+          replacement: kubernetes.default.svc:443
+        - source_labels: [__meta_kubernetes_node_name]
+          regex: (.+)
+          target_label: __metrics_path__
+          replacement: /api/v1/nodes/${1}/proxy/metrics
+---
+# Alerting Rules
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: dsr-monitoring
+data:
+  dsr-alerts.yml: |
+    groups:
+    - name: dsr-services
+      rules:
+      - alert: DSRServiceDown
+        expr: up{job=~"dsr-.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "DSR service {{ $labels.job }} is down"
+          description: "DSR service {{ $labels.job }} has been down for more than 1 minute."
+      
+      - alert: DSRHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value }} errors per second on {{ $labels.job }}."
+      
+      - alert: DSRHighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time on {{ $labels.job }}"
+          description: "95th percentile response time is {{ $value }}s on {{ $labels.job }}."
+      
+      - alert: DSRDatabaseConnectionHigh
+        expr: hikaricp_connections_active / hikaricp_connections_max > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database connection usage on {{ $labels.job }}"
+          description: "Database connection pool usage is {{ $value | humanizePercentage }} on {{ $labels.job }}."
+      
+      - alert: DSRMemoryUsageHigh
+        expr: jvm_memory_used_bytes / jvm_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High memory usage on {{ $labels.job }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.job }}."
+---
+# Prometheus Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: dsr-monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccountName: prometheus
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.45.0
+        args:
+          - '--config.file=/etc/prometheus/prometheus.yml'
+          - '--storage.tsdb.path=/prometheus/'
+          - '--web.console.libraries=/etc/prometheus/console_libraries'
+          - '--web.console.templates=/etc/prometheus/consoles'
+          - '--storage.tsdb.retention.time=200h'
+          - '--web.enable-lifecycle'
+          - '--web.enable-admin-api'
+        ports:
+        - containerPort: 9090
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        volumeMounts:
+        - name: prometheus-config-volume
+          mountPath: /etc/prometheus/
+        - name: prometheus-rules-volume
+          mountPath: /etc/prometheus/rules/
+        - name: prometheus-storage-volume
+          mountPath: /prometheus/
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 9090
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: 9090
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+      volumes:
+      - name: prometheus-config-volume
+        configMap:
+          defaultMode: 420
+          name: prometheus-config
+      - name: prometheus-rules-volume
+        configMap:
+          defaultMode: 420
+          name: prometheus-rules
+      - name: prometheus-storage-volume
+        persistentVolumeClaim:
+          claimName: prometheus-pvc
+---
+# Prometheus Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: dsr-monitoring
+  labels:
+    app: prometheus
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: prometheus
+---
+# Prometheus ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: dsr-monitoring
+---
+# Prometheus ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+---
+# Prometheus ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: dsr-monitoring
+---
+# Prometheus PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-pvc
+  namespace: dsr-monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd

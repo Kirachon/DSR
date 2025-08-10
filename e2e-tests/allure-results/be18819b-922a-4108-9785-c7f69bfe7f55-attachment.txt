@@ -1,0 +1,4 @@
+Network responses: [
+  '200 http://localhost:3000/_next/static/chunks/_app-pages-browser_node_modules_next_dist_client_dev_noop-turbopack-hmr_js.js'
+]
+CORS-enabled responses: 0

@@ -1,0 +1,19 @@
+{
+  "name": "dsr-performance-testing",
+  "version": "1.0.0",
+  "description": "DSR Performance Testing Suite with K6 and Playwright integration",
+  "main": "k6-load-testing.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "load-test": "k6 run k6-load-testing.js",
+    "stress-test": "k6 run k6-stress-testing.js",
+    "performance-test": "bash run-performance-tests.sh",
+    "validate-data": "node data-generators/production-data-generator.js"
+  },
+  "keywords": ["performance", "load-testing", "k6", "dsr", "philippines"],
+  "author": "DSR Development Team",
+  "license": "ISC",
+  "dependencies": {
+    "@faker-js/faker": "^9.9.0"
+  }
+}

@@ -1,0 +1,17 @@
+apiVersion: v2
+name: dsr-eureka-server
+description: DSR Eureka Server Helm Chart for Service Discovery
+type: application
+version: 3.0.0
+appVersion: "3.0.0"
+
+keywords:
+  - eureka
+  - service-discovery
+  - microservices
+  - spring-cloud
+  - dsr
+
+maintainers:
+  - name: DSR Development Team
+    email: dev@dsr.gov.ph

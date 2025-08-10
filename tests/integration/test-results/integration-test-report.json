@@ -1,0 +1,62 @@
+{
+  "teardownStartedAt": "2025-07-02T02:17:54.370Z",
+  "testSuites": [
+    "DSR Comprehensive Integration Tests",
+    "DSR Role-Based Access Control Tests",
+    "DSR Data Flow Integrity Validation",
+    "DSR Performance Integration Tests"
+  ],
+  "services": [
+    "Registration Service",
+    "Data Management Service",
+    "Eligibility Service",
+    "Payment Service",
+    "Interoperability Service",
+    "Grievance Service",
+    "Analytics Service"
+  ],
+  "testCategories": {
+    "serviceHealth": "Service connectivity and health validation",
+    "endToEndWorkflows": "Complete citizen journey testing",
+    "roleBasedAccess": "User role and permission validation",
+    "dataIntegrity": "Cross-service data consistency",
+    "performance": "Load testing and response time validation",
+    "integration": "Inter-service communication testing"
+  },
+  "finalHealthChecks": [
+    {
+      "service": "registration",
+      "status": "ERROR"
+    },
+    {
+      "service": "dataManagement",
+      "status": "ERROR"
+    },
+    {
+      "service": "eligibility",
+      "status": "ERROR"
+    },
+    {
+      "service": "payment",
+      "status": "ERROR"
+    },
+    {
+      "service": "interoperability",
+      "status": "ERROR"
+    },
+    {
+      "service": "grievance",
+      "status": "ERROR"
+    },
+    {
+      "service": "analytics",
+      "status": "ERROR"
+    }
+  ],
+  "summary": {
+    "totalServices": 7,
+    "healthyServices": 0,
+    "testDuration": "Unknown",
+    "completedAt": "2025-07-02T02:17:56.557Z"
+  }
+}

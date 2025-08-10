@@ -1,0 +1,234 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: dsr-api-gateway
+  
+  # Redis Configuration for Rate Limiting
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+  # Gateway Configuration
+  cloud:
+    gateway:
+      routes:
+        # Registration Service
+        - id: registration-service
+          uri: lb://dsr-registration-service
+          predicates:
+            - Path=/api/v1/registration/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: registration-cb
+                fallbackUri: forward:/fallback/registration
+
+        # Data Management Service  
+        - id: data-management-service
+          uri: lb://dsr-data-management-service
+          predicates:
+            - Path=/api/v1/data/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: data-management-cb
+                fallbackUri: forward:/fallback/data-management
+
+        # Eligibility Service
+        - id: eligibility-service
+          uri: lb://dsr-eligibility-service
+          predicates:
+            - Path=/api/v1/eligibility/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: eligibility-cb
+                fallbackUri: forward:/fallback/eligibility
+
+        # Payment Service
+        - id: payment-service
+          uri: lb://dsr-payment-service
+          predicates:
+            - Path=/api/v1/payments/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: payment-cb
+                fallbackUri: forward:/fallback/payment
+
+        # Interoperability Service
+        - id: interoperability-service
+          uri: lb://dsr-interoperability-service
+          predicates:
+            - Path=/api/v1/interop/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: interop-cb
+                fallbackUri: forward:/fallback/interop
+
+        # Grievance Service
+        - id: grievance-service
+          uri: lb://dsr-grievance-service
+          predicates:
+            - Path=/api/v1/grievances/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100
+                redis-rate-limiter.burstCapacity: 200
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: grievance-cb
+                fallbackUri: forward:/fallback/grievance
+
+        # Analytics Service
+        - id: analytics-service
+          uri: lb://dsr-analytics-service
+          predicates:
+            - Path=/api/v1/analytics/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 200
+                redis-rate-limiter.burstCapacity: 400
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: analytics-cb
+                fallbackUri: forward:/fallback/analytics
+
+      # Global CORS Configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: 
+              - "https://dsr.gov.ph"
+              - "https://admin.dsr.gov.ph"
+              - "http://localhost:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+# Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      registration-cb:
+        failure-rate-threshold: 50
+        minimum-number-of-calls: 10
+        sliding-window-size: 20
+        wait-duration-in-open-state: 30s
+      data-management-cb:
+        failure-rate-threshold: 50
+        minimum-number-of-calls: 10
+        sliding-window-size: 20
+        wait-duration-in-open-state: 30s
+      eligibility-cb:
+        failure-rate-threshold: 50
+        minimum-number-of-calls: 10
+        sliding-window-size: 20
+        wait-duration-in-open-state: 30s
+      payment-cb:
+        failure-rate-threshold: 30
+        minimum-number-of-calls: 10
+        sliding-window-size: 20
+        wait-duration-in-open-state: 60s
+      interop-cb:
+        failure-rate-threshold: 50
+        minimum-number-of-calls: 10
+        sliding-window-size: 20
+        wait-duration-in-open-state: 30s
+      grievance-cb:
+        failure-rate-threshold: 50
+        minimum-number-of-calls: 10
+        sliding-window-size: 20
+        wait-duration-in-open-state: 30s
+      analytics-cb:
+        failure-rate-threshold: 60
+        minimum-number-of-calls: 10
+        sliding-window-size: 20
+        wait-duration-in-open-state: 30s
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    ph.gov.dsr.gateway: INFO
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/api-gateway.log
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:dsr_gateway_jwt_secret_key_2024}
+  expiration: 86400000 # 24 hours

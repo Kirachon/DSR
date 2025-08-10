@@ -1,0 +1,298 @@
+# DSR Production Security Policies
+# Comprehensive security configuration for production deployment
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dsr-production
+  labels:
+    name: dsr-production
+    security.policy: "strict"
+---
+# Network Policy - Restrict inter-pod communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dsr-network-policy
+  namespace: dsr-production
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: dsr-production
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: dsr-production
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 443
+---
+# Pod Security Policy
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: dsr-restricted-psp
+  namespace: dsr-production
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'RunAsAny'
+---
+# Service Account for DSR services
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dsr-service-account
+  namespace: dsr-production
+automountServiceAccountToken: false
+---
+# Role for DSR services
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: dsr-service-role
+  namespace: dsr-production
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+---
+# Role Binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dsr-service-rolebinding
+  namespace: dsr-production
+subjects:
+- kind: ServiceAccount
+  name: dsr-service-account
+  namespace: dsr-production
+roleRef:
+  kind: Role
+  name: dsr-service-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Security Context Constraints
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: dsr-scc
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegedContainer: false
+allowedCapabilities: null
+defaultAddCapabilities: null
+requiredDropCapabilities:
+- KILL
+- MKNOD
+- SETUID
+- SETGID
+fsGroup:
+  type: RunAsAny
+readOnlyRootFilesystem: false
+runAsUser:
+  type: MustRunAsNonRoot
+seLinuxContext:
+  type: MustRunAs
+volumes:
+- configMap
+- downwardAPI
+- emptyDir
+- persistentVolumeClaim
+- projected
+- secret
+users:
+- system:serviceaccount:dsr-production:dsr-service-account
+---
+# Secret for JWT configuration
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dsr-jwt-secret
+  namespace: dsr-production
+type: Opaque
+stringData:
+  jwt-secret: "CHANGE_ME_IN_PRODUCTION_USE_STRONG_SECRET_KEY"
+  jwt-expiration: "86400"
+  jwt-refresh-expiration: "604800"
+---
+# Secret for database credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dsr-database-secret
+  namespace: dsr-production
+type: Opaque
+stringData:
+  database-url: "jdbc:postgresql://postgresql.dsr-production:5432/dsr_production"
+  database-username: "dsr_production_user"
+  database-password: "CHANGE_ME_IN_PRODUCTION"
+---
+# ConfigMap for security configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dsr-security-config
+  namespace: dsr-production
+data:
+  security.properties: |
+    # Security Configuration
+    security.jwt.enabled=true
+    security.cors.enabled=true
+    security.cors.allowed-origins=https://dsr.gov.ph,https://www.dsr.gov.ph
+    security.cors.allowed-methods=GET,POST,PUT,DELETE,PATCH,OPTIONS
+    security.cors.allowed-headers=Authorization,Content-Type,Accept,Origin,X-Requested-With
+    security.cors.allow-credentials=true
+    security.headers.frame-options=DENY
+    security.headers.content-type-options=nosniff
+    security.headers.xss-protection=1; mode=block
+    security.headers.hsts=max-age=31536000; includeSubDomains; preload
+    security.rate-limiting.enabled=true
+    security.rate-limiting.requests-per-minute=100
+    security.audit.enabled=true
+    security.audit.log-level=INFO
+---
+# TLS Certificate (placeholder - replace with actual certificate)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dsr-tls-secret
+  namespace: dsr-production
+type: kubernetes.io/tls
+stringData:
+  tls.crt: |
+    -----BEGIN CERTIFICATE-----
+    # REPLACE WITH ACTUAL TLS CERTIFICATE
+    -----END CERTIFICATE-----
+  tls.key: |
+    -----BEGIN PRIVATE KEY-----
+    # REPLACE WITH ACTUAL PRIVATE KEY
+    -----END PRIVATE KEY-----
+---
+# Ingress with TLS termination
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dsr-ingress
+  namespace: dsr-production
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.2 TLSv1.3"
+    nginx.ingress.kubernetes.io/ssl-ciphers: "ECDHE-RSA-AES128-GCM-SHA256,ECDHE-RSA-AES256-GCM-SHA384"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+spec:
+  tls:
+  - hosts:
+    - dsr.gov.ph
+    - www.dsr.gov.ph
+    - api.dsr.gov.ph
+    secretName: dsr-tls-secret
+  rules:
+  - host: dsr.gov.ph
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: dsr-frontend
+            port:
+              number: 3000
+  - host: api.dsr.gov.ph
+    http:
+      paths:
+      - path: /api/v1/auth
+        pathType: Prefix
+        backend:
+          service:
+            name: dsr-registration-service
+            port:
+              number: 8080
+      - path: /api/v1/registrations
+        pathType: Prefix
+        backend:
+          service:
+            name: dsr-registration-service
+            port:
+              number: 8080
+      - path: /api/v1/data
+        pathType: Prefix
+        backend:
+          service:
+            name: dsr-data-management-service
+            port:
+              number: 8081
+      - path: /api/v1/eligibility
+        pathType: Prefix
+        backend:
+          service:
+            name: dsr-eligibility-service
+            port:
+              number: 8082
+      - path: /api/v1/payments
+        pathType: Prefix
+        backend:
+          service:
+            name: dsr-payment-service
+            port:
+              number: 8083
+      - path: /api/v1/interoperability
+        pathType: Prefix
+        backend:
+          service:
+            name: dsr-interoperability-service
+            port:
+              number: 8084
+      - path: /api/v1/grievances
+        pathType: Prefix
+        backend:
+          service:
+            name: dsr-grievance-service
+            port:
+              number: 8085
+      - path: /api/v1/analytics
+        pathType: Prefix
+        backend:
+          service:
+            name: dsr-analytics-service
+            port:
+              number: 8086

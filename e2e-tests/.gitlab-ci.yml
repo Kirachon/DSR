@@ -1,0 +1,292 @@
+# GitLab CI/CD Pipeline for DSR E2E Tests
+
+stages:
+  - setup
+  - test
+  - report
+  - cleanup
+
+variables:
+  NODE_VERSION: "18"
+  PLAYWRIGHT_VERSION: "1.40.0"
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+
+# Cache configuration
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - ~/.cache/ms-playwright/
+
+# =====================================================
+# SETUP STAGE
+# =====================================================
+
+setup:dependencies:
+  stage: setup
+  image: node:${NODE_VERSION}-alpine
+  script:
+    - echo "Installing dependencies..."
+    - npm ci
+    - npx playwright install --with-deps
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 1 hour
+  only:
+    - merge_requests
+    - main
+    - develop
+
+setup:services:
+  stage: setup
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  script:
+    - echo "Starting DSR services..."
+    - cd ..
+    - docker-compose -f docker-compose.test.yml up -d
+    - sleep 30
+    - echo "Waiting for services to be ready..."
+    - ./scripts/wait-for-services.sh
+  artifacts:
+    reports:
+      dotenv: service-urls.env
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# =====================================================
+# TEST STAGE
+# =====================================================
+
+test:e2e:chrome:
+  stage: test
+  image: mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-focal
+  dependencies:
+    - setup:dependencies
+    - setup:services
+  variables:
+    BROWSER: "chromium"
+    HEADLESS: "true"
+    CI: "true"
+  script:
+    - echo "Running E2E tests on Chrome..."
+    - npm run test:chrome -- --reporter=junit,allure-playwright
+  artifacts:
+    when: always
+    paths:
+      - test-results/
+      - allure-results/
+    reports:
+      junit: test-results/junit-report.xml
+    expire_in: 1 week
+  only:
+    - merge_requests
+    - main
+    - develop
+
+test:e2e:firefox:
+  stage: test
+  image: mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-focal
+  dependencies:
+    - setup:dependencies
+    - setup:services
+  variables:
+    BROWSER: "firefox"
+    HEADLESS: "true"
+    CI: "true"
+  script:
+    - echo "Running E2E tests on Firefox..."
+    - npm run test:firefox -- --reporter=junit,allure-playwright
+  artifacts:
+    when: always
+    paths:
+      - test-results/
+      - allure-results/
+    reports:
+      junit: test-results/junit-report.xml
+    expire_in: 1 week
+  only:
+    - main
+    - develop
+  allow_failure: true
+
+test:e2e:safari:
+  stage: test
+  image: mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-focal
+  dependencies:
+    - setup:dependencies
+    - setup:services
+  variables:
+    BROWSER: "webkit"
+    HEADLESS: "true"
+    CI: "true"
+  script:
+    - echo "Running E2E tests on Safari..."
+    - npm run test:safari -- --reporter=junit,allure-playwright
+  artifacts:
+    when: always
+    paths:
+      - test-results/
+      - allure-results/
+    reports:
+      junit: test-results/junit-report.xml
+    expire_in: 1 week
+  only:
+    - main
+    - develop
+  allow_failure: true
+
+test:e2e:mobile:
+  stage: test
+  image: mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-focal
+  dependencies:
+    - setup:dependencies
+    - setup:services
+  variables:
+    BROWSER: "mobile-chrome"
+    HEADLESS: "true"
+    CI: "true"
+  script:
+    - echo "Running E2E tests on mobile..."
+    - npm run test:mobile -- --reporter=junit,allure-playwright
+  artifacts:
+    when: always
+    paths:
+      - test-results/
+      - allure-results/
+    reports:
+      junit: test-results/junit-report.xml
+    expire_in: 1 week
+  only:
+    - main
+    - develop
+
+test:smoke:
+  stage: test
+  image: mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-focal
+  dependencies:
+    - setup:dependencies
+    - setup:services
+  variables:
+    HEADLESS: "true"
+    CI: "true"
+  script:
+    - echo "Running smoke tests..."
+    - npm run test:smoke -- --reporter=junit,allure-playwright
+  artifacts:
+    when: always
+    paths:
+      - test-results/
+      - allure-results/
+    reports:
+      junit: test-results/junit-report.xml
+    expire_in: 1 week
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# =====================================================
+# REPORT STAGE
+# =====================================================
+
+generate:allure:report:
+  stage: report
+  image: node:${NODE_VERSION}-alpine
+  dependencies:
+    - test:e2e:chrome
+    - test:e2e:firefox
+    - test:e2e:safari
+    - test:e2e:mobile
+  script:
+    - echo "Generating Allure report..."
+    - npm install -g allure-commandline
+    - allure generate allure-results --clean -o allure-report
+  artifacts:
+    paths:
+      - allure-report/
+    expire_in: 1 month
+  only:
+    - main
+    - develop
+
+publish:test:results:
+  stage: report
+  image: alpine:latest
+  dependencies:
+    - test:e2e:chrome
+    - test:e2e:firefox
+    - test:e2e:safari
+    - test:e2e:mobile
+    - generate:allure:report
+  script:
+    - echo "Publishing test results..."
+    - apk add --no-cache curl
+    - |
+      if [ -n "$SLACK_WEBHOOK_URL" ]; then
+        curl -X POST -H 'Content-type: application/json' \
+          --data "{\"text\":\"🧪 DSR E2E Tests completed for commit ${CI_COMMIT_SHORT_SHA} on branch ${CI_COMMIT_REF_NAME}\"}" \
+          $SLACK_WEBHOOK_URL
+      fi
+  only:
+    - main
+    - develop
+
+# =====================================================
+# CLEANUP STAGE
+# =====================================================
+
+cleanup:services:
+  stage: cleanup
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  script:
+    - echo "Cleaning up services..."
+    - cd ..
+    - docker-compose -f docker-compose.test.yml down -v
+    - docker system prune -f
+  when: always
+  only:
+    - merge_requests
+    - main
+    - develop
+
+# =====================================================
+# SCHEDULED JOBS
+# =====================================================
+
+test:regression:nightly:
+  extends: test:e2e:chrome
+  variables:
+    TEST_SUITE: "regression"
+  script:
+    - echo "Running nightly regression tests..."
+    - npm run test:regression -- --reporter=junit,allure-playwright
+  only:
+    - schedules
+  when: manual
+
+test:performance:weekly:
+  stage: test
+  image: mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-focal
+  dependencies:
+    - setup:dependencies
+    - setup:services
+  script:
+    - echo "Running performance tests..."
+    - npm run test -- --grep="@performance" --reporter=junit,allure-playwright
+  artifacts:
+    when: always
+    paths:
+      - test-results/
+      - performance-results/
+    expire_in: 1 month
+  only:
+    - schedules
+  when: manual

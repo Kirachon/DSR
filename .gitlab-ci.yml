@@ -184,7 +184,7 @@ test:integration:
   variables:
     POSTGRES_DB: dsr_test
     POSTGRES_USER: dsr_test
-    POSTGRES_PASSWORD: test_password
+    POSTGRES_PASSWORD: $CI_POSTGRES_PASSWORD
     SPRING_PROFILES_ACTIVE: test
   script:
     - echo "Running integration tests..."

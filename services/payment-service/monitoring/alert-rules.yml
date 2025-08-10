@@ -1,0 +1,237 @@
+groups:
+  - name: payment-service-alerts
+    rules:
+      # Service Health Alerts
+      - alert: PaymentServiceDown
+        expr: up{job="dsr-payment-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: payment-service
+        annotations:
+          summary: "Payment Service is down"
+          description: "Payment Service has been down for more than 1 minute"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/payment-service-down"
+
+      - alert: PaymentServiceHighErrorRate
+        expr: rate(http_requests_total{job="dsr-payment-service", status=~"5.."}[5m]) / rate(http_requests_total{job="dsr-payment-service"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: payment-service
+        annotations:
+          summary: "High error rate in Payment Service"
+          description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/high-error-rate"
+
+      # Performance Alerts
+      - alert: PaymentServiceHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="dsr-payment-service"}[5m])) > 2
+        for: 10m
+        labels:
+          severity: warning
+          service: payment-service
+        annotations:
+          summary: "High latency in Payment Service"
+          description: "95th percentile latency is {{ $value }}s for the last 10 minutes"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/high-latency"
+
+      - alert: PaymentServiceLowThroughput
+        expr: rate(payment_processed_total[5m]) < 1
+        for: 15m
+        labels:
+          severity: warning
+          service: payment-service
+        annotations:
+          summary: "Low payment processing throughput"
+          description: "Payment processing rate is {{ $value }} payments/sec for the last 15 minutes"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/low-throughput"
+
+      # Database Alerts
+      - alert: DatabaseConnectionPoolExhausted
+        expr: hikaricp_connections_active{job="dsr-payment-service"} / hikaricp_connections_max{job="dsr-payment-service"} > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          service: payment-service
+          component: database
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "Connection pool usage is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/db-connection-pool"
+
+      - alert: DatabaseConnectionFailure
+        expr: increase(hikaricp_connections_creation_failed_total{job="dsr-payment-service"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: payment-service
+          component: database
+        annotations:
+          summary: "Database connection failures detected"
+          description: "{{ $value }} connection failures in the last 5 minutes"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/db-connection-failure"
+
+      # FSP Integration Alerts
+      - alert: FSPServiceUnhealthy
+        expr: fsp_health_status == 0
+        for: 2m
+        labels:
+          severity: warning
+          service: payment-service
+          component: fsp
+        annotations:
+          summary: "FSP service {{ $labels.fsp_code }} is unhealthy"
+          description: "FSP {{ $labels.fsp_code }} has been unhealthy for more than 2 minutes"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/fsp-unhealthy"
+
+      - alert: FSPHighResponseTime
+        expr: histogram_quantile(0.95, rate(fsp_response_time_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: payment-service
+          component: fsp
+        annotations:
+          summary: "High FSP response time for {{ $labels.fsp_code }}"
+          description: "95th percentile response time is {{ $value }}s"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/fsp-high-latency"
+
+      # Business Logic Alerts
+      - alert: HighPaymentFailureRate
+        expr: rate(payment_failed_total[10m]) / rate(payment_created_total[10m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          service: payment-service
+          component: business
+        annotations:
+          summary: "High payment failure rate"
+          description: "Payment failure rate is {{ $value | humanizePercentage }} for the last 10 minutes"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/high-failure-rate"
+
+      - alert: BatchProcessingStalled
+        expr: increase(batch_processing_duration_seconds_count[30m]) == 0 and batch_pending_count > 0
+        for: 30m
+        labels:
+          severity: warning
+          service: payment-service
+          component: batch
+        annotations:
+          summary: "Batch processing appears to be stalled"
+          description: "No batch processing activity for 30 minutes with {{ $value }} pending batches"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/batch-stalled"
+
+      # Resource Alerts
+      - alert: HighMemoryUsage
+        expr: jvm_memory_used_bytes{job="dsr-payment-service", area="heap"} / jvm_memory_max_bytes{job="dsr-payment-service", area="heap"} > 0.9
+        for: 10m
+        labels:
+          severity: warning
+          service: payment-service
+          component: jvm
+        annotations:
+          summary: "High JVM heap memory usage"
+          description: "Heap memory usage is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/high-memory"
+
+      - alert: HighGCTime
+        expr: rate(jvm_gc_collection_seconds_sum{job="dsr-payment-service"}[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          service: payment-service
+          component: jvm
+        annotations:
+          summary: "High garbage collection time"
+          description: "GC time is {{ $value | humanizePercentage }} of total time"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/high-gc"
+
+      # Security Alerts
+      - alert: UnauthorizedAccessAttempts
+        expr: increase(http_requests_total{job="dsr-payment-service", status="401"}[5m]) > 10
+        for: 1m
+        labels:
+          severity: warning
+          service: payment-service
+          component: security
+        annotations:
+          summary: "High number of unauthorized access attempts"
+          description: "{{ $value }} unauthorized access attempts in the last 5 minutes"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/unauthorized-access"
+
+      - alert: SuspiciousActivity
+        expr: increase(http_requests_total{job="dsr-payment-service", status="403"}[5m]) > 20
+        for: 2m
+        labels:
+          severity: critical
+          service: payment-service
+          component: security
+        annotations:
+          summary: "Suspicious activity detected"
+          description: "{{ $value }} forbidden access attempts in the last 5 minutes"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/suspicious-activity"
+
+      # Audit and Compliance Alerts
+      - alert: AuditLogFailure
+        expr: increase(audit_log_errors_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: payment-service
+          component: audit
+        annotations:
+          summary: "Audit logging failures detected"
+          description: "{{ $value }} audit log failures in the last 5 minutes"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/audit-failure"
+
+      - alert: DataIntegrityViolation
+        expr: increase(data_integrity_violations_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: payment-service
+          component: data
+        annotations:
+          summary: "Data integrity violations detected"
+          description: "{{ $value }} data integrity violations in the last 5 minutes"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/data-integrity"
+
+  - name: payment-service-sla
+    rules:
+      # SLA Monitoring
+      - alert: SLAViolationAvailability
+        expr: avg_over_time(up{job="dsr-payment-service"}[24h]) < 0.999
+        for: 1h
+        labels:
+          severity: critical
+          service: payment-service
+          sla: availability
+        annotations:
+          summary: "SLA violation: Service availability below 99.9%"
+          description: "24-hour availability is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/sla-availability"
+
+      - alert: SLAViolationLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="dsr-payment-service"}[24h])) > 1
+        for: 1h
+        labels:
+          severity: warning
+          service: payment-service
+          sla: latency
+        annotations:
+          summary: "SLA violation: 95th percentile latency above 1 second"
+          description: "24-hour 95th percentile latency is {{ $value }}s"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/sla-latency"
+
+      - alert: SLAViolationErrorRate
+        expr: rate(http_requests_total{job="dsr-payment-service", status=~"5.."}[24h]) / rate(http_requests_total{job="dsr-payment-service"}[24h]) > 0.001
+        for: 1h
+        labels:
+          severity: warning
+          service: payment-service
+          sla: error-rate
+        annotations:
+          summary: "SLA violation: Error rate above 0.1%"
+          description: "24-hour error rate is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.dsr.gov.ph/runbooks/sla-error-rate"

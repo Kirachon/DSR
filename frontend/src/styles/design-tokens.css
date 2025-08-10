@@ -1,0 +1,160 @@
+/**
+ * DSR Design Token CSS Variables
+ * Auto-generated from design tokens
+ */
+
+:root {
+  --dsr-philippine-government-primary-50: #eff6ff;
+  --dsr-philippine-government-primary-100: #dbeafe;
+  --dsr-philippine-government-primary-200: #bfdbfe;
+  --dsr-philippine-government-primary-300: #93c5fd;
+  --dsr-philippine-government-primary-400: #60a5fa;
+  --dsr-philippine-government-primary-500: #1e3a8a;
+  --dsr-philippine-government-primary-600: #1d4ed8;
+  --dsr-philippine-government-primary-700: #1e40af;
+  --dsr-philippine-government-primary-800: #1e3a8a;
+  --dsr-philippine-government-primary-900: #172554;
+  --dsr-philippine-government-primary-950: #0f172a;
+  --dsr-philippine-government-secondary-50: #fef2f2;
+  --dsr-philippine-government-secondary-100: #fee2e2;
+  --dsr-philippine-government-secondary-200: #fecaca;
+  --dsr-philippine-government-secondary-300: #fca5a5;
+  --dsr-philippine-government-secondary-400: #f87171;
+  --dsr-philippine-government-secondary-500: #dc2626;
+  --dsr-philippine-government-secondary-600: #b91c1c;
+  --dsr-philippine-government-secondary-700: #991b1b;
+  --dsr-philippine-government-secondary-800: #7f1d1d;
+  --dsr-philippine-government-secondary-900: #450a0a;
+  --dsr-philippine-government-secondary-950: #2d0a0a;
+  --dsr-philippine-government-accent-50: #fffbeb;
+  --dsr-philippine-government-accent-100: #fef3c7;
+  --dsr-philippine-government-accent-200: #fde68a;
+  --dsr-philippine-government-accent-300: #fcd34d;
+  --dsr-philippine-government-accent-400: #fbbf24;
+  --dsr-philippine-government-accent-500: #f59e0b;
+  --dsr-philippine-government-accent-600: #d97706;
+  --dsr-philippine-government-accent-700: #b45309;
+  --dsr-philippine-government-accent-800: #92400e;
+  --dsr-philippine-government-accent-900: #78350f;
+  --dsr-philippine-government-accent-950: #451a03;
+  --dsr-semantic-success-50: #f0fdf4;
+  --dsr-semantic-success-100: #dcfce7;
+  --dsr-semantic-success-200: #bbf7d0;
+  --dsr-semantic-success-300: #86efac;
+  --dsr-semantic-success-400: #4ade80;
+  --dsr-semantic-success-500: #16a34a;
+  --dsr-semantic-success-600: #15803d;
+  --dsr-semantic-success-700: #166534;
+  --dsr-semantic-success-800: #14532d;
+  --dsr-semantic-success-900: #052e16;
+  --dsr-semantic-success-950: #021f0c;
+  --dsr-semantic-warning-50: #fffbeb;
+  --dsr-semantic-warning-100: #fef3c7;
+  --dsr-semantic-warning-200: #fde68a;
+  --dsr-semantic-warning-300: #fcd34d;
+  --dsr-semantic-warning-400: #fbbf24;
+  --dsr-semantic-warning-500: #f59e0b;
+  --dsr-semantic-warning-600: #d97706;
+  --dsr-semantic-warning-700: #b45309;
+  --dsr-semantic-warning-800: #92400e;
+  --dsr-semantic-warning-900: #78350f;
+  --dsr-semantic-warning-950: #451a03;
+  --dsr-semantic-error-50: #fef2f2;
+  --dsr-semantic-error-100: #fee2e2;
+  --dsr-semantic-error-200: #fecaca;
+  --dsr-semantic-error-300: #fca5a5;
+  --dsr-semantic-error-400: #f87171;
+  --dsr-semantic-error-500: #ef4444;
+  --dsr-semantic-error-600: #dc2626;
+  --dsr-semantic-error-700: #b91c1c;
+  --dsr-semantic-error-800: #991b1b;
+  --dsr-semantic-error-900: #7f1d1d;
+  --dsr-semantic-error-950: #450a0a;
+  --dsr-semantic-info-50: #f0f9ff;
+  --dsr-semantic-info-100: #e0f2fe;
+  --dsr-semantic-info-200: #bae6fd;
+  --dsr-semantic-info-300: #7dd3fc;
+  --dsr-semantic-info-400: #38bdf8;
+  --dsr-semantic-info-500: #0ea5e9;
+  --dsr-semantic-info-600: #0284c7;
+  --dsr-semantic-info-700: #0369a1;
+  --dsr-semantic-info-800: #075985;
+  --dsr-semantic-info-900: #0c4a6e;
+  --dsr-semantic-info-950: #082f49;
+  --dsr-spacing-0: 0px;
+  --dsr-spacing-1: 0.25rem;
+  --dsr-spacing-2: 0.5rem;
+  --dsr-spacing-3: 0.75rem;
+  --dsr-spacing-4: 1rem;
+  --dsr-spacing-5: 1.25rem;
+  --dsr-spacing-6: 1.5rem;
+  --dsr-spacing-8: 2rem;
+  --dsr-spacing-10: 2.5rem;
+  --dsr-spacing-12: 3rem;
+  --dsr-spacing-16: 4rem;
+  --dsr-spacing-20: 5rem;
+  --dsr-spacing-24: 6rem;
+  --dsr-spacing-32: 8rem;
+  --dsr-spacing-40: 10rem;
+  --dsr-spacing-48: 12rem;
+  --dsr-spacing-56: 14rem;
+  --dsr-spacing-64: 16rem;
+  --dsr-fontfamilies-primary: Inter, system-ui, -apple-system, sans-serif;
+  --dsr-fontfamilies-secondary: JetBrains Mono, Consolas, monospace;
+  --dsr-fontsizes-xs: 0.75rem;
+  --dsr-fontsizes-sm: 0.875rem;
+  --dsr-fontsizes-base: 1rem;
+  --dsr-fontsizes-lg: 1.125rem;
+  --dsr-fontsizes-xl: 1.25rem;
+  --dsr-fontsizes-2xl: 1.5rem;
+  --dsr-fontsizes-3xl: 1.875rem;
+  --dsr-fontsizes-4xl: 2.25rem;
+  --dsr-fontsizes-5xl: 3rem;
+  --dsr-fontsizes-6xl: 3.75rem;
+  --dsr-fontweights-light: 300;
+  --dsr-fontweights-normal: 400;
+  --dsr-fontweights-medium: 500;
+  --dsr-fontweights-semibold: 600;
+  --dsr-fontweights-bold: 700;
+  --dsr-fontweights-extrabold: 800;
+  --dsr-lineheights-tight: 1.25;
+  --dsr-lineheights-normal: 1.5;
+  --dsr-lineheights-relaxed: 1.625;
+  --dsr-lineheights-loose: 2;
+  --dsr-letterspacing-tight: -0.025em;
+  --dsr-letterspacing-normal: 0em;
+  --dsr-letterspacing-wide: 0.025em;
+  --dsr-letterspacing-wider: 0.05em;
+}
+
+/* Role-based theme variations */
+[data-theme="citizen"] {
+  --dsr-primary: var(--dsr-philippine-government-primary-500);
+  --dsr-background: var(--dsr-neutral-50);
+  --dsr-surface: var(--dsr-neutral-100);
+}
+
+[data-theme="dswd-staff"] {
+  --dsr-primary: var(--dsr-philippine-government-primary-500);
+  --dsr-accent: var(--dsr-philippine-government-accent-500);
+  --dsr-background: var(--dsr-neutral-50);
+  --dsr-surface: var(--dsr-neutral-100);
+}
+
+[data-theme="lgu-staff"] {
+  --dsr-primary: var(--dsr-philippine-government-secondary-500);
+  --dsr-accent: var(--dsr-philippine-government-accent-500);
+  --dsr-background: var(--dsr-neutral-50);
+  --dsr-surface: var(--dsr-neutral-100);
+}
+
+/* Accessibility enhancements */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

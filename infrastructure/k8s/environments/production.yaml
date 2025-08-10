@@ -1,0 +1,297 @@
+# DSR Production Environment Configuration
+# Complete production deployment with all services, infrastructure, and monitoring
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dsr-production-config
+  namespace: dsr-production
+data:
+  # Application Configuration
+  application.properties: |
+    # Server Configuration
+    server.port=8080
+    server.servlet.context-path=/api/v1
+    server.compression.enabled=true
+    server.compression.mime-types=text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    server.compression.min-response-size=1024
+    
+    # Spring Configuration
+    spring.application.name=dsr-production
+    spring.profiles.active=production
+    spring.jpa.hibernate.ddl-auto=validate
+    spring.jpa.show-sql=false
+    spring.jpa.properties.hibernate.format_sql=false
+    spring.jpa.properties.hibernate.use_sql_comments=false
+    spring.jpa.properties.hibernate.jdbc.batch_size=20
+    spring.jpa.properties.hibernate.order_inserts=true
+    spring.jpa.properties.hibernate.order_updates=true
+    spring.jpa.properties.hibernate.jdbc.batch_versioned_data=true
+    
+    # Database Configuration
+    spring.datasource.url=${DATABASE_URL}
+    spring.datasource.username=${DATABASE_USERNAME}
+    spring.datasource.password=${DATABASE_PASSWORD}
+    spring.datasource.driver-class-name=org.postgresql.Driver
+    spring.datasource.hikari.maximum-pool-size=20
+    spring.datasource.hikari.minimum-idle=5
+    spring.datasource.hikari.idle-timeout=300000
+    spring.datasource.hikari.max-lifetime=1200000
+    spring.datasource.hikari.connection-timeout=20000
+    spring.datasource.hikari.validation-timeout=5000
+    spring.datasource.hikari.leak-detection-threshold=60000
+    
+    # Redis Configuration
+    spring.redis.host=${REDIS_HOST}
+    spring.redis.port=${REDIS_PORT}
+    spring.redis.password=${REDIS_PASSWORD}
+    spring.redis.timeout=2000ms
+    spring.redis.lettuce.pool.max-active=8
+    spring.redis.lettuce.pool.max-idle=8
+    spring.redis.lettuce.pool.min-idle=0
+    spring.redis.lettuce.pool.max-wait=-1ms
+    
+    # Kafka Configuration
+    spring.kafka.bootstrap-servers=${KAFKA_BOOTSTRAP_SERVERS}
+    spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
+    spring.kafka.producer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer
+    spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer
+    spring.kafka.consumer.value-deserializer=org.springframework.kafka.support.serializer.JsonDeserializer
+    spring.kafka.consumer.group-id=dsr-production
+    spring.kafka.consumer.auto-offset-reset=earliest
+    
+    # JWT Configuration
+    jwt.secret=${JWT_SECRET}
+    jwt.expiration=${JWT_EXPIRATION}
+    jwt.refresh-expiration=${JWT_REFRESH_EXPIRATION}
+    jwt.issuer=dsr-production
+    jwt.audience=dsr-users
+    
+    # Security Configuration
+    security.cors.allowed-origins=https://dsr.gov.ph,https://www.dsr.gov.ph
+    security.cors.allowed-methods=GET,POST,PUT,DELETE,PATCH,OPTIONS
+    security.cors.allowed-headers=Authorization,Content-Type,Accept,Origin,X-Requested-With
+    security.cors.allow-credentials=true
+    security.rate-limiting.enabled=true
+    security.rate-limiting.requests-per-minute=100
+    
+    # Actuator Configuration
+    management.endpoints.web.exposure.include=health,info,metrics,prometheus
+    management.endpoints.web.base-path=/actuator
+    management.endpoint.health.show-details=when-authorized
+    management.endpoint.health.roles=SYSTEM_ADMIN
+    management.endpoint.metrics.enabled=true
+    management.endpoint.prometheus.enabled=true
+    management.metrics.export.prometheus.enabled=true
+    management.metrics.distribution.percentiles-histogram.http.server.requests=true
+    management.metrics.distribution.percentiles.http.server.requests=0.5,0.95,0.99
+    management.metrics.tags.application=${spring.application.name}
+    management.metrics.tags.environment=production
+    
+    # Logging Configuration
+    logging.level.root=INFO
+    logging.level.ph.gov.dsr=INFO
+    logging.level.org.springframework.security=WARN
+    logging.level.org.springframework.web=WARN
+    logging.level.org.hibernate.SQL=WARN
+    logging.level.org.hibernate.type.descriptor.sql.BasicBinder=WARN
+    logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+    logging.pattern.file=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+    logging.file.name=/var/log/dsr/application.log
+    logging.file.max-size=10MB
+    logging.file.max-history=30
+    
+    # DSR Specific Configuration
+    dsr.philsys.api-url=${PHILSYS_API_URL}
+    dsr.philsys.api-key=${PHILSYS_API_KEY}
+    dsr.philsys.timeout=30s
+    dsr.fsp.providers=${FSP_PROVIDERS}
+    dsr.fsp.timeout=60s
+    dsr.batch.size=100
+    dsr.async.enabled=true
+    dsr.validation.strict-mode=true
+    dsr.audit.enabled=true
+    dsr.audit.log-level=INFO
+---
+# Production Secrets Template
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dsr-production-secrets
+  namespace: dsr-production
+type: Opaque
+stringData:
+  # Database
+  DATABASE_URL: "jdbc:postgresql://postgresql.dsr-production:5432/dsr_production"
+  DATABASE_USERNAME: "dsr_production_user"
+  DATABASE_PASSWORD: "CHANGE_ME_IN_PRODUCTION"
+  
+  # Redis
+  REDIS_HOST: "redis.dsr-production"
+  REDIS_PORT: "6379"
+  REDIS_PASSWORD: "CHANGE_ME_IN_PRODUCTION"
+  
+  # Kafka
+  KAFKA_BOOTSTRAP_SERVERS: "kafka.dsr-production:9092"
+  
+  # JWT
+  JWT_SECRET: "CHANGE_ME_IN_PRODUCTION_USE_STRONG_SECRET_KEY"
+  JWT_EXPIRATION: "86400"
+  JWT_REFRESH_EXPIRATION: "604800"
+  
+  # External APIs
+  PHILSYS_API_URL: "https://api.philsys.gov.ph"
+  PHILSYS_API_KEY: "CHANGE_ME_IN_PRODUCTION"
+  
+  # FSP Configuration
+  FSP_PROVIDERS: "BDO,BPI,GCASH,PAYMAYA"
+---
+# HorizontalPodAutoscaler for Registration Service
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: dsr-registration-service-hpa
+  namespace: dsr-production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dsr-registration-service
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+---
+# PodDisruptionBudget for Registration Service
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: dsr-registration-service-pdb
+  namespace: dsr-production
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: dsr-registration-service
+---
+# Resource Quotas for Production Namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: dsr-production-quota
+  namespace: dsr-production
+spec:
+  hard:
+    requests.cpu: "20"
+    requests.memory: 40Gi
+    limits.cpu: "40"
+    limits.memory: 80Gi
+    persistentvolumeclaims: "20"
+    services: "20"
+    secrets: "20"
+    configmaps: "20"
+---
+# LimitRange for Production Namespace
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: dsr-production-limits
+  namespace: dsr-production
+spec:
+  limits:
+  - default:
+      cpu: "1000m"
+      memory: "2Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+    type: Container
+  - max:
+      cpu: "4000m"
+      memory: "8Gi"
+    min:
+      cpu: "50m"
+      memory: "128Mi"
+    type: Container
+---
+# Production Backup CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dsr-database-backup
+  namespace: dsr-production
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: postgres-backup
+            image: postgres:16-alpine
+            command:
+            - /bin/bash
+            - -c
+            - |
+              BACKUP_FILE="/backup/dsr_production_$(date +%Y%m%d_%H%M%S).sql"
+              pg_dump -h postgresql.dsr-production -U $DATABASE_USERNAME -d dsr_production > $BACKUP_FILE
+              echo "Backup completed: $BACKUP_FILE"
+              # Keep only last 7 days of backups
+              find /backup -name "dsr_production_*.sql" -mtime +7 -delete
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dsr-production-secrets
+                  key: DATABASE_PASSWORD
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: dsr-production-secrets
+                  key: DATABASE_USERNAME
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-pvc
+          restartPolicy: OnFailure
+---
+# Backup Storage PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-pvc
+  namespace: dsr-production
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard

@@ -1,0 +1,62 @@
+# Page snapshot
+
+```yaml
+- alert
+- button "Open Next.js Dev Tools":
+  - img
+- banner:
+  - text: DSR
+  - heading "Digital Social Registry" [level=1]
+  - link "Sign In":
+    - /url: /auth/login
+    - button "Sign In"
+  - link "Get Started":
+    - /url: /auth/register
+    - button "Get Started"
+- main:
+  - heading "Welcome to the Digital Social Registry" [level=2]
+  - paragraph: A comprehensive platform for managing social protection programs, citizen registration, eligibility assessment, and benefit distribution across the Philippines.
+  - link "Register as Citizen":
+    - /url: /auth/register
+    - button "Register as Citizen"
+  - link "Staff Login":
+    - /url: /auth/login
+    - button "Staff Login"
+  - img
+  - heading "Citizen Registration" [level=3]
+  - paragraph: Streamlined registration process for citizens to access social protection programs and benefits.
+  - img
+  - heading "Eligibility Assessment" [level=3]
+  - paragraph: Automated assessment of citizen eligibility for various social protection programs and benefits.
+  - img
+  - heading "Payment Processing" [level=3]
+  - paragraph: Secure and efficient payment processing for social benefits and program disbursements.
+  - heading "Ready to get started?" [level=3]
+  - paragraph: Join thousands of citizens already benefiting from our social protection programs.
+  - link "Create Your Account":
+    - /url: /auth/register
+    - button "Create Your Account"
+- contentinfo:
+  - text: DSR Digital Social Registry
+  - paragraph: Empowering social protection through digital innovation.
+  - heading "Quick Links" [level=4]
+  - list:
+    - listitem:
+      - link "About DSR":
+        - /url: /about
+    - listitem:
+      - link "Contact Us":
+        - /url: /contact
+    - listitem:
+      - link "Privacy Policy":
+        - /url: /privacy
+    - listitem:
+      - link "Terms of Service":
+        - /url: /terms
+  - heading "Contact" [level=4]
+  - paragraph: Department of Social Welfare and Development
+  - paragraph: Republic of the Philippines
+  - paragraph: "Email: support@dsr.gov.ph"
+  - paragraph: "Phone: +63 (2) 8931-8101"
+  - paragraph: © 2024 Digital Social Registry. All rights reserved. Government of the Philippines.
+```

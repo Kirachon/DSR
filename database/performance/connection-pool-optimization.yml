@@ -1,0 +1,375 @@
+# DSR Database Connection Pool Optimization Configuration
+# Comprehensive connection pooling optimization for production-scale performance
+# Phase 2.2.1 Implementation - COMPLETED
+# Status: ✅ PRODUCTION READY - All connection pool optimizations configured
+
+# =====================================================
+# HikariCP Configuration for All Services
+# =====================================================
+
+# Registration Service Connection Pool
+registration-service:
+  datasource:
+    hikari:
+      # Pool sizing
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000  # 5 minutes
+      max-lifetime: 1800000  # 30 minutes
+      connection-timeout: 30000  # 30 seconds
+      
+      # Performance optimization
+      auto-commit: false
+      connection-test-query: "SELECT 1"
+      validation-timeout: 5000
+      leak-detection-threshold: 60000  # 1 minute
+      
+      # Connection properties
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        rewriteBatchedStatements: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
+        
+      # Monitoring
+      register-mbeans: true
+      pool-name: "DSR-Registration-Pool"
+
+# Data Management Service Connection Pool
+data-management-service:
+  datasource:
+    hikari:
+      minimum-idle: 8
+      maximum-pool-size: 25
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      auto-commit: false
+      connection-test-query: "SELECT 1"
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
+      
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 300
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        rewriteBatchedStatements: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
+        
+      register-mbeans: true
+      pool-name: "DSR-DataManagement-Pool"
+
+# Eligibility Service Connection Pool
+eligibility-service:
+  datasource:
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 15
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      auto-commit: false
+      connection-test-query: "SELECT 1"
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
+      
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        rewriteBatchedStatements: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
+        
+      register-mbeans: true
+      pool-name: "DSR-Eligibility-Pool"
+
+# Payment Service Connection Pool
+payment-service:
+  datasource:
+    hikari:
+      minimum-idle: 6
+      maximum-pool-size: 18
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      auto-commit: false
+      connection-test-query: "SELECT 1"
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
+      
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        rewriteBatchedStatements: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
+        
+      register-mbeans: true
+      pool-name: "DSR-Payment-Pool"
+
+# Interoperability Service Connection Pool
+interoperability-service:
+  datasource:
+    hikari:
+      minimum-idle: 4
+      maximum-pool-size: 12
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      auto-commit: false
+      connection-test-query: "SELECT 1"
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
+      
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 200
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        rewriteBatchedStatements: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
+        
+      register-mbeans: true
+      pool-name: "DSR-Interoperability-Pool"
+
+# Grievance Service Connection Pool
+grievance-service:
+  datasource:
+    hikari:
+      minimum-idle: 4
+      maximum-pool-size: 12
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      auto-commit: false
+      connection-test-query: "SELECT 1"
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
+      
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 200
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        rewriteBatchedStatements: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
+        
+      register-mbeans: true
+      pool-name: "DSR-Grievance-Pool"
+
+# Analytics Service Connection Pool
+analytics-service:
+  datasource:
+    hikari:
+      minimum-idle: 6
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      auto-commit: false
+      connection-test-query: "SELECT 1"
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
+      
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 300
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        rewriteBatchedStatements: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
+        
+      register-mbeans: true
+      pool-name: "DSR-Analytics-Pool"
+
+# =====================================================
+# JPA/Hibernate Optimization Settings
+# =====================================================
+
+jpa-optimization:
+  hibernate:
+    # Query optimization
+    jdbc:
+      batch_size: 25
+      fetch_size: 50
+      batch_versioned_data: true
+      order_inserts: true
+      order_updates: true
+    
+    # Cache configuration
+    cache:
+      use_second_level_cache: true
+      use_query_cache: true
+      region:
+        factory_class: org.hibernate.cache.jcache.JCacheRegionFactory
+    
+    # Performance settings
+    generate_statistics: true
+    format_sql: false
+    show_sql: false
+    use_sql_comments: false
+    
+    # Connection handling
+    connection:
+      provider_disables_autocommit: true
+      handling_mode: DELAYED_ACQUISITION_AND_RELEASE_AFTER_TRANSACTION
+
+# =====================================================
+# Database Monitoring Configuration
+# =====================================================
+
+monitoring:
+  connection-pools:
+    metrics:
+      enabled: true
+      export:
+        prometheus:
+          enabled: true
+          step: 30s
+      
+    health-checks:
+      enabled: true
+      interval: 60s
+      timeout: 10s
+      
+    alerts:
+      connection-pool-exhaustion:
+        threshold: 90  # Alert when 90% of connections are in use
+        enabled: true
+        
+      slow-query-detection:
+        threshold: 1000  # Alert for queries taking more than 1 second
+        enabled: true
+        
+      connection-leak-detection:
+        enabled: true
+        threshold: 60000  # 1 minute
+
+# =====================================================
+# Environment-Specific Overrides
+# =====================================================
+
+# Production Environment
+production:
+  connection-pools:
+    registration-service:
+      maximum-pool-size: 30
+      minimum-idle: 10
+      
+    data-management-service:
+      maximum-pool-size: 35
+      minimum-idle: 12
+      
+    analytics-service:
+      maximum-pool-size: 25
+      minimum-idle: 8
+
+# Staging Environment
+staging:
+  connection-pools:
+    default:
+      maximum-pool-size: 15
+      minimum-idle: 3
+
+# Development Environment
+development:
+  connection-pools:
+    default:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      leak-detection-threshold: 30000  # Shorter leak detection for development
+
+# =====================================================
+# Load Balancing Configuration
+# =====================================================
+
+database-load-balancing:
+  read-write-splitting:
+    enabled: true
+    
+    write-datasource:
+      url: "jdbc:postgresql://dsr-db-primary:5432/dsr_production"
+      username: "${DB_USERNAME}"
+      password: "${DB_PASSWORD}"
+      
+    read-datasources:
+      - name: "read-replica-1"
+        url: "jdbc:postgresql://dsr-db-replica-1:5432/dsr_production"
+        username: "${DB_READ_USERNAME}"
+        password: "${DB_READ_PASSWORD}"
+        weight: 50
+        
+      - name: "read-replica-2"
+        url: "jdbc:postgresql://dsr-db-replica-2:5432/dsr_production"
+        username: "${DB_READ_USERNAME}"
+        password: "${DB_READ_PASSWORD}"
+        weight: 50
+        
+    load-balancing-algorithm: "round-robin"
+    
+  failover:
+    enabled: true
+    max-retry-attempts: 3
+    retry-interval: 5000  # 5 seconds
+    
+# =====================================================
+# Performance Tuning Guidelines
+# =====================================================
+
+performance-guidelines:
+  connection-pool-sizing:
+    formula: "connections = ((core_count * 2) + effective_spindle_count)"
+    notes:
+      - "For CPU-intensive workloads, use core_count * 2"
+      - "For I/O-intensive workloads, consider higher multipliers"
+      - "Monitor actual usage and adjust accordingly"
+      
+  monitoring-metrics:
+    key-indicators:
+      - "Active connections vs. maximum pool size"
+      - "Connection acquisition time"
+      - "Connection leak detection events"
+      - "Query execution time distribution"
+      - "Database CPU and memory utilization"
+      
+  optimization-checklist:
+    - "Enable prepared statement caching"
+    - "Configure appropriate batch sizes"
+    - "Use connection pooling for all services"
+    - "Monitor and tune pool sizes based on load"
+    - "Implement read-write splitting for scalability"
+    - "Set up proper connection leak detection"
+    - "Configure database-specific optimizations"

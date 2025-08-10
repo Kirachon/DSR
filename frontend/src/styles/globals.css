@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* DSR Design Tokens - Inline for immediate fix */
+:root {
+  /* Philippine Government Colors */
+  --dsr-philippine-government-primary-500: #3b82f6;
+  --dsr-philippine-government-primary-600: #2563eb;
+  --dsr-philippine-government-secondary-500: #dc2626;
+  --dsr-philippine-government-secondary-600: #b91c1c;
+  --dsr-philippine-government-accent-500: #fbbf24;
+  --dsr-philippine-government-accent-600: #f59e0b;
+
+  /* Neutral Colors */
+  --dsr-neutral-50: #f9fafb;
+  --dsr-neutral-100: #f3f4f6;
+  --dsr-neutral-200: #e5e7eb;
+  --dsr-neutral-300: #d1d5db;
+  --dsr-neutral-400: #9ca3af;
+  --dsr-neutral-500: #6b7280;
+  --dsr-neutral-600: #4b5563;
+  --dsr-neutral-700: #374151;
+  --dsr-neutral-800: #1f2937;
+  --dsr-neutral-900: #111827;
+
+  /* Semantic Colors */
+  --dsr-semantic-success-500: #10b981;
+  --dsr-semantic-warning-500: #f59e0b;
+  --dsr-semantic-error-500: #ef4444;
+}
+
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #111827;
+    --card: #ffffff;
+    --card-foreground: #111827;
+    --popover: #ffffff;
+    --popover-foreground: #111827;
+    --primary: #3b82f6;
+    --primary-foreground: #ffffff;
+    --secondary: #f3f4f6;
+    --secondary-foreground: #111827;
+    --muted: #f3f4f6;
+    --muted-foreground: #6b7280;
+    --accent: #f3f4f6;
+    --accent-foreground: #111827;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --border: #e5e7eb;
+    --input: #e5e7eb;
+    --ring: #3b82f6;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: #111827;
+    --foreground: #f9fafb;
+    --card: #111827;
+    --card-foreground: #f9fafb;
+    --popover: #111827;
+    --popover-foreground: #f9fafb;
+    --primary: #3b82f6;
+    --primary-foreground: #ffffff;
+    --secondary: #374151;
+    --secondary-foreground: #f9fafb;
+    --muted: #374151;
+    --muted-foreground: #9ca3af;
+    --accent: #374151;
+    --accent-foreground: #f9fafb;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --border: #374151;
+    --input: #374151;
+    --ring: #3b82f6;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    color: var(--foreground);
+    background-color: var(--background);
+  }
+
+  /* Ensure all text elements have proper contrast */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--foreground) !important;
+  }
+
+  p, span, div, a {
+    color: var(--foreground);
+  }
+
+  /* Button text visibility */
+  button {
+    color: inherit;
+  }
+
+  /* Card text visibility */
+  .card {
+    background-color: var(--card);
+    color: var(--card-foreground);
+  }
+}
+
+/* Role-based theme styles with proper color contrast */
+[data-theme="citizen"] {
+  --primary: var(--dsr-philippine-government-primary-500);
+  --primary-foreground: #ffffff;
+  --background: var(--dsr-neutral-50);
+  --foreground: var(--dsr-neutral-900);
+  --card: #ffffff;
+  --card-foreground: var(--dsr-neutral-900);
+  --secondary: var(--dsr-neutral-100);
+  --secondary-foreground: var(--dsr-neutral-900);
+  --muted: var(--dsr-neutral-100);
+  --muted-foreground: var(--dsr-neutral-600);
+  --border: var(--dsr-neutral-200);
+}
+
+[data-theme="dswd-staff"] {
+  --primary: var(--dsr-philippine-government-primary-500);
+  --primary-foreground: #ffffff;
+  --accent: var(--dsr-philippine-government-accent-500);
+  --accent-foreground: var(--dsr-neutral-900);
+  --background: var(--dsr-neutral-50);
+  --foreground: var(--dsr-neutral-900);
+  --card: #ffffff;
+  --card-foreground: var(--dsr-neutral-900);
+  --secondary: var(--dsr-neutral-100);
+  --secondary-foreground: var(--dsr-neutral-900);
+  --muted: var(--dsr-neutral-100);
+  --muted-foreground: var(--dsr-neutral-600);
+  --border: var(--dsr-neutral-200);
+}
+
+[data-theme="lgu-staff"] {
+  --primary: var(--dsr-philippine-government-secondary-500);
+  --primary-foreground: #ffffff;
+  --accent: var(--dsr-philippine-government-accent-500);
+  --accent-foreground: var(--dsr-neutral-900);
+  --background: var(--dsr-neutral-50);
+  --foreground: var(--dsr-neutral-900);
+  --card: #ffffff;
+  --card-foreground: var(--dsr-neutral-900);
+  --secondary: var(--dsr-neutral-100);
+  --secondary-foreground: var(--dsr-neutral-900);
+  --muted: var(--dsr-neutral-100);
+  --muted-foreground: var(--dsr-neutral-600);
+  --border: var(--dsr-neutral-200);
+}
+
+/* Accessibility enhancements */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border: black;
+    --foreground: black;
+    --background: white;
+  }
+}

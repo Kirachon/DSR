@@ -1,0 +1,481 @@
+# DSR Production Monitoring Configuration
+# Comprehensive monitoring, alerting, and logging systems with real-time dashboards
+# Phase 2.3.2 Implementation - COMPLETED
+# Status: ✅ PRODUCTION READY - All monitoring systems configured
+
+# Prometheus Configuration
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'dsr-production'
+    environment: 'production'
+
+rule_files:
+  - "dsr-alert-rules.yml"
+  - "dsr-recording-rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # DSR Registration Service
+  - job_name: 'dsr-registration-service'
+    static_configs:
+      - targets: ['dsr-registration-service:8080']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # DSR Data Management Service
+  - job_name: 'dsr-data-management-service'
+    static_configs:
+      - targets: ['dsr-data-management-service:8081']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # DSR Eligibility Service
+  - job_name: 'dsr-eligibility-service'
+    static_configs:
+      - targets: ['dsr-eligibility-service:8082']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # DSR Interoperability Service
+  - job_name: 'dsr-interoperability-service'
+    static_configs:
+      - targets: ['dsr-interoperability-service:8083']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # DSR Payment Service
+  - job_name: 'dsr-payment-service'
+    static_configs:
+      - targets: ['dsr-payment-service:8084']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # DSR Grievance Service
+  - job_name: 'dsr-grievance-service'
+    static_configs:
+      - targets: ['dsr-grievance-service:8085']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # DSR Analytics Service
+  - job_name: 'dsr-analytics-service'
+    static_configs:
+      - targets: ['dsr-analytics-service:8086']
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # PostgreSQL Database Monitoring
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 15s
+
+  # Redis Cache Monitoring
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 15s
+
+  # Kubernetes Cluster Monitoring
+  - job_name: 'kubernetes-apiservers'
+    kubernetes_sd_configs:
+      - role: endpoints
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: default;kubernetes;https
+
+  # Kubernetes Node Monitoring
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+      - role: node
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics
+
+  # Kubernetes Pod Monitoring
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+
+  # NGINX Ingress Controller Monitoring
+  - job_name: 'nginx-ingress'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - ingress-nginx
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+        action: keep
+        regex: ingress-nginx
+      - source_labels: [__meta_kubernetes_pod_container_port_number]
+        action: keep
+        regex: "10254"
+
+  # Istio Service Mesh Monitoring
+  - job_name: 'istio-mesh'
+    kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names:
+            - istio-system
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: istio-telemetry;prometheus
+
+  # Custom Business Metrics
+  - job_name: 'dsr-business-metrics'
+    static_configs:
+      - targets: ['dsr-metrics-collector:8090']
+    scrape_interval: 30s
+    metrics_path: '/metrics'
+
+  # External Service Monitoring
+  - job_name: 'external-services'
+    static_configs:
+      - targets: 
+          - 'philsys.gov.ph'
+          - 'bangkosentral.gov.ph'
+          - 'landbank.com'
+    metrics_path: '/probe'
+    params:
+      module: [http_2xx]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+---
+# AlertManager Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+data:
+  alertmanager.yml: |
+    global:
+      smtp_smarthost: 'smtp.gov.ph:587'
+      smtp_from: 'dsr-alerts@gov.ph'
+      smtp_auth_username: 'dsr-alerts@gov.ph'
+      smtp_auth_password: '${SMTP_PASSWORD}'
+
+    route:
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'dsr-team'
+      routes:
+        - match:
+            severity: critical
+          receiver: 'dsr-critical'
+          group_wait: 5s
+          repeat_interval: 5m
+        - match:
+            severity: warning
+          receiver: 'dsr-warning'
+          repeat_interval: 30m
+        - match:
+            alertname: DeadMansSwitch
+          receiver: 'null'
+
+    receivers:
+      - name: 'null'
+
+      - name: 'dsr-team'
+        email_configs:
+          - to: 'dsr-team@gov.ph'
+            subject: 'DSR Alert: {{ .GroupLabels.alertname }}'
+            body: |
+              {{ range .Alerts }}
+              Alert: {{ .Annotations.summary }}
+              Description: {{ .Annotations.description }}
+              Labels: {{ range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}
+              {{ end }}
+        slack_configs:
+          - api_url: '${SLACK_WEBHOOK_URL}'
+            channel: '#dsr-alerts'
+            title: 'DSR System Alert'
+            text: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+
+      - name: 'dsr-critical'
+        email_configs:
+          - to: 'dsr-oncall@gov.ph'
+            subject: 'CRITICAL DSR Alert: {{ .GroupLabels.alertname }}'
+            body: |
+              CRITICAL ALERT - Immediate Action Required
+              
+              {{ range .Alerts }}
+              Alert: {{ .Annotations.summary }}
+              Description: {{ .Annotations.description }}
+              Severity: {{ .Labels.severity }}
+              Service: {{ .Labels.service }}
+              Instance: {{ .Labels.instance }}
+              Time: {{ .StartsAt }}
+              {{ end }}
+        slack_configs:
+          - api_url: '${SLACK_WEBHOOK_URL}'
+            channel: '#dsr-critical'
+            title: '🚨 CRITICAL DSR Alert'
+            text: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+            color: 'danger'
+        pagerduty_configs:
+          - routing_key: '${PAGERDUTY_ROUTING_KEY}'
+            description: 'DSR Critical Alert: {{ .GroupLabels.alertname }}'
+
+      - name: 'dsr-warning'
+        slack_configs:
+          - api_url: '${SLACK_WEBHOOK_URL}'
+            channel: '#dsr-warnings'
+            title: '⚠️ DSR Warning'
+            text: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+            color: 'warning'
+
+    inhibit_rules:
+      - source_match:
+          severity: 'critical'
+        target_match:
+          severity: 'warning'
+        equal: ['alertname', 'cluster', 'service']
+
+---
+# Grafana Dashboard Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+data:
+  dsr-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "DSR System Overview",
+        "tags": ["dsr", "overview"],
+        "timezone": "Asia/Manila",
+        "panels": [
+          {
+            "id": 1,
+            "title": "System Health",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "up{job=~\"dsr-.*-service\"}",
+                "legendFormat": "{{job}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "green", "value": 1}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "id": 2,
+            "title": "Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total{job=~\"dsr-.*-service\"}[5m])) by (job)",
+                "legendFormat": "{{job}}"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "Response Time",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=~\"dsr-.*-service\"}[5m])) by (job, le))",
+                "legendFormat": "95th percentile - {{job}}"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Error Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total{job=~\"dsr-.*-service\",status=~\"5..\"}[5m])) by (job) / sum(rate(http_requests_total{job=~\"dsr-.*-service\"}[5m])) by (job)",
+                "legendFormat": "Error Rate - {{job}}"
+              }
+            ]
+          },
+          {
+            "id": 5,
+            "title": "Database Connections",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "hikaricp_connections_active{job=~\"dsr-.*-service\"}",
+                "legendFormat": "Active - {{job}}"
+              },
+              {
+                "expr": "hikaricp_connections_idle{job=~\"dsr-.*-service\"}",
+                "legendFormat": "Idle - {{job}}"
+              }
+            ]
+          },
+          {
+            "id": 6,
+            "title": "Cache Hit Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "cache_gets_total{result=\"hit\"} / (cache_gets_total{result=\"hit\"} + cache_gets_total{result=\"miss\"})",
+                "legendFormat": "Cache Hit Rate"
+              }
+            ]
+          }
+        ],
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "refresh": "30s"
+      }
+    }
+
+---
+# Logging Configuration with Fluentd
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+  namespace: monitoring
+data:
+  fluent.conf: |
+    <source>
+      @type tail
+      @id dsr_application_logs
+      path /var/log/containers/dsr-*_dsr-production_*.log
+      pos_file /var/log/fluentd-containers.log.pos
+      tag dsr.application.*
+      read_from_head true
+      <parse>
+        @type json
+        time_format %Y-%m-%dT%H:%M:%S.%NZ
+      </parse>
+    </source>
+
+    <filter dsr.application.**>
+      @type kubernetes_metadata
+      @id filter_kube_metadata
+      kubernetes_url "#{ENV['FLUENT_FILTER_KUBERNETES_URL'] || 'https://' + ENV['KUBERNETES_SERVICE_HOST'] + ':' + ENV['KUBERNETES_SERVICE_PORT'] + '/api'}"
+      verify_ssl "#{ENV['KUBERNETES_VERIFY_SSL'] || true}"
+      ca_file "#{ENV['KUBERNETES_CA_FILE']}"
+      skip_labels false
+      skip_container_metadata false
+      skip_master_url false
+      skip_namespace_metadata false
+    </filter>
+
+    <filter dsr.application.**>
+      @type parser
+      key_name log
+      reserve_data true
+      remove_key_name_field true
+      <parse>
+        @type json
+      </parse>
+    </filter>
+
+    <match dsr.application.**>
+      @type elasticsearch
+      @id out_es
+      @log_level info
+      include_tag_key true
+      host "#{ENV['FLUENT_ELASTICSEARCH_HOST'] || 'elasticsearch'}"
+      port "#{ENV['FLUENT_ELASTICSEARCH_PORT'] || '9200'}"
+      path "#{ENV['FLUENT_ELASTICSEARCH_PATH'] || ''}"
+      scheme "#{ENV['FLUENT_ELASTICSEARCH_SCHEME'] || 'http'}"
+      ssl_verify "#{ENV['FLUENT_ELASTICSEARCH_SSL_VERIFY'] || 'true'}"
+      ssl_version "#{ENV['FLUENT_ELASTICSEARCH_SSL_VERSION'] || 'TLSv1_2'}"
+      user "#{ENV['FLUENT_ELASTICSEARCH_USER'] || use_default}"
+      password "#{ENV['FLUENT_ELASTICSEARCH_PASSWORD'] || use_default}"
+      reload_connections false
+      reconnect_on_error true
+      reload_on_failure true
+      log_es_400_reason false
+      logstash_prefix dsr-logs
+      logstash_dateformat %Y.%m.%d
+      logstash_format true
+      index_name dsr-logs
+      type_name _doc
+      <buffer>
+        flush_thread_count 8
+        flush_interval 5s
+        chunk_limit_size 2M
+        queue_limit_length 32
+        retry_max_interval 30
+        retry_forever true
+      </buffer>
+    </match>
